@@ -1,0 +1,13 @@
+{
+  "version": 3,
+  "file": "xemitter.js",
+  "sourceRoot": "..",
+  "sources": [
+    "src/xemitter.coffee"
+  ],
+  "names": [],
+  "mappings": ";AACA;EAAA,MAAM,CAAC,OAAP,GAAiB,CAAE,OAAA,CAAQ,YAAR,CAAF,CAAwB,CAAC,EAAE,CAAC,SAA5B,CAAA;AAAjB",
+  "sourcesContent": [
+    "\nmodule.exports = ( require 'pipedreams' ).XE.new_scope()\n"
+  ]
+}
