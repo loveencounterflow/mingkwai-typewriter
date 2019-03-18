@@ -1,0 +1,38 @@
+#!/bin/bash
+set -euo pipefail
+home="$(realpath "$(realpath "${BASH_SOURCE[0]}" | xargs dirname)")"
+cd "$home"
+
+# #-----------------------------------------------------------------------------------------------------------
+# sqlite-for-mingkwai-ime/sqlite3-27-902                              \
+  # -batch                                                            \
+#   -bail                                                             \
+#   -cmd '.load sqlite-for-mingkwai-ime/extensions/regexp'            \
+#   -cmd '.load sqlite-for-mingkwai-ime/extensions/csv'               \
+#   -cmd '.load sqlite-for-mingkwai-ime/extensions/spellfix'          \
+  # -column                                                           \
+#   -header                                                           \
+#   src/experiments/using-intercourse-with-sqlite.db                  \
+#   "$@"
+
+### TAINT implement interactive mode
+
+sqlite-for-mingkwai-ime/sqlite3-27-902                              \
+  -list                                                             \
+  -bail                                                             \
+  -header                                                           \
+  -cmd '.load sqlite-for-mingkwai-ime/extensions/regexp'            \
+  -cmd '.load sqlite-for-mingkwai-ime/extensions/csv'               \
+  -cmd '.load sqlite-for-mingkwai-ime/extensions/spellfix'          \
+  src/experiments/using-intercourse-with-sqlite.db                  \
+  "$@"                                                              \
+  | sed -e 's/[|]/| /g'                                             \
+  | column -ts '|' | sed -n 'p;1a ————————————————————————————————————————————————————————————————————————————————————————————————————'
+echo ''
+
+  # "select * from spellfix_custom_codes_defects;"                    \
+  # | sed -n 'p;1a ——————|——————|——————|——————|——————|——————|——————|——————|——————|——————|' | column -ts '|'
+
+  # -batch                                                            \
+
+

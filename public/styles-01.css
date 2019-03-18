@@ -1,0 +1,154 @@
+
+@font-face { font-family: 'flow';  src: url( './fonts/sunflower-exta-201903.ttf'  ); unicode-range: U+00000-10fff; }
+@font-face { font-family: 'flow';  src: url( './fonts/iosevka-slab-regular.ttf'   ); unicode-range: U+00000-04dff; }
+@font-face { font-family: 'flow';  src: url( './fonts/jizura3b.ttf'               ); unicode-range: U+0e000-0efff; }
+@font-face { font-family: 'flow';  src: url( './fonts/sunflower-u-cjk-xb.ttf'     ); unicode-range: U+20000-2ffff; }
+@font-face { font-family: 'flow';  src: url( './fonts/HanaMinA.ttf'               ); unicode-range: U+2a700-2b73f; }
+
+html, body {
+  background-color:       #9eaeb5;
+  height:                 100vh;
+  width:                  100vw;
+  padding:                0mm;
+  margin:                 0mm;
+  position:               absolute;
+  overflow:               hidden;
+  /*font-size:              6mm;*/
+  font-family:            'flow';
+}
+
+/* thx to https://developer.mozilla.org/en-US/docs/Web/CSS/line-height-step */
+:root {
+  --mktw-font-size:       6mm;
+  --mktw-grid:            8mm;
+  --mktw-grid-border-wh:  2mm;
+  --mktw-grid-sidebar-wh: 5mm;
+  font-size:              var(--mktw-font-size);
+  line-height-step:       var(--mktw-grid);
+}
+
+fullheightfullwidth {
+  display:                block;
+  height:                 100vh;
+  overflow:               hidden;
+}
+
+div,
+content,
+fullheightfullwidth,
+outergrid,
+topbar,
+midbar,
+scroller,
+bottombar {
+  background-color:       transparent;
+  outline:                1px solid red;
+  /*margin:                 10mm;*/
+}
+
+content         { display: block; }
+topbar          { display: block; grid-area: topbar;      }
+midbar          { display: block; grid-area: midbar;      }
+bottombar       { display: block; grid-area: bottombar;   }
+lbbar           { display: block; grid-area: lbbar;       }
+rbbar           { display: block; grid-area: rbbar;       }
+
+topbar content {
+  resize:                 vertical;
+  min-height:             10mm;
+  max-height:             100mm;
+  height:                 10mm;
+}
+
+midbar {
+  overflow:               hidden;
+  position:               relative;
+}
+
+scroller {
+  display:                block;
+  position:               relative;
+  z-index:                2;
+  overflow-y:             scroll;
+  height:                 100%;
+}
+
+outergrid {
+  display:                grid;
+  height:                 100vh;
+  grid-template-columns:
+    var(--mktw-grid-border-wh)
+    var(--mktw-grid-sidebar-wh)
+    calc( 100vw - 2 * var(--mktw-grid-border-wh) - 2 * var(--mktw-grid-sidebar-wh) )
+    var(--mktw-grid-sidebar-wh)
+    var(--mktw-grid-border-wh);
+  grid-template-rows:
+    var(--mktw-grid-border-wh)
+    1fr
+    auto
+    10mm
+    var(--mktw-grid-border-wh)
+    ;
+  grid-template-areas:
+    "...  ...   ...         ...   ..."
+    "...  ...   topbar      ...   ..."
+    "...  ...   midbar      ...   ..."
+    "...  lbbar bottombar   rbbar ..."
+    "...  ...   ...         ...   ..." }
+
+shade {
+  height:                 10mm;
+  width:                  100%;
+  border:                 none;
+  position:               absolute;
+  left:                   0mm;
+  top:                    10mm;
+  pointer-events:         none;
+}
+
+shade.background {
+  /*background-color:       rgba( 250, 255,   0, 0.80 );*/
+  background:             linear-gradient(
+                          180.0deg,
+                          rgba( 246, 240, 110, 1.00 ) 40.5%,
+                          rgba( 247, 255,   0, 1.00 ) 100% );
+  z-index:                1;
+}
+
+shade.foreground {
+  z-index:                3;
+  background-color:       transparent;
+  border:                 1px solid red;
+  box-shadow:                   3px 8px 5px 3px rgba( 0, 0, 0, 0.10 ),
+                          inset 3px 8px 5px 3px rgba( 0, 0, 0, 0.10 );
+}
+
+table#candidates {
+  white-space:            nowrap;
+  background-color:       transparent;
+  border:                 0mm;
+  border-collapse:        collapse;
+  margin-top:             2em;
+  margin-bottom:          24em; /* ### TAINT this value could be smaller or greater dep on app height */
+}
+
+#candidates tr,
+#candidates td {
+  height:                 var(--mktw-grid);
+}
+
+#candidates td {
+  padding-left:           1mm;
+  vertical-align:         middle;
+}
+
+#candidates td.glyph {
+  font-size:              12mm;
+}
+
+#text-input {
+  white-space:            nowrap;
+  /*height:                 100%;*/
+  height:                 var(--mktw-grid);
+}
+

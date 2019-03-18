@@ -1,0 +1,5 @@
+#!/bin/bash
+set -euo pipefail
+
+sqlite3 db/data.db < "$1" | pspg -s6
+
