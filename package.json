@@ -1,0 +1,24 @@
+{
+  "name": "mingkwai-ime",
+  "version": "1.0.0",
+  "description": "CJK Input Method",
+  "main": "lib/app.js",
+  "scripts": {
+    "start": "electron lib/app.js"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^4.1.0"
+  },
+  "dependencies": {
+    "clipboardy": "^1.2.3",
+    "cnd": "^4.5.0",
+    "coffeenode-teacup": "^0.2.0",
+    "csv-parser": "^2.2.0",
+    "electron-unhandled": "^2.1.0",
+    "icql": "^1.2.0",
+    "interflug": "^0.3.0",
+    "pipedreams": "^7.3.0",
+    "strip-bom-stream": "^3.0.0"
+  }
+}
