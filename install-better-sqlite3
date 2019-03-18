@@ -1,0 +1,19 @@
+#!/bin/bash
+set -euo pipefail
+home="$(realpath "$(realpath "${BASH_SOURCE[0]}" | xargs dirname)")"
+cd "$home"
+
+#-----------------------------------------------------------------------------------------------------------
+source ./lib.sh
+info "$0" "$@"
+
+
+procure_package "$sqltfmki_path" "$sqltfmki_url"
+build_sqlite_for_mingkwai_ime
+procure_package "$bsql3_path" "$bsql3_url"
+build_better_sqlite3_with_sqlite_for_mingkwai_ime "$sqltfmki_path"
+link_better_sqlite3
+
+
+
+
