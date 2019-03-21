@@ -66,18 +66,14 @@ latn_xhb_to_hrkt = {
   }
 ```
 
-When the `Latn.Xhb/Hira` map is active and the user presses the key marked `[k]`, a `〈k〉` is inserted
-into the current input target. No translation has been made as yet as there is more than one possible
-completions `〈か | け | き | こ | く | きゃ | きょ | きゅ〉` at this point.
+When the `Latn.Xhb/Hira` map is active and the user presses the key marked `[k]`, a `〈k〉` is inserted into
+the current input target. No translation has been made as yet as there are several possible completions
+`〈か|け|き|こ|く|きゃ|きょ|きゅ〉` at this point. When the user then hits `[y]`, the selector is updated to `[k|y]`,
+which matches `〈きゃ|きょ|きゅ〉`. It is only when one of `[a]`, `[o]`, `[u]` is hit that a unique match is arrived
+at, for example, `[k|y|a]` -> `〈きゃ〉`; this will cause MingKwai to send three backspaces to the input target
+to erase the three letters typed so far, and insert `きゃ`.
 
-〈か〉
-〈け〉
-〈き〉
-〈こ〉
-〈く〉
-〈きゃ〉
-〈きょ〉
-〈きゅ〉
+
 
 # Writing System Codes
 
