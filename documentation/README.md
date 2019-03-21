@@ -66,9 +66,18 @@ latn_xhb_to_hrkt = {
   }
 ```
 
-When the `Latn.Xhb/Hira` map is active and the user presses the key marked `[🖮k]`, that `k`
+When the `Latn.Xhb/Hira` map is active and the user presses the key marked `[k]`, a `〈k〉` is inserted
+into the current input target. No translation has been made as yet as there is more than one possible
+completions `〈か | け | き | こ | く | きゃ | きょ | きゅ〉` at this point.
 
-123⃣p⌨🎘🖦🖮
+〈か〉
+〈け〉
+〈き〉
+〈こ〉
+〈く〉
+〈きゃ〉
+〈きょ〉
+〈きゅ〉
 
 # Writing System Codes
 
