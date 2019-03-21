@@ -66,17 +66,17 @@ latn_xhb_to_hrkt = {
   }
 ```
 
-When the `Latn.Xhb/Hira` map is active and the user presses the key marked `k`, that `k`
+When the `Latn.Xhb/Hira` map is active and the user presses the key marked `[🖮k]`, that `k`
 
 123⃣p⌨🎘🖦🖮
 
 # Writing System Codes
 
-Hang: Hangeul
-Hani: Han (Hanzi, Kanji, Hanja); a.ka. Sinographs, CJK Ideographs
-Hira: Hiragana
-Hrkt: Hiragana and Katakana
-Kana: Katakana [sic]; **we use `Kata` to avoid confusion**
+* **`Hang`**: Hangeul
+* **`Hani`**: Han (Hanzi, Kanji, Hanja); a.ka. Sinographs, CJK Ideographs
+* **`Hira`**: Hiragana
+* **`Hrkt`**: Hiragana and Katakana
+* **`Kana`**: Katakana [sic]; *we use* **`Kata`** *to avoid confusion*
 
 # Non-Determininstic Key Translation Methods (dKTMs)
 
