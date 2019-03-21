@@ -7,7 +7,7 @@
 * base typing system, typing system base; == keybase
 * output / target typing system; == keytop
 
-# Key Translation Methods (KTMs)
+# Determininstic Key Translation Methods (dKTMs)
 
 * **Direct Input (`1:1`) KTM**: each keystroke is mapped to one (possibly empty) output string. Unmapped
   keys produce whatever effect they have in the basic mode. This mode is suitable for cases where the
@@ -21,32 +21,54 @@
 
 In practice, both Direct Input (`1:1`) and Transliteration (`n:m`) are implemented with prefix-matching
 dictionaries (trie maps, a.k.a. 'triodes') whose keys are keybase strings (user inputs, e.g. in Latin
-letters) to keytop strings (target outputs, e.g. Japanese Kana); thus, we can establish mappings like
+letters) to keytop strings (target outputs, e.g. Japanese Kana); this has the advantage that authors of new
+KTMs do not have to decide whether to use the one or the other technique, and that `1:1` schemas are
+seamlessly extendable to incorporate some `1:m`, `n:1` or `n:m` mappings as seen fit in the course of
+actions.
+
+## Inclusive Prefixes in Triode Terms
+
+In determininstic KTMs (dKTMs), the end-of-term (EOT) points (i.e. the point in time when the collected user
+input is replaced by the keytop (target output)) are reached *implicitly*, without there being a step where
+the user is presented with a list of possible completions to choose from (although such choices can be
+presented before then implicit EOT is reached). Thus, in a dKTM for Japanese Hiragan, we may establish a map
+like the below which goes from a Hepburn-like transliteration (call it `Latn.Xhb`) to Hiragana (`Hira`):
 
 ```coffee
-latn_hrkt_map = {
+latn_xhb_to_hrkt = {
+  'ka':       'か'
+  'ke':       'け'
+  'ki':       'き'
+  'ko':       'こ'
+  'ku':       'く'
+  'kya':      'きゃ'
+  'kyo':      'きょ'
+  'kyu':      'きゅ'
+  ...
   'pa':       'ぱ'
   'ra':       'ら'
-  'sa':       'さ'
   'ta':       'た'
   'wa':       'わ'
   'ya':       'や'
   'za':       'ざ'
-  'kyu':      'きゅ'
-  'kyo':      'きょ'
+  ...
   'n':        'ん'
   'nya':      'にゃ'
   'nyu':      'にゅ'
   'nyo':      'にょ'
+  ...
+  'sa':       'さ'
   'sha':      'しゃ'
   'shi':      'し'
   'shu':      'しゅ'
   'sho':      'しょ'
+  ...
   }
 ```
 
+When the `Latn.Xhb/Hira` map is active and the user presses the key marked `k`, that `k`
 
-```
+123⃣p⌨🎘🖦🖮
 
 # Writing System Codes
 
@@ -54,5 +76,9 @@ Hang: Hangeul
 Hani: Han (Hanzi, Kanji, Hanja); a.ka. Sinographs, CJK Ideographs
 Hira: Hiragana
 Hrkt: Hiragana and Katakana
-Kana: Katakana [sic]
+Kana: Katakana [sic]; **we use `Kata` to avoid confusion**
+
+# Non-Determininstic Key Translation Methods (dKTMs)
+
+
 
