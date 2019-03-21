@@ -73,7 +73,12 @@ which matches `〈きゃ|きょ|きゅ〉`. It is only when one of `[a]`, `[o]`,
 at, for example, `[k|y|a]` ⇒ `〈きゃ〉`; this will cause MingKwai to send three backspaces to the input target
 to erase the three letters typed so far, and insert `きゃ`.
 
-
+* keys / input / keybase: `[k|y|a]`
+* display: `〈kya〉`
+* multiple target / output / keytop: `〈きゃ|きょ|きゅ〉`
+* singular target / output / keytop: `〈きゃ〉`
+* 〈〉《》「」『』【】〖〗〘〙〚〛
+* `〈〉《》「」『』【】〖〗〘〙〚〛`
 
 # Writing System Codes
 
