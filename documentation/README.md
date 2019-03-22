@@ -80,7 +80,7 @@ to erase the three letters typed so far, and insert `きゃ`.
 * 〈〉《》「」『』【】〖〗〘〙〚〛
 * `〈〉《》「」『』【】〖〗〘〙〚〛`
 
-# Writing System Codes
+# Codes for Writing Systems
 
 * **`Hang`**: Hangeul
 * **`Hani`**: Han (Hanzi, Kanji, Hanja); a.ka. Sinographs, CJK Ideographs
