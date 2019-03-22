@@ -26,7 +26,8 @@ PATH                      = require 'path'
       electron: ### see https://electronjs.org/docs/api/browser-window ###
         x:                      700
         y:                      0
-        width:                  1500
+        # width:                  1500
+        width:                  800
         height:                 600
 
         # width:                  1200

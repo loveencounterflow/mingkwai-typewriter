@@ -16,53 +16,56 @@ inspect                   = ( require 'util' ).inspect
 # TRAP                      = require 'mousetrap'
 # { app, globalShortcut, }  = require 'electron'
 # PTVR                      = require '../lib/lib/ptv-reader'
-IME                       = require '../lib/ime'
+# IME                       = require '../lib/ime'
 STATE                     = require '../lib/state'
 T                         = require '../lib/templates'
 ### https://github.com/sindresorhus/electron-unhandled ###
-require                   '../lib/exception-handler'
 #...........................................................................................................
-# { remote, }               = require 'electron'
+require                   '../lib/exception-handler'
+require                   '../lib/kana-input'
+#...........................................................................................................
 PD                        = require 'pipedreams'
-XE                        = require '../lib/xemitter'
+{ jr, }                   = CND
+{ $
+  $async }                = PD
+XE                        = null
 
-XE.listen_to_all ( key, event ) -> debug '28823', key, event.key # ( k for k of event )
 
 
-#-----------------------------------------------------------------------------------------------------------
-XE.listen_to 'KEYS/kblevels/change', @, ( { S, key, } ) ->
-  ### TAINT bind keys using configuration ###
-  { name, toggle, } = key
-  #.........................................................................................................
-  S.bind_left   = ( toggle is 'on' ) if name is 'alt'
-  S.bind_right  = ( toggle is 'on' ) if name is 'altgr'
-  #.........................................................................................................
-  if S.bind_left  then  ( $ 'lbbar' ).show() ### TAINT ###
-  else                  ( $ 'lbbar' ).hide() ### TAINT ###
-  if S.bind_right then  ( $ 'rbbar' ).show() ### TAINT ###
-  else                  ( $ 'rbbar' ).hide() ### TAINT ###
-  #.........................................................................................................
-  return null
+# #-----------------------------------------------------------------------------------------------------------
+# XE.listen_to 'KEYS/kblevels/change', @, ( { S, key, } ) ->
+#   ### TAINT bind keys using configuration ###
+#   { name, toggle, } = key
+#   #.........................................................................................................
+#   S.bind_left   = ( toggle is 'on' ) if name is 'alt'
+#   S.bind_right  = ( toggle is 'on' ) if name is 'altgr'
+#   #.........................................................................................................
+#   if S.bind_left  then  ( jQuery 'lbbar' ).show() ### TAINT ###
+#   else                  ( jQuery 'lbbar' ).hide() ### TAINT ###
+#   if S.bind_right then  ( jQuery 'rbbar' ).show() ### TAINT ###
+#   else                  ( jQuery 'rbbar' ).hide() ### TAINT ###
+#   #.........................................................................................................
+#   return null
 
-#-----------------------------------------------------------------------------------------------------------
-@on_add_selection = ( uie ) ->
-  { S, } = uie
-  debug '44545', 'selected row nr:', S.row_idx + 1
-  chr = S.rows?[ S.row_idx ]?.glyph
-  XE.emit 'IME/input/add', { S, row_idx: S.row_idx, chr, }
-  uie.event.preventDefault()
-  return null
+# #-----------------------------------------------------------------------------------------------------------
+# @on_add_selection = ( uie ) ->
+#   { S, } = uie
+#   debug '44545', 'selected row nr:', S.row_idx + 1
+#   chr = S.rows?[ S.row_idx ]?.glyph
+#   XE.emit 'IME/input/add', { S, row_idx: S.row_idx, chr, }
+#   uie.event.preventDefault()
+#   return null
 
-#-----------------------------------------------------------------------------------------------------------
-XE.listen_to 'IME/input/add', @, ( { S, row_idx, chr, } ) ->
-  debug "update output area"
-  debug "reset candidates area, input box"
-  ### TAINT remove buffer ###
-  S.buffer.push chr
-  # ( $ '#output-area .inbox' ).text S.buffer.join ''
-  S.codemirror.editor.replaceSelection chr
-  ( $ '#text-input' ).text ''
-  return null
+# #-----------------------------------------------------------------------------------------------------------
+# XE.listen_to 'IME/input/add', @, ( { S, row_idx, chr, } ) ->
+#   debug "update output area"
+#   debug "reset candidates area, input box"
+#   ### TAINT remove buffer ###
+#   S.buffer.push chr
+#   # ( jQuery '#output-area .inbox' ).text S.buffer.join ''
+#   S.codemirror.editor.replaceSelection chr
+#   ( jQuery '#text-input' ).text ''
+#   return null
 
 #-----------------------------------------------------------------------------------------------------------
 @on_scroll = ( S, event ) =>
@@ -118,52 +121,51 @@ XE.listen_to 'IME/input/add', @, ( { S, row_idx, chr, } ) ->
     S.scroller_last_top           = S.scroller.scrollTop() + delta_px
     S.ignore_next_scroll_events  += +1
     S.scroller.scrollTop S.scroller_last_top
-    # ( ( $ element ).find '.glyph' ).css 'font-size', '125%'
+    # ( ( jQuery element ).find '.glyph' ).css 'font-size', '125%'
   return null
 
-# #-----------------------------------------------------------------------------------------------------------
-# XE.listen_to 'WINDOW/scroll/vertical', @, ({ S, from, via, to, }) ->
-#   whisper "WINDOW/scroll/vertical #{from} -> #{via} -> #{to}"
+# # #-----------------------------------------------------------------------------------------------------------
+# # XE.listen_to 'WINDOW/scroll/vertical', @, ({ S, from, via, to, }) ->
+# #   whisper "WINDOW/scroll/vertical #{from} -> #{via} -> #{to}"
 
 #-----------------------------------------------------------------------------------------------------------
 @on_input = ( S, event ) ->
-  self    = $ @
-  await IME.fetch_rows S, S.input.text()
+  self    = jQuery @
+  # await IME.fetch_rows S, S.input.text()
   rows    = []
   columns = [ 'short_iclabel', 'glyph', 'value', ]
   for row, idx in S.rows
     rows.push T.get_row_html [ [ 'nr', idx + 1, ], ( [ key, row[ key ], ] for key in columns )..., ]
   rows = rows.join '\n'
-  ( $ '#candidates tr'    ).remove()
-  ( $ '#candidates tbody' ).append rows
-  ( $ '#qdt'              ).text S.qdt
+  ( jQuery '#candidates tr'    ).remove()
+  ( jQuery '#candidates tbody' ).append rows
+  ( jQuery '#qdt'              ).text S.qdt
   return null
 
 #-----------------------------------------------------------------------------------------------------------
 @init = ->
+  { remote, }               = require 'electron'
+  XE                        = remote.require './xemitter'
   #.........................................................................................................
   ### Instantiate state, add important UI elements ###
   S                     = STATE.new()
-  S.candidates          = $ '#candidates'
-  S.shade_offset_top    = ( $ 'shade.foreground' ).offset().top
-  S.input               = $ '#text-input'
-  S.scroller            = $ 'scroller'
+  S.candidates          = jQuery '#candidates'
+  S.shade_offset_top    = ( jQuery 'shade.foreground' ).offset().top
+  S.input               = jQuery '#text-input'
+  S.scroller            = jQuery 'scroller'
   #.........................................................................................................
   ### Make sure focus is on input element ###
-  ( $ '#text-input' ).focus()
+  ( jQuery '#text-input' ).focus()
   #.........................................................................................................
   ### TAINT temporary; will use KB event, icon, dedicated method for this ###
   ### Switch focus on click on editor ###
-  ( $ 'topbar content' ).on 'click', ( event ) =>
-    if S.codemirror.is_enlarged then  property = { 'height': ( $ 'topbar content' ).css 'min-height' }
-    else                              property = { 'height': ( $ 'topbar content' ).css 'max-height' }
+  ( jQuery 'topbar content' ).on 'click', ( event ) =>
+    if S.codemirror.is_enlarged then  property = { 'height': ( jQuery 'topbar content' ).css 'min-height' }
+    else                              property = { 'height': ( jQuery 'topbar content' ).css 'max-height' }
     S.codemirror.is_enlarged = not S.codemirror.is_enlarged
-    ( $ 'topbar content' ).animate property, 100
+    ( jQuery 'topbar content' ).animate property, 100
   #.........................................................................................................
   ### Register key and mouse events ###
-  # KEYS.syphon_key_and_mouse_events S, $ '#text-input'
-  # KEYS.register 'axis', 'vertical',     ( uie )   => @on_vertical_navigation  uie
-  # KEYS.register 'slot', 'Enter',        ( uie )   => @on_add_selection        uie
   S.scroller.on 'wheel',                ( event ) => @on_wheel                S, event
   S.scroller.on 'scroll',               ( event ) => @on_scroll               S, event
   S.input.on 'input',                   ( event ) => @on_input                S, event
@@ -171,19 +173,15 @@ XE.listen_to 'IME/input/add', @, ( { S, row_idx, chr, } ) ->
   S.scroller_last_top = S.scroller.scrollTop()
   #.........................................................................................................
   ### Measure table row height, adjust shade ###
-  S.candidates_tr_height = ( $ '#candidates tr' ).height()
-  ( $ 'shade' ).height S.candidates_tr_height * 1.1
-  #.........................................................................................................
-  ### Initialize KBLevels (partially) ###
-  XE.emit 'KEYS/kblevels/change', { S, key: { name: 'alt',   toggle: ( if S.kblevels.alt   then 'on' else 'off' ), }, }
-  XE.emit 'KEYS/kblevels/change', { S, key: { name: 'altgr', toggle: ( if S.kblevels.altgr then 'on' else 'off' ), }, }
+  S.candidates_tr_height = ( jQuery '#candidates tr' ).height()
+  ( jQuery 'shade' ).height S.candidates_tr_height * 1.1
   #.........................................................................................................
   ### Initialize CodeMirror ###
-  S.codemirror.editor = CodeMirror.fromTextArea ( $ '#codemirror' )[ 0 ], S.codemirror.settings
+  S.codemirror.editor = CodeMirror.fromTextArea ( jQuery '#codemirror' )[ 0 ], S.codemirror.settings
   # S.codemirror.editor.replaceSelection 'this is the editor'
   S.codemirror.editor.setSize null, '100%'
   #.........................................................................................................
   return null
 
 #-----------------------------------------------------------------------------------------------------------
-$ init.bind @
+jQuery init.bind @

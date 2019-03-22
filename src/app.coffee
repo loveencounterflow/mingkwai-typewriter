@@ -32,7 +32,9 @@ IF                        = require 'interflug'
 kb_listener_is_ready      = false
 app_is_ready              = false
 page_html_path            = PATH.resolve PATH.join __dirname, '../public/main.html'
-
+### keep a module-global reference to main window to prevent GC from collecting it as per
+https://youtu.be/iVdXOrtdHvA?t=713 ###
+main_window               = null
 
 #-----------------------------------------------------------------------------------------------------------
 @write_page_source = ->
@@ -60,7 +62,7 @@ page_html_path            = PATH.resolve PATH.join __dirname, '../public/main.ht
 #-----------------------------------------------------------------------------------------------------------
 @listen_to_keyboard = ->
   on_ready  = =>
-    urge 'µ88782', "keybvoard event source ready"
+    urge 'µ88782', "keyboard event source ready"
     kb_listener_is_ready = true
     @launch() if app_is_ready and kb_listener_is_ready
   #.........................................................................................................
@@ -80,32 +82,32 @@ page_html_path            = PATH.resolve PATH.join __dirname, '../public/main.ht
 @launch = ->
   debug 'µ11233', 'launch'
   ### TAINT workaround: obtain configuration from a throw-away state instance ###
-  state   = require './state'
-  S       = state.new()
-  window  = new BrowserWindow S.window.electron
+  state       = require './state'
+  S           = state.new()
+  main_window = new BrowserWindow S.window.electron
   #.........................................................................................................
-  window.loadURL URL.format { pathname: page_html_path, protocol: 'file:', slashes: true, }
+  main_window.loadURL URL.format { pathname: page_html_path, protocol: 'file:', slashes: true, }
   #.........................................................................................................
   ### TAINT consider to move all exception handlers to module `exception-handler` ###
-  window.on 'unresponsive', ->
-    alert "window unresponsive!"
+  main_window.on 'unresponsive', ->
+    alert "main_window unresponsive!"
   #.........................................................................................................
   process.on 'uncaughtException',  ( error ) ->
     alert "uncaught exception"
     alert rpr error
     process.exit 1
   #.........................................................................................................
-  window.webContents.on 'crashed', ->
-    alert "window crashed!"
-    window.close()
+  main_window.webContents.on 'crashed', ->
+    alert "main_window crashed!"
+    main_window.close()
     return null
   #.........................................................................................................
-  window.once 'ready-to-show', ->
+  main_window.once 'ready-to-show', ->
     # debug '77565-1', 'ready-to-show'
-    window.show()
-    window.maximize()                 if S.window.maximize      ? no
-    window.webContents.openDevTools() if S.window.show_devtools ? no
-    window.webContents.on 'error', ( error ) => warn 'µ76599', error.message
+    main_window.show()
+    main_window.maximize()                 if S.window.maximize      ? no
+    main_window.webContents.openDevTools() if S.window.show_devtools ? no
+    main_window.webContents.on 'error', ( error ) => warn 'µ76599', error.message
     ### thx to https://stackoverflow.com/a/44012967/7568091 ###
     pid                 = process.pid
     wid                 = await IF.wait_for_window_id_from_pid process.pid
