@@ -1,4 +1,37 @@
 
+# Abandoned Branch
+
+The `interflug` branch contains code for a (somewhat crude) Kana input method that works (or is intended to
+work) directly in all applications. This is achieved by listening to key events in
+`/dev/input/by-path/platform-i8042-serio-0-event-kbd` (or whatever the relevant file is called on the user's
+machine). These keystrokes (e.g. `[k|y|a]`) are buffered and as soon as a match has been found (in this case
+`〈きゃ〉`), that text is written to the clipboard. Finally, a suitable number of backspaces is sent to the
+current window, followed by `[ctrl+v]` to cause the application to insert the clipboard contents. These
+interactions are implemented via
+[`loveencounterflow/interflug`](https://github.com/loveencounterflow/interflug) which does its magic using
+`xte`.
+
+While this process does work to an extent, it has a number of problems:
+
+* It's not fast enough; it is too easy to hit keys so fast that translations are intermittently skipped.
+  This is super irritating as users have to intentionally slow down themselves and closely proof-read all
+  text. Therefore,
+
+* it's not reliable enough.
+
+* There's the unsolved problem how to detect non-keyboard interactions between user and application.
+
+* It is hard to predict an applications exact behavior for all keystrokes, for example, some text editors
+  will sometimes but not always insert a right bracket when a left bracket is typed. The input mechanism has
+  to basically fly on autopilot through a fog and one can never be sure no strange side-effects happen.
+
+One could ignore the last problem but not the first one. It does look like the root of the performance and
+reliability problem does not so much lie with NodeJS or JavaScript, but rather the `xte` command that
+`interflug` uses. `xte` has been known to require arbitrary timeouts of hundreds of milliseconds between
+some commands to work properly.
+
+
+
 # Caveat
 
 Under development. So far this app will probably only work on Debian-esque Linuxes (inlcuding Ubuntu, Mint).
