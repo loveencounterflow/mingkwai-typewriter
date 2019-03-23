@@ -22,7 +22,7 @@ PATH                      = require 'path'
   R =
     window:
       # show_devtools:    true
-      # maximize:         true
+      maximize:         true
       electron: ### see https://electronjs.org/docs/api/browser-window ###
         x:                      700
         y:                      0
@@ -55,7 +55,7 @@ PATH                      = require 'path'
       is_enlarged:              false
       #.....................................................................................................
       settings:
-        # mode:                     'coffeescript'
+        mode:                     'coffeescript'
         # mode:                     'javascript',
         keyMap:                   'sublime'
         theme:                    'monokai'

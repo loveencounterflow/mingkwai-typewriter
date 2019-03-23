@@ -23,6 +23,7 @@ html, body {
   --mktw-grid:            8mm;
   --mktw-grid-border-wh:  2mm;
   --mktw-grid-sidebar-wh: 5mm;
+  --mktw-grid-rightbar-wh:  10%;
   font-size:              var(--mktw-font-size);
   line-height-step:       var(--mktw-grid);
 }
@@ -37,8 +38,8 @@ div,
 content,
 fullheightfullwidth,
 outergrid,
-topbar,
-midbar,
+leftbar,
+rightbar,
 scroller,
 bottombar {
   background-color:       transparent;
@@ -47,20 +48,20 @@ bottombar {
 }
 
 content         { display: block; }
-topbar          { display: block; grid-area: topbar;      }
-midbar          { display: block; grid-area: midbar;      }
+leftbar         { display: block; grid-area: leftbar;     }
+rightbar        { display: block; grid-area: rightbar;    }
 bottombar       { display: block; grid-area: bottombar;   }
 lbbar           { display: block; grid-area: lbbar;       }
 rbbar           { display: block; grid-area: rbbar;       }
 
-topbar content {
+leftbar content {
   resize:                 vertical;
   min-height:             10mm;
-  max-height:             100mm;
-  height:                 10mm;
+  /*max-height:             100mm;*/
+  height:                 100%;
 }
 
-midbar {
+rightbar {
   overflow:               hidden;
   position:               relative;
 }
@@ -79,7 +80,8 @@ outergrid {
   grid-template-columns:
     var(--mktw-grid-border-wh)
     var(--mktw-grid-sidebar-wh)
-    calc( 100vw - 2 * var(--mktw-grid-border-wh) - 2 * var(--mktw-grid-sidebar-wh) )
+    calc( 100vw - 2 * var(--mktw-grid-border-wh) - 2 * var(--mktw-grid-sidebar-wh) - var(--mktw-grid-rightbar-wh) )
+    var(--mktw-grid-rightbar-wh)
     var(--mktw-grid-sidebar-wh)
     var(--mktw-grid-border-wh);
   grid-template-rows:
@@ -90,11 +92,10 @@ outergrid {
     var(--mktw-grid-border-wh)
     ;
   grid-template-areas:
-    "...  ...   ...         ...   ..."
-    "...  ...   topbar      ...   ..."
-    "...  ...   midbar      ...   ..."
-    "...  lbbar bottombar   rbbar ..."
-    "...  ...   ...         ...   ..." }
+    "...  ...   ...         ...       ...   ..."
+    "...  ...   leftbar     rightbar  ...   ..."
+    "...  lbbar bottombar   bottombar rbbar ..."
+    "...  ...   ...         ...       ...   ..." }
 
 shade {
   height:                 10mm;
