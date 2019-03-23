@@ -29,9 +29,9 @@ DB                        = require './db'
 #...........................................................................................................
 { jr, }                   = CND
 PD                        = require 'pipedreams'
-{ remote, }               = require 'electron'
-IF                        = require 'interflug'
-XE                        = remote.require './xemitter'
+# { remote, }               = require 'electron'
+# XE                        = remote.require './xemitter'
+XE                        = require './xemitter'
 #...........................................................................................................
 TRIODE                    = require 'triode'
 kana_keyboard 						= require '../db/kana.keyboard.json'
@@ -46,32 +46,16 @@ buffer 										= []
 
 # #-----------------------------------------------------------------------------------------------------------
 # XE.listen_to_all ( key, d ) -> whisper 'µ44532', jr d
-
+urge __filename
 #-----------------------------------------------------------------------------------------------------------
-XE.listen_to '^keypress', ( d ) ->
-	# urge 'µ55401', jr d
-	v = d.value
-	return unless v.move is 'down'
-	#.........................................................................................................
-	### TAINT need proper keyboard mapping ###
-	if v.name.length is 1
-		buffer.push v.name
-	#.........................................................................................................
-	else if v.name is 'backspace'
-		buffer.pop() if buffer.length > 0
-	#.........................................................................................................
-	probe 	= buffer.join ''
-	matches	= kana_triode[ probe ]
-	if matches.length is 1
-		hit 						= matches[ 0 ][ 1 ]
-		backspace_count	= buffer.length
-		buffer.length		= 0
-		await IF.T.erase_and_insert backspace_count, hit
-	# hits 		= ( match[ 1 ] for match in matches ).join ', '
-	# debug 'µ87876', probe, '->', rpr hits
-	debug 'µ87876', rpr buffer.join ''
-	#.........................................................................................................
-	return null
+XE.contract '^input', ( d ) ->
+	urge 'µ55401', jr d
+	matches	= kana_triode[ d.value ]
+	return null unless matches.length is 1
+	return matches[ 0 ][ 1 ]
+
+do ->
+	debug 'µ98933', await XE.emit PD.new_event '^input', 'kyo'
 
 #-----------------------------------------------------------------------------------------------------------
 XE.listen_to '<keyboard-level', ( d ) ->

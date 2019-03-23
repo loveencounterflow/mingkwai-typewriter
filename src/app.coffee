@@ -26,11 +26,8 @@ window                    = null
 TEMPLATES                 = require './templates'
 PD                        = require 'pipedreams'
 XE                        = require './xemitter'
-IF                        = require 'interflug'
 { jr, }                   = CND
 #...........................................................................................................
-kb_listener_is_ready      = false
-app_is_ready              = false
 page_html_path            = PATH.resolve PATH.join __dirname, '../public/main.html'
 ### keep a module-global reference to main window to prevent GC from collecting it as per
 https://youtu.be/iVdXOrtdHvA?t=713 ###
@@ -58,25 +55,6 @@ main_window               = null
   whisper ( key.padEnd 20 ), process.versions[ key ] for key in keys
   whisper ( '明快打字机'.padEnd 15 ), ( require '../package.json' ).version
   return null
-
-#-----------------------------------------------------------------------------------------------------------
-@listen_to_keyboard = ->
-  on_ready  = =>
-    urge 'µ88782', "keyboard event source ready"
-    kb_listener_is_ready = true
-    @launch() if app_is_ready and kb_listener_is_ready
-  #.........................................................................................................
-  pipeline  = []
-  source    = IF.K.new_keyboard_event_source { on_ready, }
-  pipeline.push source
-  pipeline.push PD.$watch ( d ) -> XE.emit d
-  pipeline.push PD.$drain()
-  PD.pull pipeline...
-
-#-----------------------------------------------------------------------------------------------------------
-@on_app_ready = ->
-  app_is_ready = true
-  @launch() if app_is_ready and kb_listener_is_ready
 
 #-----------------------------------------------------------------------------------------------------------
 @launch = ->
@@ -108,17 +86,16 @@ main_window               = null
     main_window.maximize()                 if S.window.maximize      ? no
     main_window.webContents.openDevTools() if S.window.show_devtools ? no
     main_window.webContents.on 'error', ( error ) => warn 'µ76599', error.message
-    ### thx to https://stackoverflow.com/a/44012967/7568091 ###
-    pid                 = process.pid
-    wid                 = await IF.wait_for_window_id_from_pid process.pid
-    XE.emit PD.new_event '^window-id', wid
+    # ### thx to https://stackoverflow.com/a/44012967/7568091 ###
+    # pid                 = process.pid
+    # wid                 = await IF.wait_for_window_id_from_pid process.pid
+    # XE.emit PD.new_event '^window-id', wid
     return null
 
 
 ############################################################################################################
-app.once 'ready', @on_app_ready.bind @
+app.once 'ready', @launch.bind @
 @write_page_source()
 @list_versions()
-@listen_to_keyboard()
 
 

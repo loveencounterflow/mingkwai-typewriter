@@ -28,7 +28,8 @@ PD                        = require 'pipedreams'
 { jr, }                   = CND
 { $
   $async }                = PD
-XE                        = null
+# XE                        = null
+XE                        = require '../lib/xemitter'
 
 
 
@@ -130,22 +131,25 @@ XE                        = null
 
 #-----------------------------------------------------------------------------------------------------------
 @on_input = ( S, event ) ->
-  self    = jQuery @
-  # await IME.fetch_rows S, S.input.text()
-  rows    = []
-  columns = [ 'short_iclabel', 'glyph', 'value', ]
-  for row, idx in S.rows
-    rows.push T.get_row_html [ [ 'nr', idx + 1, ], ( [ key, row[ key ], ] for key in columns )..., ]
-  rows = rows.join '\n'
-  ( jQuery '#candidates tr'    ).remove()
-  ( jQuery '#candidates tbody' ).append rows
-  ( jQuery '#qdt'              ).text S.qdt
+  debug 'µ23244', await XE.emit PD.new_event '^input', S.input.text()
+  if ( replacement = await XE.delegate PD.new_event '^input', S.input.text() )?
+    S.input.text ''
+    S.codemirror.editor.replaceSelection replacement
+
+  # rows    = []
+  # columns = [ 'short_iclabel', 'glyph', 'value', ]
+  # for row, idx in S.rows
+  #   rows.push T.get_row_html [ [ 'nr', idx + 1, ], ( [ key, row[ key ], ] for key in columns )..., ]
+  # rows = rows.join '\n'
+  # ( jQuery '#candidates tr'    ).remove()
+  # ( jQuery '#candidates tbody' ).append rows
+  # ( jQuery '#qdt'              ).text S.qdt
   return null
 
 #-----------------------------------------------------------------------------------------------------------
 @init = ->
-  { remote, }               = require 'electron'
-  XE                        = remote.require './xemitter'
+  # { remote, }               = require 'electron'
+  # XE                        = remote.require './xemitter'
   #.........................................................................................................
   ### Instantiate state, add important UI elements ###
   S                     = STATE.new()
@@ -159,11 +163,13 @@ XE                        = null
   #.........................................................................................................
   ### TAINT temporary; will use KB event, icon, dedicated method for this ###
   ### Switch focus on click on editor ###
-  ( jQuery 'topbar content' ).on 'click', ( event ) =>
-    if S.codemirror.is_enlarged then  property = { 'height': ( jQuery 'topbar content' ).css 'min-height' }
-    else                              property = { 'height': ( jQuery 'topbar content' ).css 'max-height' }
-    S.codemirror.is_enlarged = not S.codemirror.is_enlarged
-    ( jQuery 'topbar content' ).animate property, 100
+  # ( jQuery 'topbar content' ).on 'click', ( event ) =>
+  #   if S.codemirror.is_enlarged then  property = { 'height': ( jQuery 'topbar content' ).css 'min-height' }
+  #   else                              property = { 'height': ( jQuery 'topbar content' ).css 'max-height' }
+  #   S.codemirror.is_enlarged = not S.codemirror.is_enlarged
+  #   ( jQuery 'topbar content' ).animate property, 100
+  property = { 'height': ( jQuery 'topbar content' ).css 'max-height' }
+  ( jQuery 'topbar content' ).animate property, 100
   #.........................................................................................................
   ### Register key and mouse events ###
   S.scroller.on 'wheel',                ( event ) => @on_wheel                S, event
