@@ -4,9 +4,9 @@
 Under development. So far this app will probably only work on Debian-esque Linuxes (inlcuding Ubuntu, Mint).
 YMMV. Caveat emptor.
 
-# The MingKwai TypeWriter 明快排字机
+# The MingKwai TypeWriter 明快打字机
 
-The MingKwai TypeWriter 明快排字机 (MKTW) is a Unicode Text Input App and Input Method (IME) built with
+The MingKwai TypeWriter 明快打字机 (MKTW) is a Unicode Text Input App and Input Method (IME) built with
 [electron](https://electronjs.org) that is especially suited for the input of Sinographs (i.e. Kanji,
 Chinese Characters, CJK Ideographs as used in Chinese, Japanese and Korean), but also to use Latin-based
 keyboards to input other alphabetic scripts, such as Hangeul, Greek, or Cyrillic.
