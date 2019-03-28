@@ -22,7 +22,7 @@ PATH                      = require 'path'
   R =
     window:
       # show_devtools:    true
-      maximize:         true
+      # maximize:         true
       electron: ### see https://electronjs.org/docs/api/browser-window ###
         x:                      700
         y:                      0
@@ -55,16 +55,39 @@ PATH                      = require 'path'
       is_enlarged:              false
       #.....................................................................................................
       settings:
-        mode:                     'coffeescript'
-        # mode:                     'javascript',
-        keyMap:                   'sublime'
-        theme:                    'monokai'
-        # value:                    'console.log( "helo" );'
-        lineNumbers:              true
-        autoCloseBrackets:        true
-        matchBrackets:            true
-        showCursorWhenSelecting:  true
-        tabSize:                  2
+        # specialCharPlaceholder: function(char) → Element
+        value:                        'console.log( "helo" );'
+        autoCloseBrackets:            true
+        direction:                    'ltr'
+        electricChars:                true
+        firstLineNumber:              1
+        indentUnit:                   2
+        indentWithTabs:               true
+        inputStyle:                   'contenteditable'
+        keyMap:                       'sublime'
+        lineNumbers:                  true
+        lineWrapping:                 false
+        matchBrackets:                true
+        # mode:                         'coffeescript'
+        # mode:                         'javascript',
+        mode:                         'markdown',
+        rtlMoveVisually:              true
+        showCursorWhenSelecting:      true
+        smartIndent:                  true
+        specialChars:                 /[\u0000-\u001f\u007f-\u009f\u00ad\u061c\u200b-\u200f\u2028\u2029\ufeff]/
+        tabSize:                      2
+        theme:                        'monokai'
+        selectionsMayTouch:           true
+        undoDepth:                    200
+        autofocus:                    true
+        cursorBlinkRate:              400
+        cursorScrollMargin:           5
+        cursorHeight:                 1
+        resetSelectionOnContextMenu:  false
+        viewportMargin:               10
+        spellcheck:                   false
+        autocorrect:                  false
+        autocapitalize:               false
     #.......................................................................................................
     buffer:         []
     rows:           []

@@ -32,41 +32,73 @@ PD                        = require 'pipedreams'
 # { remote, }               = require 'electron'
 # XE                        = remote.require './xemitter'
 XE                        = require './xemitter'
+{ inspect, }              = require 'util'
+xrpr                      = ( x ) -> inspect x, { colors: yes, breakLength: Infinity, maxArrayLength: Infinity, depth: Infinity, }
 #...........................................................................................................
-TRIODE                    = require 'triode'
-kana_keyboard 						= require '../db/kana.keyboard.json'
-kana_triode 							= null
-buffer 										= []
+# TRIODE                    = require 'triode'
 
 #-----------------------------------------------------------------------------------------------------------
-@load_kana_triode = ->
-	kana_triode = TRIODE.new()
-	kana_triode[ source ] = target for [ source, target, ] in kana_keyboard
-	return null
+@load_keyboard = ->
+  ### TAINT compare filedates, refresh cache ###
+  return require '../.cache/jp_kana.hrgn.keyboard.wsv.js'
+  # return require '../.cache/gr_gr.keyboard.wsv.js'
+key_replacer = @load_keyboard()
 
-# #-----------------------------------------------------------------------------------------------------------
-# XE.listen_to_all ( key, d ) -> whisper 'µ44532', jr d
-urge __filename
+#-----------------------------------------------------------------------------------------------------------
+XE.contract '^raw-input', ( d ) ->
+  #.........................................................................................................
+  { S, change, }  = d.value
+  { editor, }     = S.codemirror
+  { doc, }        = editor
+  cursor          = doc.getCursor()
+  #.........................................................................................................
+  ### TAINT kludge to collapse multiple selections into a single one ###
+  CodeMirror.commands.singleSelection editor
+  #.........................................................................................................
+  line_idx        = cursor.line
+  line_handle     = doc.getLineHandle line_idx
+  line_info       = doc.lineInfo line_handle ### TAINT consider to use line_idx, forego line_handle ###
+  { text, }       = line_info
+  # #.........................................................................................................
+  # ### TAINT put this event further up in the chain ###
+  # ### make behavior on paste configurable ###
+  # debug 'µ77733', change
+  # if change.origin is 'paste'
+  #   head  = Array.from text
+  #   tail  = []
+  #   while ( chr = head.shift() )
+  #     tail.push chr
+  #     text = tail.join ''
+  #     XE.emit PD.new_event '^input', { S, change, editor, doc, line_idx, text, }
+  # #.........................................................................................................
+  # else
+  XE.emit PD.new_event '^input', { S, change, editor, doc, line_idx, text, }
+  #.........................................................................................................
+  return null
+
 #-----------------------------------------------------------------------------------------------------------
 XE.contract '^input', ( d ) ->
-	urge 'µ55401', jr d
-	matches	= kana_triode[ d.value ]
-	return null unless matches.length is 1
-	return matches[ 0 ][ 1 ]
-
-do ->
-	debug 'µ98933', await XE.emit PD.new_event '^input', 'kyo'
+  v = d.value
+  #.........................................................................................................
+  # whisper 'µ34343', xrpr change
+  text            = key_replacer v.text
+  urge 'µ34343', ( xrpr v.text ) + ' -> ' + ( xrpr text )
+  ### TAINT replacing the text of the entire line is one way to insert new text, but it would conceivably
+  more elegant and / or more correct if we just replaced in the editor what we're replacing in the text ###
+  ### TAINT consider to build micro shim so we get rid of these (for our use case) bizarre API choices ###
+  CodeMirror.commands.goLineEnd   v.editor
+  CodeMirror.commands.delLineLeft v.editor
+  v.doc.replaceSelection text
+  return null
 
 #-----------------------------------------------------------------------------------------------------------
 XE.listen_to '<keyboard-level', ( d ) ->
-	# urge 'µ55402', jr d
+  # urge 'µ55402', jr d
 
 #-----------------------------------------------------------------------------------------------------------
 XE.listen_to '>keyboard-level', ( d ) ->
-	# urge 'µ55403', jr d
+  # urge 'µ55403', jr d
 
 
-############################################################################################################
-@load_kana_triode()
 
 

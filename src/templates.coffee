@@ -42,8 +42,7 @@ Object.assign @, TEACUP
 @SHADE                = @new_tag ( P... ) -> @TAG 'shade',               P...
 @SCROLLER             = @new_tag ( P... ) -> @TAG 'scroller',            P...
 @BOTTOMBAR            = @new_tag ( P... ) -> @TAG 'bottombar',           P...
-@LBBAR                = @new_tag ( P... ) -> @TAG 'lbbar',               P...
-@RBBAR                = @new_tag ( P... ) -> @TAG 'rbbar',               P...
+@FOCUSFRAME           = @new_tag ( P... ) -> @TAG 'focusframe',          P...
 #...........................................................................................................
 @JS                   = @new_tag ( route ) -> @SCRIPT type: 'text/javascript',  src: route
 @CSS                  = @new_tag ( route ) -> @LINK   rel:  'stylesheet',      href: route
@@ -90,6 +89,7 @@ Object.assign @, TEACUP
     @JS     './codemirror/lib/codemirror.js'
     @JS     './codemirror/mode/javascript/javascript.js'
     @JS     './codemirror/mode/coffeescript/coffeescript.js'
+    @JS     './codemirror/mode/markdown/markdown.js'
     @JS     './codemirror/addon/search/searchcursor.js'
     @JS     './codemirror/addon/search/search.js'
     @JS     './codemirror/addon/dialog/dialog.js'
@@ -121,10 +121,9 @@ Object.assign @, TEACUP
                   @TD '.glyph', "明快打字机"
                   @TD '.value', "TypeWriter"
           @SHADE '.foreground'
-        @LBBAR => 'L'
         @BOTTOMBAR =>
-          @DIV '#text-input.inbox', contenteditable: 'true'
-        @RBBAR => 'R'
+          @DIV '#logger', { contenteditable: 'true', }
+      @FOCUSFRAME()
     #=======================================================================================================
     @JS     './ops.js'
     return null

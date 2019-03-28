@@ -12,17 +12,16 @@ help                      = CND.get_logger 'help',      badge
 urge                      = CND.get_logger 'urge',      badge
 info                      = CND.get_logger 'info',      badge
 inspect                   = ( require 'util' ).inspect
-# log                       = ( P... ) -> process.stdout.write ( rpr P ) + '\n'
 # TRAP                      = require 'mousetrap'
-# { app, globalShortcut, }  = require 'electron'
-# PTVR                      = require '../lib/lib/ptv-reader'
-# IME                       = require '../lib/ime'
+KEYS                      = require '../lib/keys'
 STATE                     = require '../lib/state'
 T                         = require '../lib/templates'
-### https://github.com/sindresorhus/electron-unhandled ###
+PATH                      = require 'path'
+FS                        = require 'fs'
 #...........................................................................................................
 require                   '../lib/exception-handler'
-require                   '../lib/kana-input'
+# require                   '../lib/kana-input'
+require                   '../lib/kanji-input'
 #...........................................................................................................
 PD                        = require 'pipedreams'
 { jr, }                   = CND
@@ -30,23 +29,38 @@ PD                        = require 'pipedreams'
   $async }                = PD
 # XE                        = null
 XE                        = require '../lib/xemitter'
+{ inspect, }              = require 'util'
+xrpr                      = ( x ) -> inspect x, { colors: yes, breakLength: Infinity, maxArrayLength: Infinity, depth: Infinity, }
 
 
+#-----------------------------------------------------------------------------------------------------------
+XE.listen_to_all ( key, d ) ->
+  # whisper 'µ99823', key #, jr d
+  v       = d.value
+  { S, }  = v
+  logger  = jQuery '#logger'
+  ( logger.find ':first-child').remove() while logger.children().length > 10
+  message = switch key
+    when '^kblevel' then  ( k for k, toggle of S.kblevels when toggle ).join ', '
+    else                  ( k for k         of d.value                ).join ', '
+  logger.append ( "<div>#{Date.now()}: #{rpr key}: #{message}</div>" )
+  console.log 'µ33499', Date.now(), key, d
+  # if ( kblevels = d.value?.S?.kblevels )
+  #   logger.append ( "<div>#{Date.now()}: kblevels: #{rpr kblevels}</div>" )
+  logger.scrollTop logger[ 0 ].scrollHeight
+  return null
 
-# #-----------------------------------------------------------------------------------------------------------
-# XE.listen_to 'KEYS/kblevels/change', @, ( { S, key, } ) ->
-#   ### TAINT bind keys using configuration ###
-#   { name, toggle, } = key
-#   #.........................................................................................................
-#   S.bind_left   = ( toggle is 'on' ) if name is 'alt'
-#   S.bind_right  = ( toggle is 'on' ) if name is 'altgr'
-#   #.........................................................................................................
-#   if S.bind_left  then  ( jQuery 'lbbar' ).show() ### TAINT ###
-#   else                  ( jQuery 'lbbar' ).hide() ### TAINT ###
-#   if S.bind_right then  ( jQuery 'rbbar' ).show() ### TAINT ###
-#   else                  ( jQuery 'rbbar' ).hide() ### TAINT ###
-#   #.........................................................................................................
-#   return null
+#-----------------------------------------------------------------------------------------------------------
+@log = ( text ) ->
+  ### TAINT code duplication ###
+  logger = jQuery '#logger'
+  ( logger.find ':first-child').remove() while logger.children().length > 10
+  ### TAINT should escape text (or accept HTML?) ###
+  logger.append ( "<div>#{Date.now()}: #{text}</div>" )
+  console.log 'µ33499', Date.now(), text
+  logger.scrollTop logger[ 0 ].scrollHeight
+  return null
+
 
 # #-----------------------------------------------------------------------------------------------------------
 # @on_add_selection = ( uie ) ->
@@ -116,7 +130,7 @@ XE                        = require '../lib/xemitter'
     to:   corrected_row_idx + 1, }
   #.........................................................................................................
   S.row_idx         = corrected_row_idx
-  element           = $( '#candidates tr' ).eq S.row_idx
+  element           = ( jQuery '#candidates tr' ).eq S.row_idx
   if element?.offset? and ( element_offset = element.offset() )?
     delta_px                      = element_offset.top - S.shade_offset_top
     S.scroller_last_top           = S.scroller.scrollTop() + delta_px
@@ -130,20 +144,130 @@ XE                        = require '../lib/xemitter'
 # #   whisper "WINDOW/scroll/vertical #{from} -> #{via} -> #{to}"
 
 #-----------------------------------------------------------------------------------------------------------
-@on_input = ( S, event ) ->
-  debug 'µ23244', await XE.emit PD.new_event '^input', S.input.text()
-  if ( replacement = await XE.delegate PD.new_event '^input', S.input.text() )?
-    S.input.text ''
-    S.codemirror.editor.replaceSelection replacement
+XE.listen_to '^candidates', @, ( d ) ->
+  v       = d.value
+  { S, }  = v
+  @focusframe_to_candidates S
+  rows    = []
+  columns = [ 'short_iclabel', 'glyph', 'value', ]
+  for candidate, idx in v.candidates
+    nr = idx + 1
+    rows.push T.get_row_html [ [ 'nr', nr, ], [ 'glyph', candidate, ] ]
+    # rows.push T.get_row_html [ [ 'nr', nr, ], ( [ key, row[ key ], ] for key in columns )..., ]
+  rows = rows.join '\n'
+  ( jQuery '#candidates tr'    ).remove()
+  ( jQuery '#candidates tbody' ).append rows
+  ( jQuery '#qdt'              ).text S.qdt
+  return null
 
-  # rows    = []
-  # columns = [ 'short_iclabel', 'glyph', 'value', ]
-  # for row, idx in S.rows
-  #   rows.push T.get_row_html [ [ 'nr', idx + 1, ], ( [ key, row[ key ], ] for key in columns )..., ]
-  # rows = rows.join '\n'
-  # ( jQuery '#candidates tr'    ).remove()
-  # ( jQuery '#candidates tbody' ).append rows
-  # ( jQuery '#qdt'              ).text S.qdt
+#-----------------------------------------------------------------------------------------------------------
+XE.listen_to '^load-documents', @, ( d ) ->
+  ### Will be used to restore previous state, open new documents; for now, just opens the default file. ###
+  ### TAINT auto-create file when not present ###
+  file_path = PATH.resolve PATH.join __dirname, '../.cache/default.md'
+  d.value.S.codemirror.editor.doc.setValue FS.readFileSync file_path, { encoding: 'utf-8', }
+  return null
+
+#-----------------------------------------------------------------------------------------------------------
+### TAINT use proper keybinding API to define key bindings ###
+XE.listen_to '^keyboard', @, ( d ) ->
+  { key, S, } = d.value
+  if ( key.name is 'ctrl+s' ) and ( key.move is 'up' )
+    XE.emit PD.new_event '^save-document', { S, }
+  return null
+
+#-----------------------------------------------------------------------------------------------------------
+XE.listen_to '^save-document', @, ( d ) ->
+  ### Will be used to save active document; currently just saves default file. ###
+  file_path = PATH.resolve PATH.join __dirname, '../.cache/default.md'
+  @log "saving document to #{rpr file_path}"
+  FS.writeFileSync file_path, d.value.S.codemirror.editor.doc.getValue()
+  return null
+
+#-----------------------------------------------------------------------------------------------------------
+@focusframe_to_editor     = ( S ) -> @_focusframe_to S, 'leftbar'
+@focusframe_to_candidates = ( S ) -> @_focusframe_to S, 'rightbar'
+@focusframe_to_logger     = ( S ) -> @_focusframe_to S, '#logger'
+
+#-----------------------------------------------------------------------------------------------------------
+@_focusframe_to = ( S, target_selector ) ->
+  # target      = jQuery( document.activeElement )
+  target      = jQuery target_selector
+  ff          = jQuery 'focusframe'
+  # ff.offset     target.offset()
+  # ff.width      target.width()
+  # ff.height     target.height()
+  tgto        = target.offset()
+  ff.animate {
+    left:     tgto.left
+    top:      tgto.top
+    width:    target.width()
+    height:   target.height() }, 100
+  return null
+
+#-----------------------------------------------------------------------------------------------------------
+### TAINT use proper keybinding API to define key bindings ###
+XE.listen_to '^kblevel', @, ( d ) ->
+  ### map kblevel 'shift' to manual editor/candidates focus selection ###
+  v       = d.value
+  { S, }  = v
+  # debug 'µ87444', S.kblevels.shift
+  if ( S.focus_is_candidates = S.kblevels.shift )
+    @focusframe_to_candidates S
+  else
+    @focusframe_to_editor     S
+  return null
+
+# #-----------------------------------------------------------------------------------------------------------
+# ### TAINT use proper keybinding API to define key bindings ###
+# XE.listen_to '^keyboard', @, ( d ) ->
+#   { key, S, } = d.value
+#   return unless ( key.move is 'up' )
+#   switch key.name
+#     when 'left'     then  @focusframe_to_editor     S
+#     when 'right'    then  @focusframe_to_candidates S
+#     when 'up'       then  @focusframe_to_editor     S
+#     when 'down'     then  @focusframe_to_logger     S
+#   return null
+
+#-----------------------------------------------------------------------------------------------------------
+@init_keymap = ( S ) ->
+  ### TAINT don't define method inside of object ###
+  mktw_keymap = {
+    #.......................................................................................................
+    'Left': ( cm ) ->
+      if S.focus_is_candidates
+        debug 'µ77644-1', "cursor movement goes to candidates"
+      else
+        CodeMirror.commands.goCharLeft cm
+      return null
+    #.......................................................................................................
+    'Right': ( cm ) ->
+      if S.focus_is_candidates
+        debug 'µ77644-2', "cursor movement goes to candidates"
+      else
+        CodeMirror.commands.goCharRight cm
+      return null
+    #.......................................................................................................
+    'Up': ( cm ) ->
+      if S.focus_is_candidates
+        debug 'µ77644-2', "cursor movement goes to candidates"
+      else
+        CodeMirror.commands.goLineUp cm
+      return null
+    #.......................................................................................................
+    'Down': ( cm ) ->
+      if S.focus_is_candidates
+        debug 'µ77644-2', "cursor movement goes to candidates"
+      else
+        CodeMirror.commands.goLineDown cm
+      return null
+    }
+  #.........................................................................................................
+  S.codemirror.editor.addKeyMap mktw_keymap
+  # CodeMirror.normalizeKeyMap keyMap.mktw
+  # S.codemirror.editor.setOption 'extraKeys', mktw_keymap
+  # S.codemirror.commands.foobar = ( cm ) -> debug 'µ46644', 'foobar'
   return null
 
 #-----------------------------------------------------------------------------------------------------------
@@ -155,11 +279,11 @@ XE                        = require '../lib/xemitter'
   S                     = STATE.new()
   S.candidates          = jQuery '#candidates'
   S.shade_offset_top    = ( jQuery 'shade.foreground' ).offset().top
-  S.input               = jQuery '#text-input'
-  S.scroller            = jQuery 'scroller'
+  # S.scroller            = jQuery 'scroller'
+  S.focus_is_candidates = false
   #.........................................................................................................
-  ### Make sure focus is on input element ###
-  ( jQuery '#text-input' ).focus()
+  # ### Make sure focus is on input element ###
+  # ( jQuery '#text-input' ).focus()
   #.........................................................................................................
   ### TAINT temporary; will use KB event, icon, dedicated method for this ###
   ### Switch focus on click on editor ###
@@ -170,13 +294,13 @@ XE                        = require '../lib/xemitter'
   #   ( jQuery 'leftbar content' ).animate property, 100
   property = { 'height': ( jQuery 'leftbar content' ).css 'max-height' }
   ( jQuery 'leftbar content' ).animate property, 100
-  #.........................................................................................................
-  ### Register key and mouse events ###
-  S.scroller.on 'wheel',                ( event ) => @on_wheel                S, event
-  S.scroller.on 'scroll',               ( event ) => @on_scroll               S, event
-  S.input.on 'input',                   ( event ) => @on_input                S, event
-  ### use event for this? ###
-  S.scroller_last_top = S.scroller.scrollTop()
+  # #.........................................................................................................
+  # ### Register key and mouse events ###
+  # S.scroller.on 'wheel',                ( event ) => @on_wheel                S, event
+  # S.scroller.on 'scroll',               ( event ) => @on_scroll               S, event
+  # S.input.on 'input',                   ( event ) => @on_input                S, event
+  # ### use event for this? ###
+  # S.scroller_last_top = S.scroller.scrollTop()
   #.........................................................................................................
   ### Measure table row height, adjust shade ###
   S.candidates_tr_height = ( jQuery '#candidates tr' ).height()
@@ -184,10 +308,68 @@ XE                        = require '../lib/xemitter'
   #.........................................................................................................
   ### Initialize CodeMirror ###
   S.codemirror.editor = CodeMirror.fromTextArea ( jQuery '#codemirror' )[ 0 ], S.codemirror.settings
-  # S.codemirror.editor.replaceSelection 'this is the editor'
   S.codemirror.editor.setSize null, '100%'
+  S.codemirror.editor.on 'inputRead', ( me, change ) -> XE.emit PD.new_event '^raw-input', { S, change, }
   #.........................................................................................................
+  # S.codemirror.editor.on 'change',          ( me, change      ) -> whisper 'µ66653', 'change',        jr change
+  # S.codemirror.editor.on 'changes',         ( me, changes     ) -> whisper 'µ66653', 'changes',       jr changes
+  # S.codemirror.editor.on 'beforeChange',    ( me, change      ) -> whisper 'µ66653', 'beforeChange',  jr change
+  # S.codemirror.editor.on 'cursorActivity',  ( me              ) -> whisper 'µ66653', 'cursorActivity'
+  # S.codemirror.editor.on 'keyHandled',      ( me, name, event ) -> whisper 'µ66653', 'keyHandled',    jr name
+  # S.codemirror.editor.on 'inputRead',       ( me, change      ) -> whisper 'µ66653', 'inputRead',     jr change
+  #.........................................................................................................
+  ### Register key and mouse events ###
+  KEYS.syphon_key_and_mouse_events S, jQuery 'html'
+  # KEYS.register 'axis', 'vertical',     ( uie )   => @on_vertical_navigation  uie
+  # KEYS.register 'slot', 'Enter',        ( uie )   => @on_add_selection        uie
+  XE.emit PD.new_event '^load-documents', { S, }
+  @focusframe_to_editor S
+  @init_keymap S
   return null
 
 #-----------------------------------------------------------------------------------------------------------
 jQuery init.bind @
+
+
+###
+cm.findPosH(start: {line, ch}, amount: integer, unit: string, visually: boolean) → {line, ch, ?hitSide: boolean}
+cm.findPosV(start: {line, ch}, amount: integer, unit: string) → {line, ch, ?hitSide: boolean}
+cm.findWordAt(pos: {line, ch}) → {anchor: {line, ch}, head: {line, ch}}
+cm.hasFocus() → boolean
+
+doc.addSelection        = (anchor: {line, ch}, ?head: {line, ch})
+doc.changeGeneration    = (?closeEvent: boolean) → integer
+doc.eachLine            = (f: (line: LineHandle))
+doc.eachLine            = (start: integer, end: integer, f: (line: LineHandle))
+doc.extendSelection     = (from: {line, ch}, ?to: {line, ch}, ?options: object)
+doc.extendSelections    = (heads: array<{line, ch}>, ?options: object)
+doc.extendSelectionsBy  = (f: function(range: {anchor, head}) → {line, ch}), ?options: object)
+doc.firstLine           = () → integer
+doc.getCursor           = (?start: string) → {line, ch}
+doc.getExtending        = () → boolean
+doc.getLine             = (n: integer) → string
+doc.getLineHandle       = (num: integer) → LineHandle
+doc.getLineNumber       = (handle: LineHandle) → integer
+doc.getRange            = (from: {line, ch}, to: {line, ch}, ?separator: string) → string
+doc.getSelection        = (?lineSep: string) → string
+doc.getSelections       = (?lineSep: string) → array<string>
+doc.getValue            = (?separator: string) → string
+doc.isClean             = (?generation: integer) → boolean
+doc.lastLine            = () → integer
+doc.lineCount           = () → integer
+doc.listSelections      = () → array<{anchor, head}>
+doc.markClean           = ()
+doc.replaceRange        = (replacement: string, from: {line, ch}, to: {line, ch}, ?origin: string)
+doc.replaceSelection    = (replacement: string, ?select: string)
+doc.replaceSelections   = (replacements: array<string>, ?select: string)
+doc.setCursor           = (pos: {line, ch}|number, ?ch: number, ?options: object)
+doc.setExtending        = (value: boolean)
+doc.setSelection        = (anchor: {line, ch}, ?head: {line, ch}, ?options: object)
+doc.setSelections       = (ranges: array<{anchor, head}>, ?primary: integer, ?options: object)
+doc.setValue            = (content: string)
+doc.somethingSelected   = () → boolean
+###
+
+
+
+

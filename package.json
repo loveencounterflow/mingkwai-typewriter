@@ -18,8 +18,8 @@
     "electron-unhandled": "^2.1.0",
     "icql": "^1.2.0",
     "interflug": "^0.3.0",
-    "pipedreams": "^7.4.0",
+    "pipedreams": "^7.5.2",
     "strip-bom-stream": "^3.0.0",
-    "triode": "^1.0.0"
+    "triode": "^2.2.2"
   }
 }
