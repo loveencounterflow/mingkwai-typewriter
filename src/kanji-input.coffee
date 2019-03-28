@@ -36,7 +36,7 @@ XE                        = require './xemitter'
 xrpr                      = ( x ) -> inspect x, { colors: yes, breakLength: Infinity, maxArrayLength: Infinity, depth: Infinity, }
 #...........................................................................................................
 XXX_SETTINGS =
-  max_search_results:         10
+  max_search_results:         500
   search_with_lower_case:     true
 
 #-----------------------------------------------------------------------------------------------------------
@@ -100,9 +100,9 @@ XE.contract '^input', @, ( d ) ->
   #.........................................................................................................
   # whisper 'µ34343', xrpr change
   candidates      = @kanji_from_pinyin v.text
-  debug 'µ44733', candidates
-  text            = candidates.join ', '
-  urge 'µ34343', ( xrpr v.text ) + ' -> ' + ( xrpr text )
+  # debug 'µ44733', candidates
+  # text            = candidates.join ', '
+  # urge 'µ34343', ( xrpr v.text ) + ' -> ' + ( xrpr text )
   XE.emit PD.new_event '^candidates', { S, candidates, }
   ### TAINT replacing the text of the entire line is one way to insert new text, but it would conceivably
   more elegant and / or more correct if we just replaced in the editor what we're replacing in the text ###

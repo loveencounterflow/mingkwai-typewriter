@@ -152,12 +152,17 @@ XE.listen_to '^candidates', @, ( d ) ->
   columns = [ 'short_iclabel', 'glyph', 'value', ]
   for candidate, idx in v.candidates
     nr = idx + 1
-    rows.push T.get_row_html [ [ 'nr', nr, ], [ 'glyph', candidate, ] ]
+    rows.push T.get_flexgrid_html candidate
+    # rows.push T.get_row_html [ [ 'nr', nr, ], [ 'glyph', candidate, ] ]
     # rows.push T.get_row_html [ [ 'nr', nr, ], ( [ key, row[ key ], ] for key in columns )..., ]
   rows = rows.join '\n'
-  ( jQuery '#candidates tr'    ).remove()
-  ( jQuery '#candidates tbody' ).append rows
-  ( jQuery '#qdt'              ).text S.qdt
+  if true
+    ( jQuery '#candidates-flexgrid div' ).remove()
+    ( jQuery '#candidates-flexgrid'     ).append rows
+  else
+    ( jQuery '#candidates tr'    ).remove()
+    ( jQuery '#candidates tbody' ).append rows
+    ( jQuery '#qdt'              ).text S.qdt
   return null
 
 #-----------------------------------------------------------------------------------------------------------
@@ -212,10 +217,11 @@ XE.listen_to '^kblevel', @, ( d ) ->
   v       = d.value
   { S, }  = v
   # debug 'µ87444', S.kblevels.shift
-  if ( S.focus_is_candidates = S.kblevels.shift )
-    @focusframe_to_candidates S
-  else
-    @focusframe_to_editor     S
+  if ( S.focus_is_candidates = S.kblevels.shift ) then  @focusframe_to_candidates S
+  else                                                  @focusframe_to_editor     S
+  ### TAINT consider to re-set focus after mouse clicks to elsewhere in GUI ###
+  ### Make browser focus always stay on editor: ###
+  ( jQuery 'div.CodeMirror-code' ).focus()
   return null
 
 # #-----------------------------------------------------------------------------------------------------------
@@ -262,6 +268,13 @@ XE.listen_to '^kblevel', @, ( d ) ->
       else
         CodeMirror.commands.goLineDown cm
       return null
+    #.......................................................................................................
+    'Tab': ( cm ) ->
+      if S.focus_is_candidates
+        debug 'µ77644-2', "cursor movement goes to candidates"
+      else
+        CodeMirror.commands.defaultTab cm
+      return null
     }
   #.........................................................................................................
   S.codemirror.editor.addKeyMap mktw_keymap
@@ -278,7 +291,7 @@ XE.listen_to '^kblevel', @, ( d ) ->
   ### Instantiate state, add important UI elements ###
   S                     = STATE.new()
   S.candidates          = jQuery '#candidates'
-  S.shade_offset_top    = ( jQuery 'shade.foreground' ).offset().top
+  # S.shade_offset_top    = ( jQuery 'shade.foreground' ).offset().top
   # S.scroller            = jQuery 'scroller'
   S.focus_is_candidates = false
   #.........................................................................................................
@@ -292,8 +305,8 @@ XE.listen_to '^kblevel', @, ( d ) ->
   #   else                              property = { 'height': ( jQuery 'leftbar content' ).css 'max-height' }
   #   S.codemirror.is_enlarged = not S.codemirror.is_enlarged
   #   ( jQuery 'leftbar content' ).animate property, 100
-  property = { 'height': ( jQuery 'leftbar content' ).css 'max-height' }
-  ( jQuery 'leftbar content' ).animate property, 100
+  # property = { 'height': ( jQuery 'leftbar content' ).css 'max-height' }
+  # ( jQuery 'leftbar content' ).animate property, 100
   # #.........................................................................................................
   # ### Register key and mouse events ###
   # S.scroller.on 'wheel',                ( event ) => @on_wheel                S, event
@@ -301,10 +314,10 @@ XE.listen_to '^kblevel', @, ( d ) ->
   # S.input.on 'input',                   ( event ) => @on_input                S, event
   # ### use event for this? ###
   # S.scroller_last_top = S.scroller.scrollTop()
-  #.........................................................................................................
-  ### Measure table row height, adjust shade ###
-  S.candidates_tr_height = ( jQuery '#candidates tr' ).height()
-  ( jQuery 'shade' ).height S.candidates_tr_height * 1.1
+  # #.........................................................................................................
+  # ### Measure table row height, adjust shade ###
+  # S.candidates_tr_height = ( jQuery '#candidates tr' ).height()
+  # ( jQuery 'shade' ).height S.candidates_tr_height * 1.1
   #.........................................................................................................
   ### Initialize CodeMirror ###
   S.codemirror.editor = CodeMirror.fromTextArea ( jQuery '#codemirror' )[ 0 ], S.codemirror.settings

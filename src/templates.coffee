@@ -58,6 +58,10 @@ Object.assign @, TEACUP
       for [ key, value, ] in key_value_pairs
         @TD ".#{key}", value.toString()
 
+#-----------------------------------------------------------------------------------------------------------
+@get_flexgrid_html = ( term ) ->
+  return @render => @DIV '.glyph', term
+
 
 #-----------------------------------------------------------------------------------------------------------
 @main_2 = ->
@@ -112,15 +116,42 @@ Object.assign @, TEACUP
           @CONTENT =>
             @TEXTAREA '#codemirror'
         @RIGHTBAR =>
-          @SHADE '.background'
-          @SCROLLER =>
-            @TABLE '#candidates', =>
-              @TBODY =>
-                @TR =>
-                  @TD '.value', "MingKwai"
-                  @TD '.glyph', "明快打字机"
-                  @TD '.value', "TypeWriter"
-          @SHADE '.foreground'
+          @DIV '#candidates-flexgrid', =>
+            # @DIV '.glyph', '明'
+            # @DIV '.glyph', '快'
+            # @DIV '.glyph', '打'
+            # @DIV '.glyph', '字'
+            # @DIV '.glyph', '机'
+            # @DIV '.glyph', '明'
+            # @DIV '.glyph', '快'
+            # @DIV '.glyph', '打'
+            # @DIV '.glyph', '字'
+            # @DIV '.glyph', '机'
+            # @DIV '.glyph', '明'
+            # @DIV '.glyph', '快'
+            # @DIV '.glyph', '打'
+            # @DIV '.glyph', '字'
+            # @DIV '.glyph', '机'
+            # @DIV '.glyph', '明'
+            # @DIV '.glyph', '快'
+            # @DIV '.glyph', '打'
+            # @DIV '.glyph', '字'
+            # @DIV '.glyph', '机'
+            # @DIV '.glyph', '明'
+            # @DIV '.glyph', '快'
+            # @DIV '.glyph', '打'
+            # @DIV '.glyph', '字'
+            # @DIV '.glyph', '机'
+        # @RIGHTBAR =>
+        #   @SHADE '.background'
+        #   @SCROLLER =>
+        #     @TABLE '#candidates', =>
+        #       @TBODY =>
+        #         @TR =>
+        #           @TD '.value', "MingKwai"
+        #           @TD '.glyph', "明快打字机"
+        #           @TD '.value', "TypeWriter"
+        #   @SHADE '.foreground'
         @BOTTOMBAR =>
           @DIV '#logger', { contenteditable: 'true', }
       @FOCUSFRAME()

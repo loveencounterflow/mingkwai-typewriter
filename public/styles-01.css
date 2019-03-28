@@ -20,10 +20,11 @@ html, body {
 /* thx to https://developer.mozilla.org/en-US/docs/Web/CSS/line-height-step */
 :root {
 
-  /*--mktw-font-size:       6mm;*/
-  /*--mktw-grid:            8mm;*/
+  --mktw-font-size:       6mm;
+  --mktw-grid:            8mm;
   /*--mktw-grid-sidebar-wh: 5mm;*/
   /*--mktw-grid-rightbar-wh:  10%;*/
+  --mktw-glyph-bgcolor:   rgba( 255, 255, 255, 0.75 );
 
   font-size:              var(--mktw-font-size);
   line-height-step:       var(--mktw-grid);
@@ -134,7 +135,7 @@ table#candidates {
 }
 
 #candidates td.glyph {
-  font-size:              12mm;
+  font-size:              calc( 2 * var(--mktw-font-size) );
 }
 
 #logger {
@@ -153,10 +154,31 @@ focusframe {
   top:                    0;
   left:                   0;
   border:                 5px solid rgba( 255, 0, 0, 1 );
+  border-radius:          5mm;
   width:                  100px;
   height:                 100px;
   background-color:       transparent;
   pointer-events:         none;
   z-index:                10;
+}
+
+#candidates-flexgrid {
+  display:                flex;
+  flex-direction:         row;
+  flex-wrap:              wrap;
+  align-content:          flex-start;
+  /*justify-content:        space-between;*/
+  height:                 100%;
+  overflow-y:             scroll;
+}
+
+#candidates-flexgrid div {
+  /* ### TAINT could use more traditional `200%` */
+  font-size:              calc( 2   * var(--mktw-font-size) );
+  margin-left:            calc( 0.2 * var(--mktw-font-size) );
+  margin-top:             calc( 0.2 * var(--mktw-font-size) );
+  border-radius:          calc( 0.2 * var(--mktw-font-size) );
+  height:                 calc( 2.5 * var(--mktw-font-size) );
+  background-color:       var(--mktw-glyph-bgcolor);
 }
 
