@@ -153,8 +153,8 @@ focusframe {
   position:               absolute;
   top:                    0;
   left:                   0;
-  border:                 5px solid rgba( 255, 0, 0, 1 );
-  border-radius:          5mm;
+  border:                 4px solid rgba( 255, 0, 0, 1 );
+  /*border-radius:          5mm;*/
   width:                  100px;
   height:                 100px;
   background-color:       transparent;
@@ -175,8 +175,8 @@ focusframe {
 #candidates-flexgrid div {
   /* ### TAINT could use more traditional `200%` */
   font-size:              calc( 2   * var(--mktw-font-size) );
-  margin-left:            calc( 0.2 * var(--mktw-font-size) );
-  margin-top:             calc( 0.2 * var(--mktw-font-size) );
+  margin-left:            calc( 0.4 * var(--mktw-font-size) );
+  margin-top:             calc( 0.4 * var(--mktw-font-size) );
   border-radius:          calc( 0.2 * var(--mktw-font-size) );
   height:                 calc( 2.5 * var(--mktw-font-size) );
   background-color:       var(--mktw-glyph-bgcolor);
