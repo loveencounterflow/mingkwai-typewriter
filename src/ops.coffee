@@ -147,7 +147,7 @@ XE.listen_to_all ( key, d ) ->
 XE.listen_to '^candidates', @, ( d ) ->
   v       = d.value
   { S, }  = v
-  @focusframe_to_candidates S
+  @focusframe_to_candidates S unless S.focus_is_candidates
   rows    = []
   columns = [ 'short_iclabel', 'glyph', 'value', ]
   for candidate, idx in v.candidates
@@ -159,6 +159,7 @@ XE.listen_to '^candidates', @, ( d ) ->
   if true
     ( jQuery '#candidates-flexgrid div' ).remove()
     ( jQuery '#candidates-flexgrid'     ).append rows
+    # @focus_first_candidate S
   else
     ( jQuery '#candidates tr'    ).remove()
     ( jQuery '#candidates tbody' ).append rows
@@ -190,24 +191,38 @@ XE.listen_to '^save-document', @, ( d ) ->
   return null
 
 #-----------------------------------------------------------------------------------------------------------
-@focusframe_to_editor     = ( S ) -> @_focusframe_to S, 'leftbar'
-@focusframe_to_candidates = ( S ) -> @_focusframe_to S, 'rightbar'
-@focusframe_to_logger     = ( S ) -> @_focusframe_to S, '#logger'
+@focusframe_to_editor = ( S ) ->
+  @_focusframe_to S, 'leftbar'
+  ### TAINT use method, must be possible to remap ###
+  S.focus_is_candidates = false
+  S.kblevels.shift      = false
+@focusframe_to_candidates = ( S ) ->
+  @_focusframe_to S, 'rightbar'
+  ### TAINT use method, must be possible to remap ###
+  S.focus_is_candidates = true
+  S.kblevels.shift      = false
+@focusframe_to_logger = ( S ) ->
+  @_focusframe_to S, '#logger'
+  ### TAINT use method, must be possible to remap ###
+  S.focus_is_candidates = false
+  S.kblevels.shift      = false
 
 #-----------------------------------------------------------------------------------------------------------
-@_focusframe_to = ( S, target_selector ) ->
+@_focusframe_to = ( S, target ) ->
   # target      = jQuery( document.activeElement )
-  target      = jQuery target_selector
+  target      = jQuery target if CND.isa_text target
   ff          = jQuery 'focusframe'
+  return if target.length < 1
   # ff.offset     target.offset()
   # ff.width      target.width()
   # ff.height     target.height()
   tgto        = target.offset()
-  ff.animate {
-    left:     tgto.left
-    top:      tgto.top
-    width:    target.width()
-    height:   target.height() }, 100
+  return unless tgto?
+  left    = tgto.left       - 1
+  top     = tgto.top        - 1
+  width   = target.width()  + 2
+  height  = target.height() + 2
+  ff.animate { left, top, width, height, }, 100
   return null
 
 #-----------------------------------------------------------------------------------------------------------
@@ -323,10 +338,14 @@ XE.listen_to '^kblevel', @, ( d ) ->
   S.codemirror.editor = CodeMirror.fromTextArea ( jQuery '#codemirror' )[ 0 ], S.codemirror.settings
   S.codemirror.editor.setSize null, '100%'
   S.codemirror.editor.on 'inputRead', ( me, change ) -> XE.emit PD.new_event '^raw-input', { S, change, }
+  S.codemirror.editor.on 'change', ( me, change ) ->
+    ### TAINT when inserting results, will there be a change event? ###
+    return null unless change.origin is '+delete'
+    XE.emit PD.new_event '^raw-input', { S, change, }
   #.........................................................................................................
-  # S.codemirror.editor.on 'change',          ( me, change      ) -> whisper 'µ66653', 'change',        jr change
+  S.codemirror.editor.on 'beforeChange',    ( me, change      ) -> whisper 'µ66653', 'beforeChange',  jr change
+  S.codemirror.editor.on 'change',          ( me, change      ) -> whisper 'µ66653', 'change',        jr change
   # S.codemirror.editor.on 'changes',         ( me, changes     ) -> whisper 'µ66653', 'changes',       jr changes
-  # S.codemirror.editor.on 'beforeChange',    ( me, change      ) -> whisper 'µ66653', 'beforeChange',  jr change
   # S.codemirror.editor.on 'cursorActivity',  ( me              ) -> whisper 'µ66653', 'cursorActivity'
   # S.codemirror.editor.on 'keyHandled',      ( me, name, event ) -> whisper 'µ66653', 'keyHandled',    jr name
   # S.codemirror.editor.on 'inputRead',       ( me, change      ) -> whisper 'µ66653', 'inputRead',     jr change
