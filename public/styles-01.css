@@ -172,7 +172,8 @@ focusframe {
   overflow-y:             scroll;
 }
 
-#candidates-flexgrid div {
+/* ### TAINT in the future we may want to display more than just the glyph */
+#candidates-flexgrid div.glyph {
   /* ### TAINT could use more traditional `200%` */
   font-size:              calc( 2   * var(--mktw-font-size) );
   margin-left:            calc( 0.4 * var(--mktw-font-size) );
@@ -181,4 +182,11 @@ focusframe {
   height:                 calc( 2.5 * var(--mktw-font-size) );
   background-color:       var(--mktw-glyph-bgcolor);
 }
+
+#candidates-flexgrid div.glyph.cdtsel {
+  background-color:   yellow;
+  outline:             1px solid red;
+}
+
+
 
