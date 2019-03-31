@@ -52,16 +52,10 @@ Object.assign @, TEACUP
 #===========================================================================================================
 #
 #-----------------------------------------------------------------------------------------------------------
-@get_row_html = ( key_value_pairs ) ->
-  return @render =>
-    @TR '.candidate', =>
-      for [ key, value, ] in key_value_pairs
-        @TD ".#{key}", value.toString()
-
-#-----------------------------------------------------------------------------------------------------------
-@get_flexgrid_html = ( term ) ->
-  return @render => @DIV '.glyph', term
-
+@get_flexgrid_html = ( cdtsel_nr, term ) ->
+  selector = if cdtsel_nr is 1 then '.cdtsel' else ''
+  ### TAINT use API to derive cdtsel_id ###
+  return @render => @DIV "#candidate-#{cdtsel_nr}.glyph#{selector}", term
 
 #-----------------------------------------------------------------------------------------------------------
 @main_2 = ->
