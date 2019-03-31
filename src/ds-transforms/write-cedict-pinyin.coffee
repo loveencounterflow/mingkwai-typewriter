@@ -1,4 +1,22 @@
 
+### TAINTs
+
+* deal with mssing characters
+
+* PY `ü` is written `u:`, use `ü`, `v` to replace
+
+* consider to collapse words from prefixes:
+  咖 ->
+    咖哩
+    咖啡 ->
+      咖啡伴侶
+      咖啡因
+      咖啡館 ->
+        咖啡館兒 ->
+
+###
+
+
 'use strict'
 
 ############################################################################################################
