@@ -22,7 +22,7 @@ PATH                      = require 'path'
   R =
     window:
       # show_devtools:    true
-      # maximize:         true
+      maximize:         true
       electron: ### see https://electronjs.org/docs/api/browser-window ###
         x:                      700
         y:                      0
@@ -104,13 +104,13 @@ PATH                      = require 'path'
     page_height:                30
     bind_left:                  null
     bind_right:                 null
-    qdt:                        null # query time
+    qdt:                        null ### query time ###
     scroller_last_top:          null
     ignore_next_scroll_events:  0
     candidates:                 null
-    shade_offset_top:           null
     input:                      null
-    scroller:                   null
+    glyphboxes:                 null ### the boxes that currently contain candidates ###
+    selecting_candidate:        false ### whether selection is async moving to next candidate ###
   return R
 
 

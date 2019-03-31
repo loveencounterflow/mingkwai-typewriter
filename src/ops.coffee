@@ -1,4 +1,26 @@
 
+### TAINTs
+
+* separate:
+
+  * `focus` (a mechanism used by the browser)
+
+  * ?`select`, `choose`? for the action of selecting one particular candidate
+
+  * ??? for what is called `focusframe` now
+
+  these are three different things and should be called different names.
+
+* accordingly, rename `focusframe` and those `*_focus*` methods that refer to it instead of to browser focus
+
+* use module-global `S`: this code will only ever run a single input instance; where it does use modules
+  that potentially serve several independent consumers, `S` will not be used as argument anyway
+
+* refactor code into (local) modules
+
+###
+
+
 
 ############################################################################################################
 CND                       = require 'cnd'
@@ -25,13 +47,18 @@ require                   '../lib/kanji-input'
 #...........................................................................................................
 PD                        = require 'pipedreams'
 { jr, }                   = CND
+{ after, }                = CND.suspend
+defer                     = setImmediate
 { $
   $async }                = PD
 # XE                        = null
 XE                        = require '../lib/xemitter'
 { inspect, }              = require 'util'
 xrpr                      = ( x ) -> inspect x, { colors: yes, breakLength: Infinity, maxArrayLength: Infinity, depth: Infinity, }
-
+#...........................................................................................................
+# `S` is the module-global configuration and editor state object; this will probably factored out into a
+# separate local module to make it `require`able to other modules running in the renderer process:
+S                         = null
 
 #-----------------------------------------------------------------------------------------------------------
 XE.listen_to_all ( key, d ) ->
@@ -43,11 +70,13 @@ XE.listen_to_all ( key, d ) ->
   message = switch key
     when '^kblevel' then  ( k for k, toggle of S.kblevels when toggle ).join ', '
     else                  ( k for k         of d.value                ).join ', '
+  #.........................................................................................................
   logger.append ( "<div>#{Date.now()}: #{rpr key}: #{message}</div>" )
   console.log 'µ33499', Date.now(), key, d
   # if ( kblevels = d.value?.S?.kblevels )
   #   logger.append ( "<div>#{Date.now()}: kblevels: #{rpr kblevels}</div>" )
   logger.scrollTop logger[ 0 ].scrollHeight
+  #.........................................................................................................
   return null
 
 #-----------------------------------------------------------------------------------------------------------
@@ -145,26 +174,165 @@ XE.listen_to_all ( key, d ) ->
 
 #-----------------------------------------------------------------------------------------------------------
 XE.listen_to '^candidates', @, ( d ) ->
+  @focusframe_to_candidates S unless S.focus_is_candidates
   v       = d.value
   { S, }  = v
-  @focusframe_to_candidates S unless S.focus_is_candidates
-  rows    = []
-  columns = [ 'short_iclabel', 'glyph', 'value', ]
-  for candidate, idx in v.candidates
-    nr = idx + 1
-    rows.push T.get_flexgrid_html candidate
-    # rows.push T.get_row_html [ [ 'nr', nr, ], [ 'glyph', candidate, ] ]
-    # rows.push T.get_row_html [ [ 'nr', nr, ], ( [ key, row[ key ], ] for key in columns )..., ]
-  rows = rows.join '\n'
-  if true
-    ( jQuery '#candidates-flexgrid div' ).remove()
-    ( jQuery '#candidates-flexgrid'     ).append rows
-    # @focus_first_candidate S
-  else
-    ( jQuery '#candidates tr'    ).remove()
-    ( jQuery '#candidates tbody' ).append rows
-    ( jQuery '#qdt'              ).text S.qdt
+  rows    = ( ( T.get_flexgrid_html ( idx + 1 ), glyph ) for glyph, idx in v.candidates ).join '\n'
+  ( jQuery '#candidates-flexgrid div' ).remove()
+  ( jQuery '#candidates-flexgrid'     ).append rows
+  #.........................................................................................................
+  ### TAINT code duplication ###
+  S.glyphboxes = jQuery '#candidates-flexgrid div.glyph'
+  S.glyphboxes.on 'click', ( e ) =>
+    me = jQuery e.target
+    ### TAINT code duplication ###
+    ### TAINT use API to move selection ###
+    S.glyphboxes.removeClass  'cdtsel'
+    me.addClass             'cdtsel'
+    @log "µ33983-1 #{me.text()} #{jr me.offset()}"
+  #.........................................................................................................
+  @index_candidates()
   return null
+
+#-----------------------------------------------------------------------------------------------------------
+@index_candidates = ->
+  ### Add or update each candidate `<div class=glyph> with attributes indicating its left- and right-based
+  column and row numbers, starting from 1. Elements that match `jQuery '[lrow=1]'` are in the first row from
+  the top, while those that match `jQuery '[rrow=1]'` are in the last row from top (first row from the
+  bottom). Likewise, `lcol=1`, `rcol=1` match the leftmost and rightmost elements. These indexes have to be
+  re-calculated after each container resize event, but simplify the code needed to select single and groups
+  of elements. The beauty of the scheme is that we can select e.g. all leftmost elements or all elements
+  in the first row (should the need ever arise). ###
+  ### TAINT code duplication ###
+  S.glyphboxes   ?= jQuery '#candidates-flexgrid div.glyph'
+  lcol            = 0
+  lrow            = 0
+  prv_top         = null
+  candidate_count = S.glyphboxes.length
+  lnr             = 0
+  rnr             = candidate_count + 1
+  rows            = []
+  row             = null
+  #.........................................................................................................
+  @log "index_candidates() (#{candidate_count})"
+  #.........................................................................................................
+  for idx in [ 0 ... candidate_count ]
+    glyphbox = S.glyphboxes.eq idx
+    #.......................................................................................................
+    if ( nxt_top = glyphbox.offset().top ) isnt prv_top
+      if row?
+        rows.push row
+        col_count = row.length
+        for candidate, col_idx in row
+          candidate.attr 'rcol', col_count - col_idx
+      #.....................................................................................................
+      row = []
+      prv_top = nxt_top
+      lcol    = 0
+      lrow   += +1
+    #.......................................................................................................
+    row.push glyphbox
+    lnr      += +1
+    rnr      += -1
+    lcol     += +1
+    #.......................................................................................................
+    glyphbox.attr 'lnr',  lnr
+    glyphbox.attr 'rnr',  rnr
+    glyphbox.attr 'lcol', lcol
+    glyphbox.attr 'lrow', lrow
+  #.........................................................................................................
+  rows.push row if row?
+  row_count = rows.length
+  for row, row_idx in rows
+    for candidate in row
+      candidate.attr 'rrow', row_count - row_idx
+  #.........................................................................................................
+  rows.length = 0 ### not strictly needed, just to make de-allocation explicit ###
+  return null
+
+#-----------------------------------------------------------------------------------------------------------
+@select_nxt_candidate     = -> @_select_delta_candidate          +1
+@select_prv_candidate     = -> @_select_delta_candidate          -1
+@select_nxtline_candidate = -> @_select_deltaline_candidate      +1
+@select_prvline_candidate = -> @_select_prv_deltaline_candidate  -1
+
+#-----------------------------------------------------------------------------------------------------------
+@_select_delta_candidate = ( delta ) ->
+  ### Select delta-next or -previous candidate; `+1` moves to immediately following candidate, `-1` to
+  immediately preceding one; higher `delta` skips that many gaps. Returns number of candidates moved, so
+  returns zero if there were no candidates, or was already on first (or last) when moving backwards (or
+  forwards). ###
+  R                   = 0
+  return R if delta is 0
+  prv_cdtsel          = jQuery '.cdtsel'
+  #.........................................................................................................
+  if prv_cdtsel.length is 0
+    @log "_select_delta_candidate: no candidate selected"
+    return R
+  #.........................................................................................................
+  glyphboxes          = jQuery '#candidates-flexgrid div.glyph'
+  method_name         = if delta > 0 then 'next' else 'prev'
+  delta               = Math.abs delta
+  prv_cdtsel[ 0 ].scrollIntoViewIfNeeded()
+  #.........................................................................................................
+  while delta > 0
+    nxt_cdtsel          = prv_cdtsel[ method_name ]()
+    break if nxt_cdtsel.length is 0
+    R                  += +1
+    glyphboxes.removeClass  'cdtsel'
+    nxt_cdtsel.addClass     'cdtsel'
+    nxt_cdtsel[ 0 ].scrollIntoViewIfNeeded()
+    delta              += -1
+  #.........................................................................................................
+  return R
+
+#-----------------------------------------------------------------------------------------------------------
+@_select_prv_deltaline_candidate = ( delta ) ->
+  await @_select_deltaline_candidate delta
+  await @_select_first_candidate_in_line()
+
+#-----------------------------------------------------------------------------------------------------------
+@_select_first_candidate_in_line = ->
+
+#-----------------------------------------------------------------------------------------------------------
+@_select_deltaline_candidate = ( delta ) ->
+  return new Promise ( resolve ) =>
+    @log "µ77722 _select_deltaline_candidate #{delta}"
+    return resolve() if S.selecting_candidate
+    return resolve() if delta is 0
+    S.selecting_candidate = true
+    prv_cdtsel            = jQuery '.cdtsel'
+    #.......................................................................................................
+    if prv_cdtsel.length is 0
+      S.selecting_candidate = false
+      @log "µ33634 _select_deltaline_candidate: no candidate selected"
+      return resolve()
+    #.......................................................................................................
+    sub_delta             = Math.sign delta
+    delta                 = Math.abs  delta
+    prv_top               = prv_cdtsel.offset().top
+    dts                   = 0
+    #.......................................................................................................
+    try_next_candidate  = =>
+      #.....................................................................................................
+      if ( @_select_delta_candidate sub_delta ) is 0
+        S.selecting_candidate = false
+        return resolve()
+      #.....................................................................................................
+      nxt_cdtsel  = jQuery '.cdtsel'
+      if nxt_cdtsel.length is 0 ### should never happen ###
+        S.selecting_candidate = false
+        @log "µ33679 _select_deltaline_candidate: no candidate selected"
+        return resolve()
+      #.....................................................................................................
+      if ( Math.abs nxt_cdtsel.offset().top - prv_top ) < 2
+        defer try_next_candidate
+      else
+        S.selecting_candidate = false
+      return resolve()
+    #.......................................................................................................
+    defer try_next_candidate
+    return resolve()
 
 #-----------------------------------------------------------------------------------------------------------
 XE.listen_to '^load-documents', @, ( d ) ->
@@ -195,17 +363,17 @@ XE.listen_to '^save-document', @, ( d ) ->
   @_focusframe_to S, 'leftbar'
   ### TAINT use method, must be possible to remap ###
   S.focus_is_candidates = false
-  S.kblevels.shift      = false
+  # S.kblevels.shift      = false
 @focusframe_to_candidates = ( S ) ->
   @_focusframe_to S, 'rightbar'
   ### TAINT use method, must be possible to remap ###
   S.focus_is_candidates = true
-  S.kblevels.shift      = false
+  # S.kblevels.shift      = false
 @focusframe_to_logger = ( S ) ->
   @_focusframe_to S, '#logger'
   ### TAINT use method, must be possible to remap ###
   S.focus_is_candidates = false
-  S.kblevels.shift      = false
+  # S.kblevels.shift      = false
 
 #-----------------------------------------------------------------------------------------------------------
 @_focusframe_to = ( S, target ) ->
@@ -236,6 +404,12 @@ XE.listen_to '^kblevel', @, ( d ) ->
   else                                                  @focusframe_to_editor     S
   ### TAINT consider to re-set focus after mouse clicks to elsewhere in GUI ###
   ### Make browser focus always stay on editor: ###
+  return null
+
+#-----------------------------------------------------------------------------------------------------------
+@always_focus_editor = ->
+  @always_focus_editor = -> ### do not add any more handlers with this method after first call ###
+  ( jQuery 'div.CodeMirror-code' ).on 'blur', -> @focus()
   ( jQuery 'div.CodeMirror-code' ).focus()
   return null
 
@@ -251,51 +425,65 @@ XE.listen_to '^kblevel', @, ( d ) ->
 #     when 'down'     then  @focusframe_to_logger     S
 #   return null
 
+
+
+###
 #-----------------------------------------------------------------------------------------------------------
-@init_keymap = ( S ) ->
-  ### TAINT don't define method inside of object ###
-  mktw_keymap = {
-    #.......................................................................................................
-    'Left': ( cm ) ->
-      if S.focus_is_candidates
-        debug 'µ77644-1', "cursor movement goes to candidates"
-      else
-        CodeMirror.commands.goCharLeft cm
-      return null
-    #.......................................................................................................
-    'Right': ( cm ) ->
-      if S.focus_is_candidates
-        debug 'µ77644-2', "cursor movement goes to candidates"
-      else
-        CodeMirror.commands.goCharRight cm
-      return null
-    #.......................................................................................................
-    'Up': ( cm ) ->
-      if S.focus_is_candidates
-        debug 'µ77644-2', "cursor movement goes to candidates"
-      else
-        CodeMirror.commands.goLineUp cm
-      return null
-    #.......................................................................................................
-    'Down': ( cm ) ->
-      if S.focus_is_candidates
-        debug 'µ77644-2', "cursor movement goes to candidates"
-      else
-        CodeMirror.commands.goLineDown cm
-      return null
-    #.......................................................................................................
-    'Tab': ( cm ) ->
-      if S.focus_is_candidates
-        debug 'µ77644-2', "cursor movement goes to candidates"
-      else
-        CodeMirror.commands.defaultTab cm
-      return null
-    }
+@_handle_cm_keymap_move = ( cm, editor_method, candidates_method ) ->
+  if S.focus_is_candidates then candidates_method.apply @,                    cm
+  else                          editor_method.apply     CodeMirror.commands,  cm
+  return null
+###
+
+#-----------------------------------------------------------------------------------------------------------
+@cm_keymap_move_left = ( cm ) ->
+  ### TAINT is there a way not to name default command explicitly? ###
+  if S.focus_is_candidates then @select_prv_candidate()
+  else                          CodeMirror.commands.goCharLeft cm
+  return null
+
+#-----------------------------------------------------------------------------------------------------------
+@cm_keymap_move_right = ( cm ) ->
+  if S.focus_is_candidates then @select_nxt_candidate()
+  else                          CodeMirror.commands.goCharRight cm
+  return null
+
+#-----------------------------------------------------------------------------------------------------------
+@cm_keymap_move_up = ( cm ) ->
+  if S.focus_is_candidates then debug 'µ77644-2', "cursor movement goes to candidates"
+  else                          CodeMirror.commands.goLineUp cm
+  return null
+
+#-----------------------------------------------------------------------------------------------------------
+@cm_keymap_move_down = ( cm ) ->
+  if S.focus_is_candidates then debug 'µ77644-2', "cursor movement goes to candidates"
+  else                          CodeMirror.commands.goLineDown cm
+  return null
+
+#-----------------------------------------------------------------------------------------------------------
+@cm_keymap_move_tab = ( cm ) ->
+  if S.focus_is_candidates then @select_nxtline_candidate()
+  else                          CodeMirror.commands.defaultTab cm
+  return null
+
+#-----------------------------------------------------------------------------------------------------------
+@cm_keymap_move_shifttab = ( cm ) ->
+  if S.focus_is_candidates then @select_prvline_candidate()
+  else                          CodeMirror.commands.indentLess cm
+  return null
+
+
+#-----------------------------------------------------------------------------------------------------------
+@init_cm_keymap = ( S ) ->
+  mktw_keymap =
+    'Left':       ( cm  ) => @cm_keymap_move_left     cm
+    'Right':      ( cm  ) => @cm_keymap_move_right    cm
+    'Up':         ( cm  ) => @cm_keymap_move_up       cm
+    'Down':       ( cm  ) => @cm_keymap_move_down     cm
+    'Tab':        ( cm  ) => @cm_keymap_move_tab      cm
+    'Shift-Tab':  ( cm  ) => @cm_keymap_move_shifttab cm
   #.........................................................................................................
   S.codemirror.editor.addKeyMap mktw_keymap
-  # CodeMirror.normalizeKeyMap keyMap.mktw
-  # S.codemirror.editor.setOption 'extraKeys', mktw_keymap
-  # S.codemirror.commands.foobar = ( cm ) -> debug 'µ46644', 'foobar'
   return null
 
 #-----------------------------------------------------------------------------------------------------------
@@ -305,34 +493,18 @@ XE.listen_to '^kblevel', @, ( d ) ->
   #.........................................................................................................
   ### Instantiate state, add important UI elements ###
   S                     = STATE.new()
-  S.candidates          = jQuery '#candidates'
-  # S.shade_offset_top    = ( jQuery 'shade.foreground' ).offset().top
-  # S.scroller            = jQuery 'scroller'
+  S.candidates          =
+    jq:           jQuery '#candidates'
+    selected:
+      id:         null
   S.focus_is_candidates = false
   #.........................................................................................................
-  # ### Make sure focus is on input element ###
-  # ( jQuery '#text-input' ).focus()
-  #.........................................................................................................
-  ### TAINT temporary; will use KB event, icon, dedicated method for this ###
-  ### Switch focus on click on editor ###
-  # ( jQuery 'leftbar content' ).on 'click', ( event ) =>
-  #   if S.codemirror.is_enlarged then  property = { 'height': ( jQuery 'leftbar content' ).css 'min-height' }
-  #   else                              property = { 'height': ( jQuery 'leftbar content' ).css 'max-height' }
-  #   S.codemirror.is_enlarged = not S.codemirror.is_enlarged
-  #   ( jQuery 'leftbar content' ).animate property, 100
-  # property = { 'height': ( jQuery 'leftbar content' ).css 'max-height' }
-  # ( jQuery 'leftbar content' ).animate property, 100
-  # #.........................................................................................................
   # ### Register key and mouse events ###
   # S.scroller.on 'wheel',                ( event ) => @on_wheel                S, event
   # S.scroller.on 'scroll',               ( event ) => @on_scroll               S, event
   # S.input.on 'input',                   ( event ) => @on_input                S, event
   # ### use event for this? ###
   # S.scroller_last_top = S.scroller.scrollTop()
-  # #.........................................................................................................
-  # ### Measure table row height, adjust shade ###
-  # S.candidates_tr_height = ( jQuery '#candidates tr' ).height()
-  # ( jQuery 'shade' ).height S.candidates_tr_height * 1.1
   #.........................................................................................................
   ### Initialize CodeMirror ###
   S.codemirror.editor = CodeMirror.fromTextArea ( jQuery '#codemirror' )[ 0 ], S.codemirror.settings
@@ -342,6 +514,7 @@ XE.listen_to '^kblevel', @, ( d ) ->
     ### TAINT when inserting results, will there be a change event? ###
     return null unless change.origin is '+delete'
     XE.emit PD.new_event '^raw-input', { S, change, }
+  @always_focus_editor()
   #.........................................................................................................
   S.codemirror.editor.on 'beforeChange',    ( me, change      ) -> whisper 'µ66653', 'beforeChange',  jr change
   S.codemirror.editor.on 'change',          ( me, change      ) -> whisper 'µ66653', 'change',        jr change
@@ -356,7 +529,14 @@ XE.listen_to '^kblevel', @, ( d ) ->
   # KEYS.register 'slot', 'Enter',        ( uie )   => @on_add_selection        uie
   XE.emit PD.new_event '^load-documents', { S, }
   @focusframe_to_editor S
-  @init_keymap S
+  @init_cm_keymap S
+  #.........................................................................................................
+  ### Detect resizing events: ###
+  ### TAINT won't work when panes are shifted (probably) ###
+  ( jQuery window ).on 'resize', =>
+    debug "resize window"
+    @index_candidates()
+    return null
   return null
 
 #-----------------------------------------------------------------------------------------------------------
