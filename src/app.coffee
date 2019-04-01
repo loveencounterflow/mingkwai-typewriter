@@ -32,6 +32,9 @@ page_html_path            = PATH.resolve PATH.join __dirname, '../public/main.ht
 ### keep a module-global reference to main window to prevent GC from collecting it as per
 https://youtu.be/iVdXOrtdHvA?t=713 ###
 main_window               = null
+### module-global configuration and editor state object ###
+### OBS this instance of `S` is *not* shared with renderer process and can only be used to read presets ###
+S                         = require './settings'
 
 #-----------------------------------------------------------------------------------------------------------
 @write_page_source = ->
@@ -59,9 +62,6 @@ main_window               = null
 #-----------------------------------------------------------------------------------------------------------
 @launch = ->
   debug 'µ11233', 'launch'
-  ### TAINT workaround: obtain configuration from a throw-away state instance ###
-  state       = require './state'
-  S           = state.new()
   main_window = new BrowserWindow S.window.electron
   #.........................................................................................................
   main_window.loadURL URL.format { pathname: page_html_path, protocol: 'file:', slashes: true, }

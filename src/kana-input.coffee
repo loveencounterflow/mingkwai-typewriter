@@ -45,39 +45,7 @@ xrpr                      = ( x ) -> inspect x, { colors: yes, breakLength: Infi
 key_replacer = @load_keyboard()
 
 #-----------------------------------------------------------------------------------------------------------
-XE.contract '^raw-input', ( d ) ->
-  #.........................................................................................................
-  { S, change, }  = d.value
-  { editor, }     = S.codemirror
-  { doc, }        = editor
-  cursor          = doc.getCursor()
-  #.........................................................................................................
-  ### TAINT kludge to collapse multiple selections into a single one ###
-  CodeMirror.commands.singleSelection editor
-  #.........................................................................................................
-  line_idx        = cursor.line
-  line_handle     = doc.getLineHandle line_idx
-  line_info       = doc.lineInfo line_handle ### TAINT consider to use line_idx, forego line_handle ###
-  { text, }       = line_info
-  # #.........................................................................................................
-  # ### TAINT put this event further up in the chain ###
-  # ### make behavior on paste configurable ###
-  # debug 'µ77733', change
-  # if change.origin is 'paste'
-  #   head  = Array.from text
-  #   tail  = []
-  #   while ( chr = head.shift() )
-  #     tail.push chr
-  #     text = tail.join ''
-  #     XE.emit PD.new_event '^input', { S, change, editor, doc, line_idx, text, }
-  # #.........................................................................................................
-  # else
-  XE.emit PD.new_event '^input', { S, change, editor, doc, line_idx, text, }
-  #.........................................................................................................
-  return null
-
-#-----------------------------------------------------------------------------------------------------------
-XE.contract '^input', ( d ) ->
+XE.listen_to '^input', ( d ) ->
   v = d.value
   #.........................................................................................................
   # whisper 'µ34343', xrpr change
@@ -86,18 +54,12 @@ XE.contract '^input', ( d ) ->
   ### TAINT replacing the text of the entire line is one way to insert new text, but it would conceivably
   more elegant and / or more correct if we just replaced in the editor what we're replacing in the text ###
   ### TAINT consider to build micro shim so we get rid of these (for our use case) bizarre API choices ###
+  ### Announce to ignore next `+delete` event as it did not originate from user input: ###
+  await XE.emit PD.new_event '^ignore-delete'
   CodeMirror.commands.goLineEnd   v.editor
   CodeMirror.commands.delLineLeft v.editor
   v.doc.replaceSelection text
   return null
-
-#-----------------------------------------------------------------------------------------------------------
-XE.listen_to '<keyboard-level', ( d ) ->
-  # urge 'µ55402', jr d
-
-#-----------------------------------------------------------------------------------------------------------
-XE.listen_to '>keyboard-level', ( d ) ->
-  # urge 'µ55403', jr d
 
 
 

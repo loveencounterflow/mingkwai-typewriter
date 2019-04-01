@@ -23,12 +23,13 @@ assign                    = Object.assign
 #...........................................................................................................
 PD                        = require 'pipedreams'
 XE                        = require './xemitter'
+S                         = require './settings' ### module-global configuration and editor state object ###
 
 #-----------------------------------------------------------------------------------------------------------
 @keycodes = require './BLAIDDDRWG-keycodes'
 
 #-----------------------------------------------------------------------------------------------------------
-@_preprocess_key_up_or_down_event = ( S, event ) =>
+@_preprocess_key_up_or_down_event = ( event ) =>
   # code      = event.keyCode ? event.which
   code    = event.which
   name    = []
@@ -54,7 +55,7 @@ XE                        = require './xemitter'
 #===========================================================================================================
 #
 #-----------------------------------------------------------------------------------------------------------
-@$on_key_down = ( S ) -> ( event ) =>
+@$on_key_down = -> ( event ) =>
   # debug 'µ56545', event
   ### thx to https://stackoverflow.com/a/22029109/7568091 ###
   oe        = event.originalEvent
@@ -88,7 +89,7 @@ XE                        = require './xemitter'
   #.........................................................................................................
   ### UIE: User Interaction Event ###
   uie           = { chr, slot, location, kind, axis, direction, }
-  uie           = assign uie, { S, event, }, ( @_preprocess_key_up_or_down_event S, event )
+  uie           = assign uie, { event, }, ( @_preprocess_key_up_or_down_event event )
   #.........................................................................................................
   if uie.name in [ 'alt', 'altgr', 'ctrl', 'shift', 'capslock', ] then  S.kblevels.prv_down = uie.name
   else                                                                  S.kblevels.prv_down = null
@@ -109,20 +110,20 @@ XE                        = require './xemitter'
 ###
 
 #-----------------------------------------------------------------------------------------------------------
-@$on_key_up = ( S ) -> ( event ) =>
-  key = @_preprocess_key_up_or_down_event S, event
+@$on_key_up = -> ( event ) =>
+  key = @_preprocess_key_up_or_down_event event
   #.........................................................................................................
   if key.name in [ 'alt', 'altgr', 'ctrl', 'shift', 'capslock', ] and S.kblevels.prv_down is key.name
     S.kblevels[ key.name ]  = toggle = not S.kblevels[ key.name ]
     key.toggle              = if toggle then 'on' else 'off'
-    XE.emit PD.new_event '^kblevel', { S, key, }
+    XE.emit PD.new_event '^kblevel', { key, }
   S.kblevels.prv_down = null
   #.........................................................................................................
-  XE.emit PD.new_event '^keyboard', { S, key, }
+  XE.emit PD.new_event '^keyboard', { key, }
   return true
 
 #-----------------------------------------------------------------------------------------------------------
-@$on_other = ( S ) -> ( event ) =>
+@$on_other = -> ( event ) =>
   # info '77363', event.type, event.originalEvent.data
   return true
 
@@ -130,29 +131,29 @@ XE                        = require './xemitter'
 #===========================================================================================================
 #
 #-----------------------------------------------------------------------------------------------------------
-XE.listen_to 'KEYS/kblevels/change', @, ( { S, key, } ) ->
+XE.listen_to 'KEYS/kblevels/change', @, ( { key, } ) ->
   whisper 'KEYS/kblevels/change', jr key
 
 # #-----------------------------------------------------------------------------------------------------------
-# XE.listen_to 'KEYS/key/down', @, ( { S, key, } ) ->
+# XE.listen_to 'KEYS/key/down', @, ( { key, } ) ->
 #   whisper 'KEYS/key/down', jr key
 
 # #-----------------------------------------------------------------------------------------------------------
-# XE.listen_to 'KEYS/key/up', @, ( { S, key, } ) ->
+# XE.listen_to 'KEYS/key/up', @, ( { key, } ) ->
 #   whisper 'KEYS/key/up', jr key
 
 
 #===========================================================================================================
 #
 #-----------------------------------------------------------------------------------------------------------
-@syphon_key_and_mouse_events = ( S, jquery_element ) ->
-  jquery_element.on 'keydown',            @$on_key_down S
-  jquery_element.on 'keyup',              @$on_key_up   S
-  jquery_element.on 'beforeinput',        @$on_other    S
-  jquery_element.on 'input',              @$on_other    S
-  jquery_element.on 'compositionstart',   @$on_other    S
-  jquery_element.on 'compositionupdate',  @$on_other    S
-  jquery_element.on 'compositionend ',    @$on_other    S
+@syphon_key_and_mouse_events = ( jquery_element ) ->
+  jquery_element.on 'keydown',            @$on_key_down()
+  jquery_element.on 'keyup',              @$on_key_up()
+  jquery_element.on 'beforeinput',        @$on_other()
+  jquery_element.on 'input',              @$on_other()
+  jquery_element.on 'compositionstart',   @$on_other()
+  jquery_element.on 'compositionupdate',  @$on_other()
+  jquery_element.on 'compositionend ',    @$on_other()
 
 ###
     document.onkeypress = (e) ->

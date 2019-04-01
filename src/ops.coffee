@@ -36,13 +36,12 @@ info                      = CND.get_logger 'info',      badge
 inspect                   = ( require 'util' ).inspect
 # TRAP                      = require 'mousetrap'
 KEYS                      = require '../lib/keys'
-STATE                     = require '../lib/state'
 T                         = require '../lib/templates'
 PATH                      = require 'path'
 FS                        = require 'fs'
 #...........................................................................................................
 require                   '../lib/exception-handler'
-# require                   '../lib/kana-input'
+require                   '../lib/kana-input'
 require                   '../lib/kanji-input'
 #...........................................................................................................
 PD                        = require 'pipedreams'
@@ -56,15 +55,12 @@ XE                        = require '../lib/xemitter'
 { inspect, }              = require 'util'
 xrpr                      = ( x ) -> inspect x, { colors: yes, breakLength: Infinity, maxArrayLength: Infinity, depth: Infinity, }
 #...........................................................................................................
-# `S` is the module-global configuration and editor state object; this will probably factored out into a
-# separate local module to make it `require`able to other modules running in the renderer process:
-S                         = null
+S                         = require '../lib/settings' ### module-global configuration and editor state object ###
 
 #-----------------------------------------------------------------------------------------------------------
 XE.listen_to_all ( key, d ) ->
   # whisper 'µ99823', key #, jr d
-  v       = d.value
-  { S, }  = v
+  v       = d.value ? {}
   logger  = jQuery '#logger'
   ( logger.find ':first-child').remove() while logger.children().length > 10
   message = switch key
@@ -90,104 +86,21 @@ XE.listen_to_all ( key, d ) ->
   logger.scrollTop logger[ 0 ].scrollHeight
   return null
 
-
-# #-----------------------------------------------------------------------------------------------------------
-# @on_add_selection = ( uie ) ->
-#   { S, } = uie
-#   debug '44545', 'selected row nr:', S.row_idx + 1
-#   chr = S.rows?[ S.row_idx ]?.glyph
-#   XE.emit 'IME/input/add', { S, row_idx: S.row_idx, chr, }
-#   uie.event.preventDefault()
-#   return null
-
-# #-----------------------------------------------------------------------------------------------------------
-# XE.listen_to 'IME/input/add', @, ( { S, row_idx, chr, } ) ->
-#   debug "update output area"
-#   debug "reset candidates area, input box"
-#   ### TAINT remove buffer ###
-#   S.buffer.push chr
-#   # ( jQuery '#output-area .inbox' ).text S.buffer.join ''
-#   S.codemirror.editor.replaceSelection chr
-#   ( jQuery '#text-input' ).text ''
-#   return null
-
-#-----------------------------------------------------------------------------------------------------------
-@on_scroll = ( S, event ) =>
-  # if event.originalEvent.deltaY < 0 then  @navigate_vertically S, -1
-  # else                                    @navigate_vertically S, +1
-  if S.ignore_next_scroll_events >= 0
-    S.ignore_next_scroll_events += -1
-    # debug 'scroll', 'discard'
-    return true
-  S.ignore_next_scroll_events = 1
-  delta_px                    = ( S.scroller.scrollTop() - S.scroller_last_top ) / S.candidates_tr_height
-  S.scroller_last_top         = S.scroller.scrollTop()
-  # debug 'scroll', delta_px
-  # CND.dir event
-  # return false if delta_px is 0
-  if delta_px < 0 then  @navigate_vertically S, -1
-  else                  @navigate_vertically S, +1
-  return false;
-
-#-----------------------------------------------------------------------------------------------------------
-@on_wheel = ( S, event ) =>
-  if event.originalEvent.deltaY < 0 then  @navigate_vertically S, -1
-  else                                    @navigate_vertically S, +1
-  return false;
-
-#-----------------------------------------------------------------------------------------------------------
-@on_vertical_navigation = ( uie ) ->
-  switch uie.name
-    when 'up'         then  delta = -1
-    when 'down'       then  delta = +1
-    when 'page-up'    then  delta = -10
-    when 'page-down'  then  delta = +10
-  @navigate_vertically uie.S, delta
-  uie.event.preventDefault()
-  return null
-
-#-----------------------------------------------------------------------------------------------------------
-@navigate_vertically = ( S, delta ) ->
-  new_row_idx       = S.row_idx + delta
-  corrected_row_idx = Math.max 0,                 new_row_idx
-  corrected_row_idx = Math.min S.rows.length - 1, corrected_row_idx
-  #.........................................................................................................
-  XE.emit 'WINDOW/scroll/vertical', {
-    S,
-    from: S.row_idx         + 1,
-    via:  new_row_idx       + 1,
-    to:   corrected_row_idx + 1, }
-  #.........................................................................................................
-  S.row_idx         = corrected_row_idx
-  element           = ( jQuery '#candidates tr' ).eq S.row_idx
-  if element?.offset? and ( element_offset = element.offset() )?
-    delta_px                      = element_offset.top - S.shade_offset_top
-    S.scroller_last_top           = S.scroller.scrollTop() + delta_px
-    S.ignore_next_scroll_events  += +1
-    S.scroller.scrollTop S.scroller_last_top
-    # ( ( jQuery element ).find '.glyph' ).css 'font-size', '125%'
-  return null
-
-# # #-----------------------------------------------------------------------------------------------------------
-# # XE.listen_to 'WINDOW/scroll/vertical', @, ({ S, from, via, to, }) ->
-# #   whisper "WINDOW/scroll/vertical #{from} -> #{via} -> #{to}"
-
 #-----------------------------------------------------------------------------------------------------------
 XE.listen_to '^candidates', @, ( d ) ->
-  @focusframe_to_candidates S unless S.focus_is_candidates
+  @focusframe_to_candidates() unless S.focus_is_candidates
   v       = d.value
-  { S, }  = v
   rows    = ( ( T.get_flexgrid_html ( idx + 1 ), glyph ) for glyph, idx in v.candidates ).join '\n'
   ( jQuery '#candidates-flexgrid div' ).remove()
   ( jQuery '#candidates-flexgrid'     ).append rows
   #.........................................................................................................
   ### TAINT code duplication ###
-  S.glyphboxes = jQuery '#candidates-flexgrid div.glyph'
-  S.glyphboxes.on 'click', ( e ) =>
+  glyphboxes = jQuery '#candidates-flexgrid div.glyph'
+  glyphboxes.on 'click', ( e ) =>
     me = jQuery e.target
     ### TAINT code duplication ###
     ### TAINT use API to move selection ###
-    S.glyphboxes.removeClass  'cdtsel'
+    glyphboxes.removeClass  'cdtsel'
     me.addClass             'cdtsel'
     @log "µ33983-1 #{me.text()} #{jr me.offset()}"
   #.........................................................................................................
@@ -204,11 +117,11 @@ XE.listen_to '^candidates', @, ( d ) ->
   of elements. The beauty of the scheme is that we can select e.g. all leftmost elements or all elements
   in the first row (should the need ever arise). ###
   ### TAINT code duplication ###
-  S.glyphboxes   ?= jQuery '#candidates-flexgrid div.glyph'
+  glyphboxes      = jQuery '#candidates-flexgrid div.glyph'
   lcol            = 0
   lrow            = 0
   prv_top         = null
-  candidate_count = S.glyphboxes.length
+  candidate_count = glyphboxes.length
   lnr             = 0
   rnr             = candidate_count + 1
   rows            = []
@@ -217,14 +130,14 @@ XE.listen_to '^candidates', @, ( d ) ->
   @log "index_candidates() (#{candidate_count})"
   #.........................................................................................................
   for idx in [ 0 ... candidate_count ]
-    glyphbox = S.glyphboxes.eq idx
+    glyphbox = glyphboxes.eq idx
     #.......................................................................................................
     if ( nxt_top = glyphbox.offset().top ) isnt prv_top
       if row?
         rows.push row
         col_count = row.length
-        for candidate, col_idx in row
-          candidate.attr 'rcol', col_count - col_idx
+        for sub_glyphbox, col_idx in row
+          sub_glyphbox.attr 'rcol', col_count - col_idx
       #.....................................................................................................
       row = []
       prv_top = nxt_top
@@ -244,110 +157,97 @@ XE.listen_to '^candidates', @, ( d ) ->
   rows.push row if row?
   row_count = rows.length
   for row, row_idx in rows
-    for candidate in row
-      candidate.attr 'rrow', row_count - row_idx
+    for glyphbox in row
+      glyphbox.attr 'rrow', row_count - row_idx
   #.........................................................................................................
   rows.length = 0 ### not strictly needed, just to make de-allocation explicit ###
   return null
 
 #-----------------------------------------------------------------------------------------------------------
-@select_nxt_candidate     = -> @_select_delta_candidate          +1
-@select_prv_candidate     = -> @_select_delta_candidate          -1
-@select_nxtline_candidate = -> @_select_deltaline_candidate      +1
-@select_prvline_candidate = -> @_select_prv_deltaline_candidate  -1
+@insert_space_or_selection = ->
+  ### TAINT this implementation precludes any other functionality that the space bar might be associated
+  with in CodeMirror ###
+  cdtsel = jQuery '.cdtsel'
+  ### TAINT honour multiple selection ###
+  text   = if cdtsel.length > 0 then cdtsel.text() else ' '
+  S.codemirror.editor.replaceSelection text
+  @focusframe_to_editor()
+  return null
 
 #-----------------------------------------------------------------------------------------------------------
-@_select_delta_candidate = ( delta ) ->
-  ### Select delta-next or -previous candidate; `+1` moves to immediately following candidate, `-1` to
-  immediately preceding one; higher `delta` skips that many gaps. Returns number of candidates moved, so
-  returns zero if there were no candidates, or was already on first (or last) when moving backwards (or
-  forwards). ###
+@_select_delta_candidate = ( deltas ) ->
+  ### Select next candidate(s) based on `deltas`, which should be an object with one or more of the
+  following members:
+
+  * **`lnr`**:     left-anchored  candidate         number
+  * **`lcol`**:    left-anchored  column            number
+  * **`lrow`**:    left-anchored  row (i.e. line)   number
+  * **`rnr`**:     right-anchored candidate         number
+  * **`rcol`**:    right-anchored column            number
+  * **`rrow`**:    right-anchored row (i.e. line)   number
+
+  Left-anchored values count from the usual (i.e. top or left) end of that dimension, richt-anchored ones
+  from the opposite sides; for example, `lcol: 1` selects the first (leftmost), `rcol: 1` the last
+  (rightmost) entry in each row; `lrow: 1` the first row, `rrow: 1` the last one; in a line with, say, five
+  candidates, `lrow: 4` is equivalent to `rrow: 2`, and `lrow: 5` is the same as `rrow: 1`.
+
+  Each entry may be either a positive or negative integer, or zero, or 'first', or 'last'. A non-zero number
+  indicates the number of steps to go in the respective dimension while zero indicates 'keep this value'.
+  For example, to move right irregardless of line breaks, use `{ lnr: +1, }`. To move to the first entry on
+  the next line, use `{ lcol: 'first', lrow: +1, }`. To go to the last entry of the current row, use `{
+  lrow: 0, lcol: 'last', }` or `{ lrow: 0, rcol: 'first', }`. The selected candidates are the intersection
+  of all sub-selectors.
+
+  This method will have no effect unless there is one or more selected entries to start with. ###
+  #.........................................................................................................
   R                   = 0
-  return R if delta is 0
   prv_cdtsel          = jQuery '.cdtsel'
   #.........................................................................................................
   if prv_cdtsel.length is 0
     @log "_select_delta_candidate: no candidate selected"
     return R
   #.........................................................................................................
-  glyphboxes          = jQuery '#candidates-flexgrid div.glyph'
-  method_name         = if delta > 0 then 'next' else 'prev'
-  delta               = Math.abs delta
-  prv_cdtsel[ 0 ].scrollIntoViewIfNeeded()
+  ### TAINT code duplication ###
+  glyphboxes    = jQuery '#candidates-flexgrid div.glyph'
+  nxt_selector  = []
   #.........................................................................................................
-  while delta > 0
-    nxt_cdtsel          = prv_cdtsel[ method_name ]()
-    break if nxt_cdtsel.length is 0
-    R                  += +1
-    glyphboxes.removeClass  'cdtsel'
-    nxt_cdtsel.addClass     'cdtsel'
-    nxt_cdtsel[ 0 ].scrollIntoViewIfNeeded()
-    delta              += -1
-  #.........................................................................................................
+  for delta_key, delta_value of deltas
+    switch type = CND.type_of delta_value
+      when 'text'
+        switch delta_value
+          when 'first'
+            nxt_selector.push "[#{delta_key}=1]"
+          when 'last'
+            delta_key = delta_key.replace /^[rl]/, ( $0 ) -> if $0 is 'l' then 'r' else 'l'
+            nxt_selector.push "[#{delta_key}=1]"
+          else throw new Error "µ37634 unknown move command #{rpr delta_value}"
+      when 'number'
+        prv_value = parseInt ( prv_cdtsel.attr delta_key ),  10
+        nxt_value = prv_value + delta_value
+        nxt_selector.push "[#{delta_key}=#{nxt_value}]"
+      else throw new Error "µ37633 expected a text or a number, got a #{type}"
+  nxt_selector = nxt_selector.join ''
+  @log "_select_delta_candidate #{jr deltas} #{jr nxt_selector}"
+  return R if ( R = ( nxt_cdtsel = glyphboxes.filter nxt_selector ).length ) is 0
+  prv_cdtsel.removeClass  'cdtsel'
+  nxt_cdtsel.addClass     'cdtsel'
+  nxt_cdtsel[ 0 ].scrollIntoViewIfNeeded()
   return R
-
-#-----------------------------------------------------------------------------------------------------------
-@_select_prv_deltaline_candidate = ( delta ) ->
-  await @_select_deltaline_candidate delta
-  await @_select_first_candidate_in_line()
-
-#-----------------------------------------------------------------------------------------------------------
-@_select_first_candidate_in_line = ->
-
-#-----------------------------------------------------------------------------------------------------------
-@_select_deltaline_candidate = ( delta ) ->
-  return new Promise ( resolve ) =>
-    @log "µ77722 _select_deltaline_candidate #{delta}"
-    return resolve() if S.selecting_candidate
-    return resolve() if delta is 0
-    S.selecting_candidate = true
-    prv_cdtsel            = jQuery '.cdtsel'
-    #.......................................................................................................
-    if prv_cdtsel.length is 0
-      S.selecting_candidate = false
-      @log "µ33634 _select_deltaline_candidate: no candidate selected"
-      return resolve()
-    #.......................................................................................................
-    sub_delta             = Math.sign delta
-    delta                 = Math.abs  delta
-    prv_top               = prv_cdtsel.offset().top
-    dts                   = 0
-    #.......................................................................................................
-    try_next_candidate  = =>
-      #.....................................................................................................
-      if ( @_select_delta_candidate sub_delta ) is 0
-        S.selecting_candidate = false
-        return resolve()
-      #.....................................................................................................
-      nxt_cdtsel  = jQuery '.cdtsel'
-      if nxt_cdtsel.length is 0 ### should never happen ###
-        S.selecting_candidate = false
-        @log "µ33679 _select_deltaline_candidate: no candidate selected"
-        return resolve()
-      #.....................................................................................................
-      if ( Math.abs nxt_cdtsel.offset().top - prv_top ) < 2
-        defer try_next_candidate
-      else
-        S.selecting_candidate = false
-      return resolve()
-    #.......................................................................................................
-    defer try_next_candidate
-    return resolve()
 
 #-----------------------------------------------------------------------------------------------------------
 XE.listen_to '^load-documents', @, ( d ) ->
   ### Will be used to restore previous state, open new documents; for now, just opens the default file. ###
   ### TAINT auto-create file when not present ###
   file_path = PATH.resolve PATH.join __dirname, '../.cache/default.md'
-  d.value.S.codemirror.editor.doc.setValue FS.readFileSync file_path, { encoding: 'utf-8', }
+  S.codemirror.editor.doc.setValue FS.readFileSync file_path, { encoding: 'utf-8', }
   return null
 
 #-----------------------------------------------------------------------------------------------------------
 ### TAINT use proper keybinding API to define key bindings ###
 XE.listen_to '^keyboard', @, ( d ) ->
-  { key, S, } = d.value
+  { key, } = d.value
   if ( key.name is 'ctrl+s' ) and ( key.move is 'up' )
-    XE.emit PD.new_event '^save-document', { S, }
+    XE.emit PD.new_event '^save-document'
   return null
 
 #-----------------------------------------------------------------------------------------------------------
@@ -355,28 +255,28 @@ XE.listen_to '^save-document', @, ( d ) ->
   ### Will be used to save active document; currently just saves default file. ###
   file_path = PATH.resolve PATH.join __dirname, '../.cache/default.md'
   @log "saving document to #{rpr file_path}"
-  FS.writeFileSync file_path, d.value.S.codemirror.editor.doc.getValue()
+  FS.writeFileSync file_path, S.codemirror.editor.doc.getValue()
   return null
 
 #-----------------------------------------------------------------------------------------------------------
-@focusframe_to_editor = ( S ) ->
-  @_focusframe_to S, 'leftbar'
+@focusframe_to_editor = ->
+  @_focusframe_to 'leftbar'
   ### TAINT use method, must be possible to remap ###
   S.focus_is_candidates = false
   # S.kblevels.shift      = false
-@focusframe_to_candidates = ( S ) ->
-  @_focusframe_to S, 'rightbar'
+@focusframe_to_candidates = ->
+  @_focusframe_to 'rightbar'
   ### TAINT use method, must be possible to remap ###
   S.focus_is_candidates = true
   # S.kblevels.shift      = false
-@focusframe_to_logger = ( S ) ->
-  @_focusframe_to S, '#logger'
+@focusframe_to_logger = ->
+  @_focusframe_to '#logger'
   ### TAINT use method, must be possible to remap ###
   S.focus_is_candidates = false
   # S.kblevels.shift      = false
 
 #-----------------------------------------------------------------------------------------------------------
-@_focusframe_to = ( S, target ) ->
+@_focusframe_to = ( target ) ->
   # target      = jQuery( document.activeElement )
   target      = jQuery target if CND.isa_text target
   ff          = jQuery 'focusframe'
@@ -398,10 +298,9 @@ XE.listen_to '^save-document', @, ( d ) ->
 XE.listen_to '^kblevel', @, ( d ) ->
   ### map kblevel 'shift' to manual editor/candidates focus selection ###
   v       = d.value
-  { S, }  = v
   # debug 'µ87444', S.kblevels.shift
-  if ( S.focus_is_candidates = S.kblevels.shift ) then  @focusframe_to_candidates S
-  else                                                  @focusframe_to_editor     S
+  if ( S.focus_is_candidates = S.kblevels.shift ) then  @focusframe_to_candidates()
+  else                                                  @focusframe_to_editor()
   ### TAINT consider to re-set focus after mouse clicks to elsewhere in GUI ###
   ### Make browser focus always stay on editor: ###
   return null
@@ -413,77 +312,57 @@ XE.listen_to '^kblevel', @, ( d ) ->
   ( jQuery 'div.CodeMirror-code' ).focus()
   return null
 
-# #-----------------------------------------------------------------------------------------------------------
-# ### TAINT use proper keybinding API to define key bindings ###
-# XE.listen_to '^keyboard', @, ( d ) ->
-#   { key, S, } = d.value
-#   return unless ( key.move is 'up' )
-#   switch key.name
-#     when 'left'     then  @focusframe_to_editor     S
-#     when 'right'    then  @focusframe_to_candidates S
-#     when 'up'       then  @focusframe_to_editor     S
-#     when 'down'     then  @focusframe_to_logger     S
-#   return null
-
-
-
-###
 #-----------------------------------------------------------------------------------------------------------
-@_handle_cm_keymap_move = ( cm, editor_method, candidates_method ) ->
-  if S.focus_is_candidates then candidates_method.apply @,                    cm
-  else                          editor_method.apply     CodeMirror.commands,  cm
-  return null
-###
-
-#-----------------------------------------------------------------------------------------------------------
-@cm_keymap_move_left = ( cm ) ->
-  ### TAINT is there a way not to name default command explicitly? ###
-  if S.focus_is_candidates then @select_prv_candidate()
-  else                          CodeMirror.commands.goCharLeft cm
+@_cm_keymap_move = ( cm, editor_method_name, candidates_method ) ->
+  return CodeMirror.commands[ editor_method_name ] cm unless S.focus_is_candidates
+  return candidates_method.apply @
   return null
 
 #-----------------------------------------------------------------------------------------------------------
-@cm_keymap_move_right = ( cm ) ->
-  if S.focus_is_candidates then @select_nxt_candidate()
-  else                          CodeMirror.commands.goCharRight cm
-  return null
+@move_right         = ( cm ) -> @_cm_keymap_move cm, 'goCharRight', => @_select_delta_candidate { lnr: +1, }
+@move_left          = ( cm ) -> @_cm_keymap_move cm, 'goCharLeft',  => @_select_delta_candidate { lnr: -1, }
+@move_nxtline_first = ( cm ) -> @_cm_keymap_move cm, 'defaultTab',  => @_select_delta_candidate { lcol: 'first', lrow: +1, }
+@move_prvline_first = ( cm ) -> @_cm_keymap_move cm, 'indentLess',  => @_select_delta_candidate { lcol: 'first', lrow: -1, }
+@move_up            = ( cm ) -> @_cm_keymap_move cm, 'goLineUp',    => @log '######### move_up'
+@move_down          = ( cm ) -> @_cm_keymap_move cm, 'goLineDown',  => @log '######### move_down'
+@move_to_home       = ( cm ) -> @_cm_keymap_move cm, 'defaultHome', => @_select_delta_candidate { lrow: 0, lcol: 'first', }
+# @move_to_end        = ( cm ) -> @_cm_keymap_move cm, 'defaultEnd',  => @_select_delta_candidate { lrow: 0, rcol: 'first',  }
+@move_to_end        = ( cm ) -> @_cm_keymap_move cm, 'defaultEnd',  => @_select_delta_candidate { lrow: 0, lcol: 'last',  }
 
 #-----------------------------------------------------------------------------------------------------------
-@cm_keymap_move_up = ( cm ) ->
-  if S.focus_is_candidates then debug 'µ77644-2', "cursor movement goes to candidates"
-  else                          CodeMirror.commands.goLineUp cm
-  return null
-
-#-----------------------------------------------------------------------------------------------------------
-@cm_keymap_move_down = ( cm ) ->
-  if S.focus_is_candidates then debug 'µ77644-2', "cursor movement goes to candidates"
-  else                          CodeMirror.commands.goLineDown cm
-  return null
-
-#-----------------------------------------------------------------------------------------------------------
-@cm_keymap_move_tab = ( cm ) ->
-  if S.focus_is_candidates then @select_nxtline_candidate()
-  else                          CodeMirror.commands.defaultTab cm
-  return null
-
-#-----------------------------------------------------------------------------------------------------------
-@cm_keymap_move_shifttab = ( cm ) ->
-  if S.focus_is_candidates then @select_prvline_candidate()
-  else                          CodeMirror.commands.indentLess cm
-  return null
-
-
-#-----------------------------------------------------------------------------------------------------------
-@init_cm_keymap = ( S ) ->
+@init_cm_keymap = ->
   mktw_keymap =
-    'Left':       ( cm  ) => @cm_keymap_move_left     cm
-    'Right':      ( cm  ) => @cm_keymap_move_right    cm
-    'Up':         ( cm  ) => @cm_keymap_move_up       cm
-    'Down':       ( cm  ) => @cm_keymap_move_down     cm
-    'Tab':        ( cm  ) => @cm_keymap_move_tab      cm
-    'Shift-Tab':  ( cm  ) => @cm_keymap_move_shifttab cm
+    'Left':       ( cm  ) => @move_left                 cm
+    'Right':      ( cm  ) => @move_right                cm
+    'Up':         ( cm  ) => @move_up                   cm
+    'Down':       ( cm  ) => @move_down                 cm
+    'Tab':        ( cm  ) => @move_nxtline_first        cm
+    'Shift-Tab':  ( cm  ) => @move_prvline_first        cm
+    'Home':       ( cm  ) => @move_to_home              cm
+    'End':        ( cm  ) => @move_to_end               cm
+    'Space':      ( cm  ) => @insert_space_or_selection cm
   #.........................................................................................................
   S.codemirror.editor.addKeyMap mktw_keymap
+  return null
+
+#-----------------------------------------------------------------------------------------------------------
+XE.listen_to '^raw-input', ( d ) ->
+  ### Transform `^raw-input` to `^input` events ###
+  #.........................................................................................................
+  { change, }     = d.value
+  { editor, }     = S.codemirror
+  { doc, }        = editor
+  cursor          = doc.getCursor()
+  #.........................................................................................................
+  ### TAINT kludge to collapse multiple selections into a single one ###
+  CodeMirror.commands.singleSelection editor
+  #.........................................................................................................
+  line_idx        = cursor.line
+  line_handle     = doc.getLineHandle line_idx
+  line_info       = doc.lineInfo line_handle ### TAINT consider to use line_idx, forego line_handle ###
+  { text, }       = line_info
+  #.........................................................................................................
+  XE.emit PD.new_event '^input', { change, editor, doc, line_idx, text, }
   return null
 
 #-----------------------------------------------------------------------------------------------------------
@@ -491,45 +370,41 @@ XE.listen_to '^kblevel', @, ( d ) ->
   # { remote, }               = require 'electron'
   # XE                        = remote.require './xemitter'
   #.........................................................................................................
-  ### Instantiate state, add important UI elements ###
-  S                     = STATE.new()
   S.candidates          =
     jq:           jQuery '#candidates'
     selected:
       id:         null
   S.focus_is_candidates = false
   #.........................................................................................................
-  # ### Register key and mouse events ###
-  # S.scroller.on 'wheel',                ( event ) => @on_wheel                S, event
-  # S.scroller.on 'scroll',               ( event ) => @on_scroll               S, event
-  # S.input.on 'input',                   ( event ) => @on_input                S, event
-  # ### use event for this? ###
-  # S.scroller_last_top = S.scroller.scrollTop()
-  #.........................................................................................................
   ### Initialize CodeMirror ###
   S.codemirror.editor = CodeMirror.fromTextArea ( jQuery '#codemirror' )[ 0 ], S.codemirror.settings
   S.codemirror.editor.setSize null, '100%'
-  S.codemirror.editor.on 'inputRead', ( me, change ) -> XE.emit PD.new_event '^raw-input', { S, change, }
+  S.codemirror.editor.on 'inputRead', ( me, change ) -> XE.emit PD.new_event '^raw-input', { change, }
+  XE.listen_to '^ignore-delete', -> S.ignore_delete += +1
   S.codemirror.editor.on 'change', ( me, change ) ->
     ### TAINT when inserting results, will there be a change event? ###
     return null unless change.origin is '+delete'
-    XE.emit PD.new_event '^raw-input', { S, change, }
+    ### ignore event if it has been generated: ###
+    if S.ignore_delete > 0
+      S.ignore_delete += -1
+      return null
+    XE.emit PD.new_event '^raw-input', { change, }
   @always_focus_editor()
   #.........................................................................................................
-  S.codemirror.editor.on 'beforeChange',    ( me, change      ) -> whisper 'µ66653', 'beforeChange',  jr change
-  S.codemirror.editor.on 'change',          ( me, change      ) -> whisper 'µ66653', 'change',        jr change
+  # S.codemirror.editor.on 'beforeChange',    ( me, change      ) -> whisper 'µ66653', 'beforeChange',  jr change
+  # S.codemirror.editor.on 'change',          ( me, change      ) -> whisper 'µ66653', 'change',        jr change
   # S.codemirror.editor.on 'changes',         ( me, changes     ) -> whisper 'µ66653', 'changes',       jr changes
   # S.codemirror.editor.on 'cursorActivity',  ( me              ) -> whisper 'µ66653', 'cursorActivity'
   # S.codemirror.editor.on 'keyHandled',      ( me, name, event ) -> whisper 'µ66653', 'keyHandled',    jr name
   # S.codemirror.editor.on 'inputRead',       ( me, change      ) -> whisper 'µ66653', 'inputRead',     jr change
   #.........................................................................................................
   ### Register key and mouse events ###
-  KEYS.syphon_key_and_mouse_events S, jQuery 'html'
+  KEYS.syphon_key_and_mouse_events jQuery 'html'
   # KEYS.register 'axis', 'vertical',     ( uie )   => @on_vertical_navigation  uie
   # KEYS.register 'slot', 'Enter',        ( uie )   => @on_add_selection        uie
-  XE.emit PD.new_event '^load-documents', { S, }
-  @focusframe_to_editor S
-  @init_cm_keymap S
+  XE.emit PD.new_event '^load-documents'
+  @focusframe_to_editor()
+  @init_cm_keymap()
   #.........................................................................................................
   ### Detect resizing events: ###
   ### TAINT won't work when panes are shifted (probably) ###
