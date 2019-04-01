@@ -41,8 +41,8 @@ PATH                      = require 'path'
 FS                        = require 'fs'
 #...........................................................................................................
 require                   '../lib/exception-handler'
-require                   '../lib/kana-input'
-require                   '../lib/kanji-input'
+# require                   '../lib/kana-input'
+# require                   '../lib/kanji-input'
 #...........................................................................................................
 PD                        = require 'pipedreams'
 { jr, }                   = CND
@@ -56,6 +56,7 @@ XE                        = require '../lib/xemitter'
 xrpr                      = ( x ) -> inspect x, { colors: yes, breakLength: Infinity, maxArrayLength: Infinity, depth: Infinity, }
 #...........................................................................................................
 S                         = require '../lib/settings' ### module-global configuration and editor state object ###
+global.S                  = S
 
 #-----------------------------------------------------------------------------------------------------------
 XE.listen_to_all ( key, d ) ->
@@ -294,6 +295,43 @@ XE.listen_to '^save-document', @, ( d ) ->
   return null
 
 #-----------------------------------------------------------------------------------------------------------
+@always_focus_editor = ->
+  @always_focus_editor = -> ### do not add any more handlers with this method after first call ###
+  ( jQuery 'div.CodeMirror-code' ).on 'blur', -> @focus()
+  ( jQuery 'div.CodeMirror-code' ).focus()
+  return null
+
+#-----------------------------------------------------------------------------------------------------------
+@_cm_keymap_move = ( cm, editor_method_name, candidates_method ) ->
+  try
+    return CodeMirror.commands[ editor_method_name ] cm unless S.focus_is_candidates
+    return candidates_method.apply @
+  catch error
+    alert "when trying to call `CodeMirror.commands.#{editor_method_name}`, an error was thrown"
+    throw error
+  return null
+
+#-----------------------------------------------------------------------------------------------------------
+### TAINT the defaults for cursor moves are taken from
+* public/codemirror/src/edit/commands.js
+* public/codemirror/keymap/sublime.js
+it would be advantageous to derive them somehow from the source or the running instance
+###
+@move_right         = ( cm ) -> @_cm_keymap_move cm, 'goCharRight', => @_select_delta_candidate { lnr: +1, }
+@move_left          = ( cm ) -> @_cm_keymap_move cm, 'goCharLeft',  => @_select_delta_candidate { lnr: -1, }
+@move_nxtline_first = ( cm ) -> @_cm_keymap_move cm, 'defaultTab',  => @_select_delta_candidate { lcol: 'first', lrow: +1, }
+@move_prvline_first = ( cm ) -> @_cm_keymap_move cm, 'indentLess',  => @_select_delta_candidate { lcol: 'first', lrow: -1, }
+@move_up            = ( cm ) -> @_cm_keymap_move cm, 'goLineUp',    => @log '######### move_up'
+@move_down          = ( cm ) -> @_cm_keymap_move cm, 'goLineDown',  => @log '######### move_down'
+@move_to_home       = ( cm ) -> @_cm_keymap_move cm, 'goLineStartSmart', => @_select_delta_candidate { lrow: 0, lcol: 'first', }
+@move_to_end        = ( cm ) -> @_cm_keymap_move cm, 'goLineEnd',  => @_select_delta_candidate { lrow: 0, lcol: 'last',  }
+
+#-----------------------------------------------------------------------------------------------------------
+@set_translation_mode = ( xxx ) ->
+
+XE.listen_to '<kblevel'
+
+#-----------------------------------------------------------------------------------------------------------
 ### TAINT use proper keybinding API to define key bindings ###
 XE.listen_to '^kblevel', @, ( d ) ->
   ### map kblevel 'shift' to manual editor/candidates focus selection ###
@@ -306,28 +344,12 @@ XE.listen_to '^kblevel', @, ( d ) ->
   return null
 
 #-----------------------------------------------------------------------------------------------------------
-@always_focus_editor = ->
-  @always_focus_editor = -> ### do not add any more handlers with this method after first call ###
-  ( jQuery 'div.CodeMirror-code' ).on 'blur', -> @focus()
-  ( jQuery 'div.CodeMirror-code' ).focus()
-  return null
-
-#-----------------------------------------------------------------------------------------------------------
-@_cm_keymap_move = ( cm, editor_method_name, candidates_method ) ->
-  return CodeMirror.commands[ editor_method_name ] cm unless S.focus_is_candidates
-  return candidates_method.apply @
-  return null
-
-#-----------------------------------------------------------------------------------------------------------
-@move_right         = ( cm ) -> @_cm_keymap_move cm, 'goCharRight', => @_select_delta_candidate { lnr: +1, }
-@move_left          = ( cm ) -> @_cm_keymap_move cm, 'goCharLeft',  => @_select_delta_candidate { lnr: -1, }
-@move_nxtline_first = ( cm ) -> @_cm_keymap_move cm, 'defaultTab',  => @_select_delta_candidate { lcol: 'first', lrow: +1, }
-@move_prvline_first = ( cm ) -> @_cm_keymap_move cm, 'indentLess',  => @_select_delta_candidate { lcol: 'first', lrow: -1, }
-@move_up            = ( cm ) -> @_cm_keymap_move cm, 'goLineUp',    => @log '######### move_up'
-@move_down          = ( cm ) -> @_cm_keymap_move cm, 'goLineDown',  => @log '######### move_down'
-@move_to_home       = ( cm ) -> @_cm_keymap_move cm, 'defaultHome', => @_select_delta_candidate { lrow: 0, lcol: 'first', }
-# @move_to_end        = ( cm ) -> @_cm_keymap_move cm, 'defaultEnd',  => @_select_delta_candidate { lrow: 0, rcol: 'first',  }
-@move_to_end        = ( cm ) -> @_cm_keymap_move cm, 'defaultEnd',  => @_select_delta_candidate { lrow: 0, lcol: 'last',  }
+@set_translation_mark = ( position_from, position_to ) ->
+  settings =
+    className:      'txtmark_xxx'
+    inclusiveLeft:  false
+    inclusiveRight: true
+  return S.codemirror.editor.markText position_from, position_to, settings
 
 #-----------------------------------------------------------------------------------------------------------
 @init_cm_keymap = ->

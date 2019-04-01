@@ -117,8 +117,8 @@ S                         = require './settings' ### module-global configuration
     S.kblevels[ key.name ]  = toggle = not S.kblevels[ key.name ]
     key.toggle              = if toggle then 'on' else 'off'
     XE.emit PD.new_event '^kblevel', { key, }
-  S.kblevels.prv_down = null
   #.........................................................................................................
+  S.kblevels.prv_down = null
   XE.emit PD.new_event '^keyboard', { key, }
   return true
 
@@ -126,22 +126,6 @@ S                         = require './settings' ### module-global configuration
 @$on_other = -> ( event ) =>
   # info '77363', event.type, event.originalEvent.data
   return true
-
-
-#===========================================================================================================
-#
-#-----------------------------------------------------------------------------------------------------------
-XE.listen_to 'KEYS/kblevels/change', @, ( { key, } ) ->
-  whisper 'KEYS/kblevels/change', jr key
-
-# #-----------------------------------------------------------------------------------------------------------
-# XE.listen_to 'KEYS/key/down', @, ( { key, } ) ->
-#   whisper 'KEYS/key/down', jr key
-
-# #-----------------------------------------------------------------------------------------------------------
-# XE.listen_to 'KEYS/key/up', @, ( { key, } ) ->
-#   whisper 'KEYS/key/up', jr key
-
 
 #===========================================================================================================
 #
