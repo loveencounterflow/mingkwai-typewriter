@@ -69,6 +69,16 @@ S                         = require './settings' ### module-global configuration
   jquery_element.on 'keydown',            @$on_key_down()
   jquery_element.on 'keyup',              @$on_key_up()
 
+#-----------------------------------------------------------------------------------------------------------
+@bind = ( P... ) ->
+  [ keyname, self, listener, ] = XE._get_ksl arguments...
+  XE.listen_to '^keyboard', ( d ) ->
+    return null unless d.value.name is keyname
+    return listener.apply self
+
+
+
+
 ###
 document.onkeypress = (e) ->
   console.log 'µ22982', e
