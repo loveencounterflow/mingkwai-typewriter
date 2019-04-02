@@ -23,8 +23,7 @@ log                       = ( P... ) -> process.stdout.write ( rpr P ) + '\n'
 window                    = null
 # log Object.keys require 'electron'
 { app
-  BrowserWindow
-  Menu }                  = require 'electron'
+  BrowserWindow }         = require 'electron'
 TEMPLATES                 = require './templates'
 PD                        = require 'pipedreams'
 XE                        = require './xemitter'
@@ -61,67 +60,6 @@ S                         = require './settings'
   whisper ( '明快打字机'.padEnd 15 ), ( require '../package.json' ).version
   return null
 
-#-----------------------------------------------------------------------------------------------------------
-@add_menu = ( window ) ->
-  template = []
-  #.........................................................................................................
-  template.push {
-    label: '&File'
-    submenu: [
-      { label: '&imagine',  click: ( -> alert 'a message for you' ), }
-      { label: '&Quit', role: 'close', accelerator: 'CmdOrCtrl+Q', } ] }
-  #.........................................................................................................
-  template.push {
-    label: '&Edit'
-    submenu: [
-      { role: 'undo'                }
-      { role: 'redo'                }
-      { type: 'separator'           }
-      { role: 'cut'                 }
-      { role: 'copy'                }
-      { role: 'paste'               }
-      { role: 'pasteandmatchstyle'  }
-      { role: 'delete'              }
-      { role: 'selectall'           } ] }
-  #.........................................................................................................
-  template.push {
-    label: '&View'
-    submenu: [
-      { role: 'reload'              }
-      { role: 'forcereload'         }
-      { role: 'toggledevtools'      }
-      { type: 'separator'           }
-      { role: 'resetzoom'           }
-      { role: 'zoomin'              }
-      { role: 'zoomout'             }
-      { type: 'separator'           }
-      { role: 'togglefullscreen'    } ] }
-  #.........................................................................................................
-  template.push {
-    label: '&Translators'
-    submenu: [
-      { label: '&1 Ja Kana'         }
-      { label: '&2 Ja Kanji'        }
-      { label: '&3 zhs Hanzi'       }
-      { label: '&4 zht Hanzi'       }
-      { label: '&5 el Greek'        }
-      { label: '&6 ru Cyrillic'     } ] }
-  #.........................................................................................................
-  # template.push {
-  #   label: '&Window'
-  #   role: 'window',
-  #   submenu: [
-  #     { role: 'minimize'            },
-  #     { role: 'close', accelerator: 'CmdOrCtrl+Q',               } ] }
-  #.........................................................................................................
-  template.push {
-    label: '&Help'
-    role: 'help',
-    submenu: [
-      { label: 'Learn More', click: ( => @open_homepage() ), } ] }
-  #.........................................................................................................
-  menu = Menu.buildFromTemplate template
-  Menu.setApplicationMenu menu
 
 #-----------------------------------------------------------------------------------------------------------
 @launch = ->
@@ -146,7 +84,6 @@ S                         = require './settings'
   #.........................................................................................................
   main_window.once 'ready-to-show', =>
     # debug '77565-1', 'ready-to-show'
-    @add_menu main_window
     main_window.show()
     main_window.maximize()                 if S.window.maximize      ? no
     main_window.webContents.openDevTools() if S.window.show_devtools ? no
