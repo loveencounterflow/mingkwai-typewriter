@@ -71,6 +71,14 @@ S                         = require './settings' ### module-global configuration
 
 #-----------------------------------------------------------------------------------------------------------
 @bind = ( P... ) ->
+  ### Define a key binding; call similar to `XE.listen_to()`:
+
+  ```
+  KEYS.bind 'ctrl+k',    -> log "ctrl+k"
+  KEYS.bind 'ctrl+l', @, -> log "ctrl+l"
+  ```
+
+  ###
   [ keyname, self, listener, ] = XE._get_ksl arguments...
   XE.listen_to '^keyboard', ( d ) ->
     return null unless d.value.name is keyname

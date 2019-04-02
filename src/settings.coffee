@@ -45,7 +45,9 @@ module.exports = S =
       webSecurity:                  true
       allowRunningInsecureContent:  false
       defaultEncoding:              'utf-8'
-      nodeIntegration:        true ### required from electron v5.0.0 onwards ###
+      nodeIntegration:              true ### required from electron v5.0.0 onwards ###
+      setAutoHideMenuBar:           true
+      setMenuBarVisibility:         true
   # selectors:      'abcdefghijklmnopqrstuvwxyz'
   #.......................................................................................................
   codemirror:

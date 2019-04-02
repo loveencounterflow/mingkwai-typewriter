@@ -64,9 +64,11 @@ XE.listen_to_all ( key, d ) ->
   v       = d.value ? {}
   logger  = jQuery '#logger'
   ( logger.find ':first-child').remove() while logger.children().length > 10
-  message = switch key
-    when '^kblevel' then  ( k for k, toggle of S.kblevels when toggle ).join ', '
-    else                  ( k for k         of d.value                ).join ', '
+  message = rpr v
+  # message = ( k for k         of d.value                ).join ', '
+  # message = switch key
+  #   when '^kblevel' then  ( k for k, toggle of S.kblevels when toggle ).join ', '
+  #   else                  ( k for k         of d.value                ).join ', '
   #.........................................................................................................
   logger.append ( "<div>#{Date.now()}: #{rpr key}: #{message}</div>" )
   console.log 'µ33499', Date.now(), key, d
@@ -77,9 +79,10 @@ XE.listen_to_all ( key, d ) ->
   return null
 
 #-----------------------------------------------------------------------------------------------------------
-@log = ( text ) ->
+@log = ( P... ) ->
   ### TAINT code duplication ###
-  logger = jQuery '#logger'
+  text    = ( ( if CND.isa_text p then p else rpr p ) for p in P ).join ' '
+  logger  = jQuery '#logger'
   ( logger.find ':first-child').remove() while logger.children().length > 10
   ### TAINT should escape text (or accept HTML?) ###
   logger.append ( "<div>#{Date.now()}: #{text}</div>" )
@@ -235,64 +238,8 @@ XE.listen_to '^candidates', @, ( d ) ->
   nxt_cdtsel[ 0 ].scrollIntoViewIfNeeded()
   return R
 
-#-----------------------------------------------------------------------------------------------------------
-XE.listen_to '^load-documents', @, ( d ) ->
-  ### Will be used to restore previous state, open new documents; for now, just opens the default file. ###
-  ### TAINT auto-create file when not present ###
-  file_path = PATH.resolve PATH.join __dirname, '../.cache/default.md'
-  S.codemirror.editor.doc.setValue FS.readFileSync file_path, { encoding: 'utf-8', }
-  return null
-
-#-----------------------------------------------------------------------------------------------------------
-### TAINT use proper keybinding API to define key bindings ###
-XE.listen_to '^keyboard', @, ( d ) ->
-  if d.value.name is 'ctrl+s'
-    XE.emit PD.new_event '^save-document'
-  return null
-
-#-----------------------------------------------------------------------------------------------------------
-XE.listen_to '^save-document', @, ( d ) ->
-  ### Will be used to save active document; currently just saves default file. ###
-  file_path = PATH.resolve PATH.join __dirname, '../.cache/default.md'
-  @log "saving document to #{rpr file_path}"
-  FS.writeFileSync file_path, S.codemirror.editor.doc.getValue()
-  return null
-
-#-----------------------------------------------------------------------------------------------------------
-@focusframe_to_editor = ->
-  @_focusframe_to 'leftbar'
-  ### TAINT use method, must be possible to remap ###
-  S.focus_is_candidates = false
-  # S.kblevels.shift      = false
-@focusframe_to_candidates = ->
-  @_focusframe_to 'rightbar'
-  ### TAINT use method, must be possible to remap ###
-  S.focus_is_candidates = true
-  # S.kblevels.shift      = false
-@focusframe_to_logger = ->
-  @_focusframe_to '#logger'
-  ### TAINT use method, must be possible to remap ###
-  S.focus_is_candidates = false
-  # S.kblevels.shift      = false
-
-#-----------------------------------------------------------------------------------------------------------
-@_focusframe_to = ( target ) ->
-  # target      = jQuery( document.activeElement )
-  target      = jQuery target if CND.isa_text target
-  ff          = jQuery 'focusframe'
-  return if target.length < 1
-  # ff.offset     target.offset()
-  # ff.width      target.width()
-  # ff.height     target.height()
-  tgto        = target.offset()
-  return unless tgto?
-  left    = tgto.left       - 1
-  top     = tgto.top        - 1
-  width   = target.width()  + 2
-  height  = target.height() + 2
-  ff.animate { left, top, width, height, }, 100
-  return null
-
+#===========================================================================================================
+#
 #-----------------------------------------------------------------------------------------------------------
 @always_focus_editor = ->
   @always_focus_editor = -> ### do not add any more handlers with this method after first call ###
@@ -325,21 +272,75 @@ it would be advantageous to derive them somehow from the source or the running i
 @move_to_home       = ( cm ) -> @_cm_keymap_move cm, 'goLineStartSmart', => @_select_delta_candidate { lrow: 0, lcol: 'first', }
 @move_to_end        = ( cm ) -> @_cm_keymap_move cm, 'goLineEnd',  => @_select_delta_candidate { lrow: 0, lcol: 'last',  }
 
-#-----------------------------------------------------------------------------------------------------------
-@set_translation_mode = ( xxx ) ->
 
+#===========================================================================================================
+# FOCUSFRAME
 #-----------------------------------------------------------------------------------------------------------
-### TAINT use proper keybinding API to define key bindings ###
-XE.listen_to '^kblevel', @, ( d ) ->
-  ### map kblevel 'shift' to manual editor/candidates focus selection ###
-  v       = d.value
-  # debug 'µ87444', S.kblevels.shift
-  if ( S.focus_is_candidates = S.kblevels.shift ) then  @focusframe_to_candidates()
-  else                                                  @focusframe_to_editor()
-  ### TAINT consider to re-set focus after mouse clicks to elsewhere in GUI ###
-  ### Make browser focus always stay on editor: ###
+@restore_documents = ->
+  ### Will be used to restore previous state, open new documents; for now, just opens the default file. ###
+  ### TAINT auto-create file when not present ###
+  file_path = PATH.resolve PATH.join __dirname, '../.cache/default.md'
+  S.codemirror.editor.doc.setValue FS.readFileSync file_path, { encoding: 'utf-8', }
   return null
 
+#-----------------------------------------------------------------------------------------------------------
+@save_document = ->
+  ### Will be used to save active document; currently just saves default file. ###
+  file_path = PATH.resolve PATH.join __dirname, '../.cache/default.md'
+  @log "saving document to #{rpr file_path}"
+  FS.writeFileSync file_path, S.codemirror.editor.doc.getValue()
+  return null
+
+#===========================================================================================================
+# FOCUSFRAME
+#-----------------------------------------------------------------------------------------------------------
+@toggle_focusframe = ->
+  # @log "S.focus_is_candidates: #{S.focus_is_candidates}"
+  if S.focus_is_candidates  then  @focusframe_to_editor()
+  else                            @focusframe_to_candidates()
+  return null
+
+#-----------------------------------------------------------------------------------------------------------
+@focusframe_to_editor = ->
+  @_focusframe_to 'leftbar'
+  S.focus_is_candidates = false
+
+#-----------------------------------------------------------------------------------------------------------
+@focusframe_to_candidates = ->
+  @_focusframe_to 'rightbar'
+  S.focus_is_candidates = true
+
+#-----------------------------------------------------------------------------------------------------------
+@_focusframe_to = ( target ) ->
+  # target      = jQuery( document.activeElement )
+  target      = jQuery target if CND.isa_text target
+  ff          = jQuery 'focusframe'
+  return if target.length < 1
+  # ff.offset     target.offset()
+  # ff.width      target.width()
+  # ff.height     target.height()
+  tgto        = target.offset()
+  return unless tgto?
+  left    = tgto.left       - 1
+  top     = tgto.top        - 1
+  width   = target.width()  + 2
+  height  = target.height() + 2
+  ff.animate { left, top, width, height, }, 100
+  return null
+
+
+#===========================================================================================================
+# MENU BAR
+#-----------------------------------------------------------------------------------------------------------
+@show_or_hide_menu_bar = ->
+  { remote, } = require 'electron'
+  w = remote.getCurrentWindow()
+  w.setMenuBarVisibility not w.isMenuBarVisible()
+  return null
+
+
+#===========================================================================================================
+# INPUT TRANSLATION
 #-----------------------------------------------------------------------------------------------------------
 @set_translation_mark = ( position_from, position_to ) ->
   settings =
@@ -349,20 +350,7 @@ XE.listen_to '^kblevel', @, ( d ) ->
   return S.codemirror.editor.markText position_from, position_to, settings
 
 #-----------------------------------------------------------------------------------------------------------
-@init_cm_keymap = ->
-  mktw_keymap =
-    'Left':       ( cm  ) => @move_left                 cm
-    'Right':      ( cm  ) => @move_right                cm
-    'Up':         ( cm  ) => @move_up                   cm
-    'Down':       ( cm  ) => @move_down                 cm
-    'Tab':        ( cm  ) => @move_nxtline_first        cm
-    'Shift-Tab':  ( cm  ) => @move_prvline_first        cm
-    'Home':       ( cm  ) => @move_to_home              cm
-    'End':        ( cm  ) => @move_to_end               cm
-    'Space':      ( cm  ) => @insert_space_or_selection cm
-  #.........................................................................................................
-  S.codemirror.editor.addKeyMap mktw_keymap
-  return null
+@set_translation_mode = ( xxx ) ->
 
 #-----------------------------------------------------------------------------------------------------------
 XE.listen_to '^raw-input', ( d ) ->
@@ -384,6 +372,35 @@ XE.listen_to '^raw-input', ( d ) ->
   XE.emit PD.new_event '^input', { change, line_idx, text, }
   return null
 
+
+#===========================================================================================================
+# KEY BINDINGS
+#-----------------------------------------------------------------------------------------------------------
+@set_codemirror_keybindings = ->
+  mktw_keymap =
+    'Left':       ( cm  ) => @move_left                 cm
+    'Right':      ( cm  ) => @move_right                cm
+    'Up':         ( cm  ) => @move_up                   cm
+    'Down':       ( cm  ) => @move_down                 cm
+    'Tab':        ( cm  ) => @move_nxtline_first        cm
+    'Shift-Tab':  ( cm  ) => @move_prvline_first        cm
+    'Home':       ( cm  ) => @move_to_home              cm
+    'End':        ( cm  ) => @move_to_end               cm
+    'Space':      ( cm  ) => @insert_space_or_selection cm
+  #.........................................................................................................
+  S.codemirror.editor.addKeyMap mktw_keymap
+  return null
+
+#-----------------------------------------------------------------------------------------------------------
+@set_app_keybindings = ->
+  KEYS.bind 'alt',      @, @show_or_hide_menu_bar
+  KEYS.bind 'shift',    @, @toggle_focusframe
+  KEYS.bind 'ctrl+s',   @, @save_document
+  return null
+
+
+#===========================================================================================================
+# APP INITIALIZATION
 #-----------------------------------------------------------------------------------------------------------
 @init = ->
   # { remote, }               = require 'electron'
@@ -421,9 +438,10 @@ XE.listen_to '^raw-input', ( d ) ->
   KEYS.generate_keboard_events jQuery 'html'
   # KEYS.register 'axis', 'vertical',     ( uie )   => @on_vertical_navigation  uie
   # KEYS.register 'slot', 'Enter',        ( uie )   => @on_add_selection        uie
-  XE.emit PD.new_event '^load-documents'
+  @restore_documents()
   @focusframe_to_editor()
-  @init_cm_keymap()
+  @set_codemirror_keybindings()
+  @set_app_keybindings()
   #.........................................................................................................
   ### Detect resizing events: ###
   ### TAINT won't work when panes are shifted (probably) ###
@@ -433,7 +451,8 @@ XE.listen_to '^raw-input', ( d ) ->
     return null
   return null
 
-#-----------------------------------------------------------------------------------------------------------
+
+############################################################################################################
 jQuery init.bind @
 
 
