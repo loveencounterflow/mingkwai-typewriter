@@ -381,7 +381,7 @@ XE.listen_to '^raw-input', ( d ) ->
   line_info       = doc.lineInfo line_handle ### TAINT consider to use line_idx, forego line_handle ###
   { text, }       = line_info
   #.........................................................................................................
-  XE.emit PD.new_event '^input', { change, editor, doc, line_idx, text, }
+  XE.emit PD.new_event '^input', { change, line_idx, text, }
   return null
 
 #-----------------------------------------------------------------------------------------------------------
