@@ -246,8 +246,7 @@ XE.listen_to '^load-documents', @, ( d ) ->
 #-----------------------------------------------------------------------------------------------------------
 ### TAINT use proper keybinding API to define key bindings ###
 XE.listen_to '^keyboard', @, ( d ) ->
-  { key, } = d.value
-  if ( key.name is 'ctrl+s' ) and ( key.move is 'up' )
+  if d.value.name is 'ctrl+s'
     XE.emit PD.new_event '^save-document'
   return null
 
@@ -328,8 +327,6 @@ it would be advantageous to derive them somehow from the source or the running i
 
 #-----------------------------------------------------------------------------------------------------------
 @set_translation_mode = ( xxx ) ->
-
-XE.listen_to '<kblevel'
 
 #-----------------------------------------------------------------------------------------------------------
 ### TAINT use proper keybinding API to define key bindings ###
@@ -421,7 +418,7 @@ XE.listen_to '^raw-input', ( d ) ->
   # S.codemirror.editor.on 'inputRead',       ( me, change      ) -> whisper 'µ66653', 'inputRead',     jr change
   #.........................................................................................................
   ### Register key and mouse events ###
-  KEYS.syphon_key_and_mouse_events jQuery 'html'
+  KEYS.generate_keboard_events jQuery 'html'
   # KEYS.register 'axis', 'vertical',     ( uie )   => @on_vertical_navigation  uie
   # KEYS.register 'slot', 'Enter',        ( uie )   => @on_add_selection        uie
   XE.emit PD.new_event '^load-documents'
