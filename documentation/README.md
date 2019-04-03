@@ -91,4 +91,30 @@ to erase the three letters typed so far, and insert `きゃ`.
 # Non-Determininstic Key Translation Methods (dKTMs)
 
 
+# How to Write an Transcriptor
+
+* export an object, here symbolized as `@`, e.g. by setting `module.exports = {}`.
+
+* In CoffeeScript, this may be done simply by attaching all methods `m1`, `m2`, ... to the implicit
+  `this`/`@` object, as in `@m1 = ( ... ) -> ...`.
+
+* As part of the exported object, define a method called `on_input` that accepts a single argument, `input`:
+  `@on_input = ( input ) -> ...`. `input.text` will contain the relevant text as input by the user at that
+  point.
+
+* In case `input.text` does not match any of your outputs, or does not constitute a complete match, you may
+
+  * simply do nothing;
+
+  * emit a `^XXXXXXXXXXXXXXX` event to signal no match was found;
+
+  * emit a `^candidates` event to signal that zero or more matches have been found. MKTW will receive that
+    event and display the candidates list as it sees fit, allowing the user to ignore it or choose one or
+    more candidates.
+
+* The return value of a transcriptor's `on_input()` method is discarded.
+
+
+
+
 
