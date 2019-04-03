@@ -43,23 +43,22 @@ PATH                      = require 'path'
 FS                        = require 'fs'
 #...........................................................................................................
 require                   '../lib/exception-handler'
-S                         = require '../lib/settings' ### module-global configuration and editor state object ###
-global.S                  = S
-
+global.S                  = require '../lib/settings' ### module-global configuration and editor state object ###
+global.OPS                = {}
+global.XE                 = require '../lib//xemitter'
 
 ############################################################################################################
 # Assemble On-Page Script from its modules:
-ops   = {}
 path  = PATH.resolve PATH.join __dirname, '../lib/'
 for module_name in FS.readdirSync path
   continue unless module_name.endsWith    '.js'
   continue unless module_name.startsWith  'ops-'
   help "µ44744 loading #{module_name}"
   for key, value of require PATH.join '../lib', module_name
-    throw new Error "name collision in module #{module_name}: #{rpr key}" if ops[ key ]?
-    ops[ key ] = value
-# debug 'µ37333', ( k for k of ops )
-jQuery ops.init.bind ops
+    throw new Error "name collision in module #{module_name}: #{rpr key}" if OPS[ key ]?
+    OPS[ key ] = value
+# debug 'µ37333', ( k for k of OPS )
+jQuery OPS.init.bind OPS
 
 
 

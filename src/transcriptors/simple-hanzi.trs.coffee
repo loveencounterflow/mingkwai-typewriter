@@ -7,7 +7,7 @@
 ############################################################################################################
 CND                       = require 'cnd'
 rpr                       = CND.rpr
-badge                     = '明快打字机/KANJI-INPUT'
+badge                     = '明快打字机/TRANSCRIPTORS/SIMPLE-HANZI.TRS'
 log                       = CND.get_logger 'plain',     badge
 debug                     = CND.get_logger 'debug',     badge
 info                      = CND.get_logger 'info',      badge
@@ -18,22 +18,7 @@ urge                      = CND.get_logger 'urge',      badge
 whisper                   = CND.get_logger 'whisper',   badge
 echo                      = CND.echo.bind CND
 #...........................................................................................................
-PATH                      = require 'path'
-#...........................................................................................................
-# parallel                  = require './parallel-promise'
-DB                        = require './db'
-#...........................................................................................................
-# _format                   = require 'pg-format'
-# I                         = ( value ) -> _format '%I', value
-# L                         = ( value ) -> _format '%L', value
-#...........................................................................................................
-{ jr, }                   = CND
 PD                        = require 'pipedreams'
-# { remote, }               = require 'electron'
-# XE                        = remote.require './xemitter'
-XE                        = require './xemitter'
-{ inspect, }              = require 'util'
-xrpr                      = ( x ) -> inspect x, { colors: yes, breakLength: Infinity, maxArrayLength: Infinity, depth: Infinity, }
 #...........................................................................................................
 XXX_SETTINGS =
   max_search_results:         500
@@ -43,7 +28,7 @@ XXX_SETTINGS =
 @load_keyboard = ->
   ### TAINT compare filedates, refresh cache ###
   t0  = Date.now()
-  R   = require '../.cache/cedict_ts.u8.js'
+  R   = require '../../.cache/cedict_ts.u8.js'
   t1  = Date.now()
   debug 'µ33344', "took #{t1 - t0}ms to load dictionary"
   return R

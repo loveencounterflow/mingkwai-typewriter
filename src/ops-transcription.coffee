@@ -18,9 +18,6 @@ T                         = require '../lib/templates'
 PATH                      = require 'path'
 FS                        = require 'fs'
 #...........................................................................................................
-# require                   '../lib/kana-input'
-# require                   '../lib/kanji-input'
-#...........................................................................................................
 PD                        = require 'pipedreams'
 { jr, }                   = CND
 { after, }                = CND.suspend
@@ -31,6 +28,29 @@ defer                     = setImmediate
 XE                        = require '../lib/xemitter'
 { inspect, }              = require 'util'
 xrpr                      = ( x ) -> inspect x, { colors: yes, breakLength: Infinity, maxArrayLength: Infinity, depth: Infinity, }
+
+
+
+
+#===========================================================================================================
+# INPUT TRANSLATION
+#-----------------------------------------------------------------------------------------------------------
+@load_transcriptors = ->
+  ### TAINT stopgap code ###
+  ### TAINT should search home directory, node_modules as well ###
+  ### TAINT use glob ###
+  PATH            = require 'path'
+  FS              = require 'fs'
+  ops             = {}
+  directory_path  = PATH.resolve PATH.join __dirname, './transcriptors'
+  for module_name in FS.readdirSync directory_path
+    module_path           = PATH.join directory_path, module_name
+    continue unless module_name.endsWith    '.trs.js'
+    relative_module_path  = PATH.relative process.cwd(), module_path
+    urge "µ44755 loading transcription #{relative_module_path}"
+    transcription_module  = require module_path
+    ### TAINT call init method if found ###
+  return null
 
 
 #===========================================================================================================

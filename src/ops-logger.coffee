@@ -18,10 +18,16 @@ info                      = CND.get_logger 'info',      badge
 # { inspect, }              = require 'util'
 # xrpr                      = ( x ) -> inspect x, { colors: yes, breakLength: Infinity, maxArrayLength: Infinity, depth: Infinity, }
 
+skip_events = new Set [
+  '^input'
+  '^ignore-delete'
+  '^keyboard'
+  ]
 
 #-----------------------------------------------------------------------------------------------------------
-@log_all_events = ( key, d ) ->
+@log_almost_all_events = ( key, d ) ->
   # whisper 'µ99823', key #, jr d
+  return if skip_events.has key
   v       = d.value ? {}
   logger  = jQuery '#logger'
   ( logger.find ':first-child').remove() while logger.children().length > 10
