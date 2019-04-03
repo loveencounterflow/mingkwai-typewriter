@@ -29,13 +29,17 @@ PD                        = require 'pipedreams'
   # return require '../../.cache/gr_gr.keyboard.wsv.js'
 key_replacer = @load_keyboard()
 
+
 #-----------------------------------------------------------------------------------------------------------
-XE.listen_to '^input', ( d ) ->
-  v = d.value
+@init = -> OPS.log "#{badge}/init()"
+
+#-----------------------------------------------------------------------------------------------------------
+@on_input = ( input ) ->
   #.........................................................................................................
   # whisper 'µ34343', xrpr change
-  text            = key_replacer v.text
-  OPS.log 'µ34343', ( xrpr v.text ) + ' -> ' + ( xrpr text ) if v.text isnt text
+  new_text = key_replacer input.text
+  OPS.log 'µ34343', ( xrpr input.text ) + ' -> ' + ( xrpr new_text ) if input.text isnt new_text
+  ### TAINT just emit single event, do not deal w/ MKTW internals here ###
   ### TAINT replacing the text of the entire line is one way to insert new text, but it would conceivably
   more elegant and / or more correct if we just replaced in the editor what we're replacing in the text ###
   ### TAINT consider to build micro shim so we get rid of these (for our use case) bizarre API choices ###
@@ -43,7 +47,7 @@ XE.listen_to '^input', ( d ) ->
   await XE.emit PD.new_event '^ignore-delete'
   CodeMirror.commands.goLineEnd   S.codemirror.editor
   CodeMirror.commands.delLineLeft S.codemirror.editor
-  S.codemirror.editor.doc.replaceSelection text
+  S.codemirror.editor.doc.replaceSelection new_text
   return null
 
 

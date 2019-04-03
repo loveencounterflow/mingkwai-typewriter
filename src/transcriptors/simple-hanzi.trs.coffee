@@ -47,8 +47,8 @@ kanji_triode = @load_keyboard()
   return R
 
 #-----------------------------------------------------------------------------------------------------------
-XE.listen_to '^input', @, ( d ) ->
-  candidates = @kanji_from_pinyin d.value.text
+@on_input = ( input ) ->
+  candidates = @kanji_from_pinyin input.text
   XE.emit PD.new_event '^candidates', { candidates, }
   return null
 

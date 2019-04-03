@@ -43,13 +43,26 @@ xrpr                      = ( x ) -> inspect x, { colors: yes, breakLength: Infi
   FS              = require 'fs'
   ops             = {}
   directory_path  = PATH.resolve PATH.join __dirname, './transcriptors'
+  on_input_types  = [
+    'function'
+    'asyncfunction' ]
+  #.........................................................................................................
   for module_name in FS.readdirSync directory_path
     module_path           = PATH.join directory_path, module_name
     continue unless module_name.endsWith    '.trs.js'
     relative_module_path  = PATH.relative process.cwd(), module_path
-    urge "µ44755 loading transcription #{relative_module_path}"
+    @log "µ44755 loading transcription #{relative_module_path}"
     transcription_module  = require module_path
-    ### TAINT call init method if found ###
+    if transcription_module.init?
+      unless ( type = CND.type_of transcription_module.init ) in on_input_types
+        throw new Error "µ27622 expected a function for #{module_name}.init, got a #{type}"
+      await transcription_module.init()
+    #.......................................................................................................
+    unless ( type = CND.type_of transcription_module.on_input ) in on_input_types
+      throw new Error "µ27622 expected a function for #{module_name}.on_input, got a #{type}"
+    unless ( arity = transcription_module.on_input.length ) is 1
+      throw new Error "µ27622 arity #{arity} for #{module_name}.on_input not implemented"
+    #.......................................................................................................
   return null
 
 
