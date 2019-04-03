@@ -13,6 +13,7 @@
 # help                      = CND.get_logger 'help',      badge
 # urge                      = CND.get_logger 'urge',      badge
 # info                      = CND.get_logger 'info',      badge
+PD                        = require 'pipedreams'
 KEYS                      = require './keys'
 XE                        = require './xemitter'
 
@@ -61,6 +62,30 @@ it would be advantageous to derive them somehow from the source or the running i
   return null
 
 #-----------------------------------------------------------------------------------------------------------
+@set_codemirror_event_bindings = ->
+  #.........................................................................................................
+  ### Emit the `change` object that comes from a CM `inputRead` event: ###
+  S.codemirror.editor.on 'inputRead', ( me, change ) =>
+    XE.emit @input_event_from_change_object change
+  #.........................................................................................................
+  ### Emit the `change` object that results from a CM `chnage/+delete` event, except `ignore_delete` is
+  active: ###
+  S.codemirror.editor.on 'change', ( me, change ) =>
+    ### TAINT when inserting results, will there be a change event? ###
+    return null unless change.origin is '+delete'
+    ### ignore event if it has been generated: ###
+    if S.ignore_delete > 0
+      S.ignore_delete += -1
+      return null
+    XE.emit @input_event_from_change_object change
+  #.........................................................................................................
+  ### Adjust `ignore_delete` counter: ###
+  XE.listen_to '^ignore-delete', =>
+    S.ignore_delete += +1
+  #.........................................................................................................
+  return null
+
+#-----------------------------------------------------------------------------------------------------------
 @set_app_keybindings = ->
   KEYS.bind 'alt',      @, @show_or_hide_menu_bar
   KEYS.bind 'shift',    @, @toggle_focusframe
@@ -68,6 +93,17 @@ it would be advantageous to derive them somehow from the source or the running i
   return null
 
 #-----------------------------------------------------------------------------------------------------------
-@set_event_bindings = ->
-  XE.listen_to_all @, @log_all_events
+@set_xe_event_bindings = ->
+  XE.listen_to_all                @, @log_all_events
+  XE.listen_to '^candidates',     @, @display_candidates
+  XE.listen_to '^window-resize',  @, @index_candidates
+  XE.listen_to '^window-resize',  @, @adjust_focusframe
+
+#-----------------------------------------------------------------------------------------------------------
+@set_dom_event_bindings = ->
+  ### TAINT won't work when panes are shifted (probably) ###
+  ( jQuery window ).on 'resize', => XE.emit PD.new_event '^window-resize'
+
+
+
 

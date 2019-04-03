@@ -47,10 +47,9 @@ xrpr                      = ( x ) -> inspect x, { colors: yes, breakLength: Infi
 @set_transcription = ( xxx ) ->
 
 #-----------------------------------------------------------------------------------------------------------
-XE.listen_to '^raw-input', ( d ) ->
+@input_event_from_change_object = ( change ) ->
   ### Transform `^raw-input` to `^input` events ###
   #.........................................................................................................
-  { change, }     = d.value
   { editor, }     = S.codemirror
   { doc, }        = editor
   cursor          = doc.getCursor()
@@ -63,12 +62,11 @@ XE.listen_to '^raw-input', ( d ) ->
   line_info       = doc.lineInfo line_handle ### TAINT consider to use line_idx, forego line_handle ###
   { text, }       = line_info
   #.........................................................................................................
-  XE.emit PD.new_event '^input', { change, line_idx, text, }
-  return null
+  return PD.new_event '^input', { change, line_idx, text, }
 
 
 #-----------------------------------------------------------------------------------------------------------
-XE.listen_to '^candidates', @, ( d ) ->
+@display_candidates = ( d ) ->
   @focusframe_to_candidates() unless S.focus_is_candidates
   v       = d.value
   rows    = ( ( T.get_flexgrid_html ( idx + 1 ), glyph ) for glyph, idx in v.candidates ).join '\n'

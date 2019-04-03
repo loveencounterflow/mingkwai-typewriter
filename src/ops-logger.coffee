@@ -15,7 +15,6 @@ urge                      = CND.get_logger 'urge',      badge
 info                      = CND.get_logger 'info',      badge
 #...........................................................................................................
 { jr, }                   = CND
-XE                        = require '../lib/xemitter'
 # { inspect, }              = require 'util'
 # xrpr                      = ( x ) -> inspect x, { colors: yes, breakLength: Infinity, maxArrayLength: Infinity, depth: Infinity, }
 

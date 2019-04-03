@@ -25,8 +25,6 @@ window                    = null
 { app
   BrowserWindow }         = require 'electron'
 TEMPLATES                 = require './templates'
-PD                        = require 'pipedreams'
-XE                        = require './xemitter'
 { jr, }                   = CND
 #...........................................................................................................
 page_html_path            = PATH.resolve PATH.join __dirname, '../public/main.html'
@@ -91,7 +89,6 @@ S                         = require './settings'
     # ### thx to https://stackoverflow.com/a/44012967/7568091 ###
     # pid                 = process.pid
     # wid                 = await IF.wait_for_window_id_from_pid process.pid
-    # XE.emit PD.new_event '^window-id', wid
     return null
 
 #-----------------------------------------------------------------------------------------------------------
