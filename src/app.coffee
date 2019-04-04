@@ -64,12 +64,10 @@ app.commandLine.appendSwitch 'force-color-profile',       S.app?.force_color_pro
   whisper ( '明快打字机'.padEnd 15 ), ( require '../package.json' ).version
   return null
 
-
 #-----------------------------------------------------------------------------------------------------------
 @launch = ->
   debug 'µ11233', 'launch'
   main_window = new BrowserWindow S.window.electron
-  #.........................................................................................................
   main_window.loadURL URL.format { pathname: page_html_path, protocol: 'file:', slashes: true, }
   #.........................................................................................................
   ### TAINT consider to move all exception handlers to module `exception-handler` ###
