@@ -1,0 +1,8 @@
+#!/bin/bash
+set -euo pipefail
+home="$(realpath "$(realpath "${BASH_SOURCE[0]}" | xargs dirname)")"
+cd "$home"
+
+# this is now set from `app.js`:
+# electron --force-device-scale-factor=1.25 lib/app.js
+electron lib/app.js
