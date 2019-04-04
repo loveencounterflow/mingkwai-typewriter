@@ -93,10 +93,10 @@ to erase the three letters typed so far, and insert `きゃ`.
 
 # How to Write an Transcriptor
 
-* name your transcriptor module something like `display-name.trs.js`; the filename must end in the double
-  extension `.trs.js`; the part before the extensions will (with hyphens replaced by spaces) become the
+* name your transcriptor module something like `display-name.ts.js`; the filename must end in the double
+  extension `.ts.js`; the part before the extensions will (with hyphens replaced by spaces) become the
   display name as it appears in the MKTW GUI `Transcriptors` menu (but you can override that, see below).
-  There must be exactly one transcriptor per `*.trs.js` file.
+  There must be exactly one transcriptor per `*.ts.js` file.
 
 * Export an transcriptor object with methods and settings. In the below, that object will be symbolized with
   an `@` (at-sign). You can do so either by assigning to `module.exports`, as in `module.exports = {}`, or,

@@ -24,11 +24,11 @@ PD                        = require 'pipedreams'
 #-----------------------------------------------------------------------------------------------------------
 @get_transcriptors_submenu = ->
   R = []
-  for t, tsrnr in S.transcriptors
-    do ( t, tsrnr ) =>
-      if tsrnr < 10 then  label = "&#{tsrnr} #{t.display_name}"
-      else                label =  "#{tsrnr} #{t.display_name}"
-      click = => XE.emit PD.new_event '^select-transcriptor', { tsrnr, display_name: t.display_name, }
+  for t, tsnr in S.transcriptors
+    do ( t, tsnr ) =>
+      if tsnr < 10 then   label = "&#{tsnr} #{t.display_name}"
+      else                label =  "#{tsnr} #{t.display_name}"
+      click = => XE.emit PD.new_event '^select-transcriptor', { tsnr, display_name: t.display_name, }
       R.push { label, click, }
   return R
 

@@ -55,12 +55,12 @@ xrpr                      = ( x ) -> inspect x, { colors: yes, breakLength: Infi
   S.transcriptors.push t
   #.........................................................................................................
   for filename in FS.readdirSync directory_path
-    continue unless filename.endsWith '.trs.js'
+    continue unless filename.endsWith '.ts.js'
     #.......................................................................................................
     t                     = {}
     t.path                = PATH.join directory_path, filename
     t.display_name        = filename
-    t.display_name        = t.display_name.replace /\.trs\.js$/g, ''
+    t.display_name        = t.display_name.replace /\.ts\.js$/g, ''
     t.display_name        = t.display_name.replace /-/g, ' '
     #.......................................................................................................
     relative_path         = PATH.relative process.cwd(), t.path
@@ -83,18 +83,26 @@ xrpr                      = ( x ) -> inspect x, { colors: yes, breakLength: Infi
       throw new Error "µ27622 arity #{arity} for #{relative_path}.on_input not implemented"
     #.......................................................................................................
     S.transcriptors.push t
-    t.trsnr = S.transcriptors.length
-    @log "µ44755 #{filename} loaded as #{rpr t.display_name} (TRS# #{t.trsnr})"
+    t.tsnr = S.transcriptors.length
+    @log "µ44755 #{filename} loaded as #{rpr t.display_name} (TRS# #{t.tsnr})"
   #.........................................................................................................
   # info 'µ33736', S.transcriptors
   return null
 
 #-----------------------------------------------------------------------------------------------------------
 @select_transcriptor = ( d ) ->
-  @log 'µ776312', 'set_transcription', d
-  unless ( transcriptor = S.transcriptors[ d.value.trsnr ] )?
+  @log 'µ776312-1', 'set_transcription', d
+  @log 'µ776312-2', 'set_transcription', rpr d.value.tsnr
+  @log 'µ776312-3', 'S.transcriptors', S.transcriptors
+  @log 'µ776312-4', 'S.transcriptors[ tsnr ]', S.transcriptors[ d.value.tsnr ]
+  unless ( transcriptor = S.transcriptors[ d.value.tsnr ] )?
     return @log "µ988373 no such transcriptor: #{rpr d.value}"
   S.transcriptor = transcriptor
+  ### obtain current cursor position as position-from ###
+  ### obtain EOL position as position-tp ###
+  ### set text marker ###
+  # CodeMirror.commands.singleSelection editor
+  @log 'µ78764', 'S.codemirror.editor.doc.listSelections', S.codemirror.editor.doc.listSelections()
 
 #===========================================================================================================
 # INPUT TRANSLATION
