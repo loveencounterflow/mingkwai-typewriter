@@ -48,11 +48,13 @@ skip_events = new Set [
 #-----------------------------------------------------------------------------------------------------------
 @log = ( P... ) ->
   ### TAINT code duplication ###
+  t0      = Date.now()
   text    = ( ( if CND.isa_text p then p else rpr p ) for p in P ).join ' '
   logger  = jQuery '#logger'
   ( logger.find ':first-child').remove() while logger.children().length > 10
   ### TAINT should escape text (or accept HTML?) ###
-  logger.append ( "<div>#{Date.now()}: #{text}</div>" )
-  console.log 'µ33499', Date.now(), text
+  console.log 'µ33499', t0, text
+  info        'µ33499', t0, text
+  logger.append ( "<div>#{t0}: #{text}</div>" )
   logger.scrollTop logger[ 0 ].scrollHeight
   return null
