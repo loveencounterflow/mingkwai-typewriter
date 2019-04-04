@@ -3,9 +3,9 @@
 
 
 ############################################################################################################
-# CND                       = require 'cnd'
-# rpr                       = CND.rpr
-# badge                     = '明快打字机/OPS-MENU'
+CND                       = require 'cnd'
+rpr                       = CND.rpr
+badge                     = '明快打字机/OPS-MENU'
 # debug                     = CND.get_logger 'debug',     badge
 # alert                     = CND.get_logger 'alert',     badge
 # whisper                   = CND.get_logger 'whisper',   badge
@@ -13,6 +13,7 @@
 # help                      = CND.get_logger 'help',      badge
 # urge                      = CND.get_logger 'urge',      badge
 # info                      = CND.get_logger 'info',      badge
+PD                        = require 'pipedreams'
 
 #-----------------------------------------------------------------------------------------------------------
 @show_or_hide_menu_bar = ->
@@ -21,8 +22,23 @@
   return null
 
 #-----------------------------------------------------------------------------------------------------------
+@get_transcriptors_submenu = ->
+  R = []
+  for t, tsrnr in S.transcriptors
+    do ( t, tsrnr ) =>
+      if tsrnr < 10 then  label = "&#{tsrnr} #{t.display_name}"
+      else                label =  "#{tsrnr} #{t.display_name}"
+      click = => XE.emit PD.new_event '^select-transcriptor', { tsrnr, display_name: t.display_name, }
+      R.push { label, click, }
+  return R
+
+#-----------------------------------------------------------------------------------------------------------
 @add_menu = ->
-  template = []
+  throw new Error "µ37763 internal error: load transcriptors before adding menu" unless S.transcriptors?
+  transcriptors_submenu = @get_transcriptors_submenu()
+  template              = []
+  @log "µ39883 found #{S.transcriptors.length} entries in S.transcriptors"
+  @log "µ39883 transcriptors_submenu: #{rpr transcriptors_submenu}"
   #.........................................................................................................
   template.push {
     label: '&File'
@@ -57,21 +73,8 @@
       { role: 'togglefullscreen'    } ] }
   #.........................................................................................................
   template.push {
-    label: '&Translators'
-    submenu: [
-      { label: '&1 Ja Kana'         }
-      { label: '&2 Ja Kanji'        }
-      { label: '&3 zhs Hanzi'       }
-      { label: '&4 zht Hanzi'       }
-      { label: '&5 el Greek'        }
-      { label: '&6 ru Cyrillic'     } ] }
-  #.........................................................................................................
-  # template.push {
-  #   label: '&Window'
-  #   role: 'window',
-  #   submenu: [
-  #     { role: 'minimize'            },
-  #     { role: 'close', accelerator: 'CmdOrCtrl+Q',               } ] }
+    label:  '&Transcriptors'
+    submenu: transcriptors_submenu }
   #.........................................................................................................
   template.push {
     label: '&Help'

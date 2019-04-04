@@ -94,10 +94,11 @@ it would be advantageous to derive them somehow from the source or the running i
 
 #-----------------------------------------------------------------------------------------------------------
 @set_xe_event_bindings = ->
-  XE.listen_to_all                @, @log_almost_all_events
-  XE.listen_to '^candidates',     @, @display_candidates
-  XE.listen_to '^window-resize',  @, @index_candidates
-  XE.listen_to '^window-resize',  @, @adjust_focusframe
+  XE.listen_to_all                      @, @log_almost_all_events
+  XE.listen_to '^candidates',           @, @display_candidates
+  XE.listen_to '^window-resize',        @, @index_candidates
+  XE.listen_to '^window-resize',        @, @adjust_focusframe
+  XE.listen_to '^select-transcriptor',  @, @select_transcriptor
 
 #-----------------------------------------------------------------------------------------------------------
 @set_dom_event_bindings = ->

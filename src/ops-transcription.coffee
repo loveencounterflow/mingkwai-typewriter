@@ -46,25 +46,55 @@ xrpr                      = ( x ) -> inspect x, { colors: yes, breakLength: Infi
   on_input_types  = [
     'function'
     'asyncfunction' ]
+  S.transcriptors = []
   #.........................................................................................................
-  for module_name in FS.readdirSync directory_path
-    module_path           = PATH.join directory_path, module_name
-    continue unless module_name.endsWith    '.trs.js'
-    relative_module_path  = PATH.relative process.cwd(), module_path
-    @log "µ44755 loading transcription #{relative_module_path}"
-    transcription_module  = require module_path
-    if transcription_module.init?
-      unless ( type = CND.type_of transcription_module.init ) in on_input_types
-        throw new Error "µ27622 expected a function for #{module_name}.init, got a #{type}"
-      await transcription_module.init()
+  t               = {}
+  t.display_name  = "(no transcriptor)"
+  t.path          = null
+  t.module        = null
+  S.transcriptors.push t
+  #.........................................................................................................
+  for filename in FS.readdirSync directory_path
+    continue unless filename.endsWith '.trs.js'
     #.......................................................................................................
-    unless ( type = CND.type_of transcription_module.on_input ) in on_input_types
-      throw new Error "µ27622 expected a function for #{module_name}.on_input, got a #{type}"
-    unless ( arity = transcription_module.on_input.length ) is 1
-      throw new Error "µ27622 arity #{arity} for #{module_name}.on_input not implemented"
+    t                     = {}
+    t.path                = PATH.join directory_path, filename
+    t.display_name        = filename
+    t.display_name        = t.display_name.replace /\.trs\.js$/g, ''
+    t.display_name        = t.display_name.replace /-/g, ' '
     #.......................................................................................................
+    relative_path         = PATH.relative process.cwd(), t.path
+    @log "µ44755 loading transcription #{relative_path}"
+    t.module              = require t.path
+    #.......................................................................................................
+    if t.module.init?
+      unless ( type = CND.type_of t.module.init ) in on_input_types
+        throw new Error "µ27622 expected a function for #{relative_path}.init, got a #{type}"
+      await t.module.init()
+    #.......................................................................................................
+    if t.module.display_name?
+      unless ( type = CND.type_of t.module.display_name ) is 'text'
+        throw new Error "µ27622 expected a text for #{relative_path}.display_name, got a #{type}"
+      t.display_name = t.module.display_name
+    #.......................................................................................................
+    unless ( type = CND.type_of t.module.on_input ) in on_input_types
+      throw new Error "µ27622 expected a function for #{relative_path}.on_input, got a #{type}"
+    unless ( arity = t.module.on_input.length ) is 1
+      throw new Error "µ27622 arity #{arity} for #{relative_path}.on_input not implemented"
+    #.......................................................................................................
+    S.transcriptors.push t
+    t.trsnr = S.transcriptors.length
+    @log "µ44755 #{filename} loaded as #{rpr t.display_name} (TRS# #{t.trsnr})"
+  #.........................................................................................................
+  # info 'µ33736', S.transcriptors
   return null
 
+#-----------------------------------------------------------------------------------------------------------
+@select_transcriptor = ( d ) ->
+  @log 'µ776312', 'set_transcription', d
+  unless ( transcriptor = S.transcriptors[ d.value.trsnr ] )?
+    return @log "µ988373 no such transcriptor: #{rpr d.value}"
+  S.transcriptor = transcriptor
 
 #===========================================================================================================
 # INPUT TRANSLATION
