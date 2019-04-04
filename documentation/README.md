@@ -93,10 +93,19 @@ to erase the three letters typed so far, and insert `きゃ`.
 
 # How to Write an Transcriptor
 
-* export an object, here symbolized as `@`, e.g. by setting `module.exports = {}`.
+* name your transcriptor module something like `display-name.trs.js`; the filename must end in the double
+  extension `.trs.js`; the part before the extensions will (with hyphens replaced by spaces) become the
+  display name as it appears in the MKTW GUI `Transcriptors` menu (but you can override that, see below).
+  There must be exactly one transcriptor per `*.trs.js` file.
 
-* In CoffeeScript, this may be done simply by attaching all methods `m1`, `m2`, ... to the implicit
-  `this`/`@` object, as in `@m1 = ( ... ) -> ...`.
+* Export an transcriptor object with methods and settings. In the below, that object will be symbolized with
+  an `@` (at-sign). You can do so either by assigning to `module.exports`, as in `module.exports = {}`, or,
+  in case you author your module in CoffeeScript, by attaching all methods and settings `m1`, `m2`, ... to
+  the implicit `this`/`@` object, as in `@m1 = ( ... ) -> ...`. Since CoffeeScript is just JavaScript,
+  the same can be done in plain JavaScript and TypeScript.
+
+* You may define a member `@display_name = 'display-name'` on the exported object, which must be a string
+  and will override the display name as derived from the filename.
 
 * As part of the exported object, define a method called `on_input` that accepts a single argument, `input`:
   `@on_input = ( input ) -> ...`. `input.text` will contain the relevant text as input by the user at that
