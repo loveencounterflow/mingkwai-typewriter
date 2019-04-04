@@ -34,6 +34,12 @@ main_window               = null
 ### module-global configuration and editor state object ###
 ### OBS this instance of `S` is *not* shared with renderer process and can only be used to read presets ###
 S                         = require './settings'
+#-----------------------------------------------------------------------------------------------------------
+### TAINT investigate how to set these dynamically from the app ###
+app.commandLine.appendSwitch 'high-dpi-support',          S.app?.high_dpi_support           ? 1
+app.commandLine.appendSwitch 'force-device-scale-factor', S.app?.force_device_scale_factor  ? 1.25
+app.commandLine.appendSwitch 'force-color-profile',       S.app?.force_color_profile        ? 'sRGB'
+
 
 #-----------------------------------------------------------------------------------------------------------
 @write_page_source = ->

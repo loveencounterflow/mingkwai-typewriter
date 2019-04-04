@@ -19,6 +19,10 @@ PATH                      = require 'path'
 
 #-----------------------------------------------------------------------------------------------------------
 module.exports = S =
+  app:
+    high_dpi_support:           1
+    force_device_scale_factor:  1.25
+    force_color_profile:        'sRGB'
   window:
     # show_devtools:    true
     maximize:         true
@@ -48,6 +52,7 @@ module.exports = S =
       nodeIntegration:              true ### required from electron v5.0.0 onwards ###
       setAutoHideMenuBar:           true
       setMenuBarVisibility:         true
+      zoomFactor:                   1
   # selectors:      'abcdefghijklmnopqrstuvwxyz'
   #.......................................................................................................
   codemirror:
@@ -111,5 +116,6 @@ module.exports = S =
   candidates:                 null
   input:                      null
   ignore_delete:              0 ### number of `+delete` events to ignore ###
-
+  transcriptors:              null
+  transcriptor:               null
 
