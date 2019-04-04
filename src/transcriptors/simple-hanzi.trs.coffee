@@ -7,7 +7,7 @@
 ############################################################################################################
 CND                       = require 'cnd'
 rpr                       = CND.rpr
-badge                     = '明快打字机/TRANSCRIPTORS/SIMPLE-HANZI.TRS'
+badge                     = '明快打字机/TRANSCRIPTORS/SIMPLE-HANZI'
 log                       = CND.get_logger 'plain',     badge
 debug                     = CND.get_logger 'debug',     badge
 info                      = CND.get_logger 'info',      badge
