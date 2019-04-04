@@ -87,18 +87,19 @@ require                   '../lib/exception-handler'
   S.codemirror.editor.setSize null, '100%'
   @always_focus_editor()
   KEYS.generate_keboard_events jQuery 'html'
-  @add_menu()
-  @restore_documents()
-  @focusframe_to_editor()
   #.........................................................................................................
-  @set_codemirror_keybindings()
-  @set_codemirror_event_bindings()
-  @set_app_keybindings()
-  @set_xe_event_bindings()
-  @set_dom_event_bindings()
+  await @load_transcriptors()
+  await @add_menu()
+  await @restore_documents()
+  await @focusframe_to_editor()
   #.........................................................................................................
-  @load_transcriptors()
-  @focusframe_to_editor()
+  await @set_codemirror_keybindings()
+  await @set_codemirror_event_bindings()
+  await @set_app_keybindings()
+  await @set_xe_event_bindings()
+  await @set_dom_event_bindings()
+  #.........................................................................................................
+  await @focusframe_to_editor()
   #.........................................................................................................
   return null
 
