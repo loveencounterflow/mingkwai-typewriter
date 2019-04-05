@@ -7,15 +7,15 @@
 * base typing system, typing system base; == keybase
 * output / target typing system; == keytop
 
-# Determininstic Key Translation Methods (dKTMs)
+# Key Transcriptors (KTSs)
 
-* **Direct Input (`1:1`) KTM**: each keystroke is mapped to one (possibly empty) output string. Unmapped
+* **Direct Input (`1:1`)**: each keystroke is mapped to one (possibly empty) output string. Unmapped
   keys produce whatever effect they have in the basic mode. This mode is suitable for cases where the
   keybase and output e.g. a Greek (`Grek`) or Cyrillic (`Cyrl`) keyboard on top of a Latin (Latn)-based
   keyboard; it results in mappings like `Grek/Latn` (Greek keytop on Latin keybase) or `Cyrl/Latn` (Cyrillic
   keytop on Latin keybase).
 
-* **Transliteration (`n:m`) KTM**: This mode maps one ore more continuous strings of keystrokes to output
+* **Transliteration (`n:m`)**: This mode maps one ore more continuous strings of keystrokes to output
   strings. This KTM is useful when it would be inconvenient to assign each output (e.g. each (sequence of)
   Hiragana) a single keystroke.
 
@@ -28,7 +28,7 @@ actions.
 
 ## Inclusive Prefixes in Triode Terms
 
-In determininstic KTMs (dKTMs), the end-of-term (EOT) points (i.e. the point in time when the collected user
+In Key TranScriptors (KTSs), the end-of-term (EOT) points (i.e. the point in time when the collected user
 input is replaced by the keytop (target output)) are reached *implicitly*, without there being a step where
 the user is presented with a list of possible completions to choose from (although such choices can be
 presented before then implicit EOT is reached). Thus, in a dKTM for Japanese Hiragan, we may establish a map
@@ -88,10 +88,10 @@ to erase the three letters typed so far, and insert `きゃ`.
 * **`Hrkt`**: Hiragana and Katakana
 * **`Kana`**: Katakana [sic]; *we use* **`Kata`** *to avoid confusion*
 
-# Non-Determininstic Key Translation Methods (dKTMs)
+# XXX TranScriptors with Candidate Lists XXX
 
 
-# How to Write an Transcriptor
+# How to Write a TranScriptor Module (TSM)
 
 * name your transcriptor module something like `display-name.ts.js`; the filename must end in the double
   extension `.ts.js`; the part before the extensions will (with hyphens replaced by spaces) become the
@@ -124,6 +124,31 @@ to erase the three letters typed so far, and insert `きゃ`.
 * The return value of a transcriptor's `on_input()` method is discarded.
 
 
+## How to Transcribe (i.e. Use a MingKwai TypeWriter Transcriptor)
 
+* The editor pane is implemented with [CodeMirror (CM)](https://codemirror.net/).
 
+* The editor pane always shows the contents of some text file; by default, this is `.cache/default.md`, but
+  one can load any text file.
+
+* The text in the editor can always be edited as in any text editor; by default, CodeMirror has key bindings
+  and functionalities that make it very similar to [Sublime Text 3](https://www.sublimetext.com/).
+
+* Between the user input and the text that is entered into the editor, there's always a 'transcriptor' (TS)
+  that acts as a 'proxy' ('man in the middle', or 'middleware') that may complement or replace user inputs
+  and/or produce a list of 'candidates', that is, possible outputs for the text the user has entered.
+
+* The default transcriptor is the 'zero transcriptor' (TS0), which currently does nothing. Transcriptors
+  that actually do some work are called 'positive (or non-zero) transcriptors'; most of the time,
+  'transcriptor' just means 'any transcriptor except for TS0'.
+
+* TSs use text in the edited text file to decide what to do next (e.g. replace text or show candidates). If
+  one edits a file that already has some text in it—say, `irohanihoheto`—and turns on a (positive)
+  transcriptor—say, `hiragana`—one certainly does not expect that TS to turn that text into `いろはにほへと`, at
+  least not by default. On the other hand, to take some existing stretch of text and give it the TS
+  treatment can occasionally be helpful and exactly what one is looking for, so there should be a way to
+  make that happen.
+
+* MingKwai TypeWriter uses a CodeMirror facility called 'text markers' to allow users to tell the TS what
+  portion of text is intended for transcription, and which parts are off-limits.
 
