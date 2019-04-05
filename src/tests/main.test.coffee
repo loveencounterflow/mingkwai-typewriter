@@ -29,7 +29,7 @@ xrpr                      = ( x ) -> inspect x, { colors: yes, breakLength: Infi
 OPSCM                     = require '../ops-cm'
 
 #-----------------------------------------------------------------------------------------------------------
-@[ "demo" ] = ( T, done ) ->
+@[ "order positions" ] = ( T, done ) ->
   probes_and_matchers = [
     [ [ { line: 1, ch: 1, }, { line: 1, ch: 1, }, ], [ { line: 1, ch: 1 }, { line: 1, ch: 1 } ], ]
     [ [ { line: 2, ch: 1, }, { line: 1, ch: 1, }, ], [ { line: 1, ch: 1 }, { line: 2, ch: 1 } ], ]
@@ -41,11 +41,29 @@ OPSCM                     = require '../ops-cm'
     [ [ { line: 2, ch: 5, }, { line: 1, ch: 6, }, ], [ { line: 1, ch: 6 }, { line: 2, ch: 5 } ], ]
     [ [ { line: 2, ch: 4, }, { line: 1, ch: 5, }, ], [ { line: 1, ch: 5 }, { line: 2, ch: 4 } ], ]
     [ [ { line: 2, ch: 4, }, { line: 1, ch: 1, }, ], [ { line: 1, ch: 1 }, { line: 2, ch: 4 } ], ]
+    [ [ { line: 3, ch: 0 }, { line: 3, ch: 5 }, ], [ { line: 3, ch: 0 }, { line: 3, ch: 5 } ], ]
+    [ [ { line: 3, ch: 5 }, { line: 3, ch: 0 }, ], [ { line: 3, ch: 0 }, { line: 3, ch: 5 } ], ]
     ]
   #.........................................................................................................
   for [ probe, matcher, error, ] in probes_and_matchers
     await T.perform probe, matcher, error, -> new Promise ( resolve ) ->
-      result = OPSCM._cm_order_pos probe...
+      result = OPSCM._cm_order_positions probe
+      # debug jr [ probe, result, null, ]
+      resolve result
+  #.........................................................................................................
+  done()
+  return null
+
+#-----------------------------------------------------------------------------------------------------------
+@[ "fromto from range" ] = ( T, done ) ->
+  probes_and_matchers = [
+    [{"anchor":{"line":3,"ch":0,"sticky":null},"head":{"line":3,"ch":5,"sticky":null}},{"from":{"line":3,"ch":0},"to":{"line":3,"ch":5}},null]
+    [{"anchor":{"line":3,"ch":5,"sticky":null},"head":{"line":3,"ch":0,"sticky":null}},{"from":{"line":3,"ch":0},"to":{"line":3,"ch":5}},null]
+    ]
+  #.........................................................................................................
+  for [ probe, matcher, error, ] in probes_and_matchers
+    await T.perform probe, matcher, error, -> new Promise ( resolve ) ->
+      result = OPSCM._cm_fromto_from_range probe
       # debug jr [ probe, result, null, ]
       resolve result
   #.........................................................................................................

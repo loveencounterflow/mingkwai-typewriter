@@ -118,4 +118,5 @@ module.exports = S =
   ignore_delete:              0 ### number of `+delete` events to ignore ###
   transcriptors:              null
   transcriptor:               null
+  translation_mark:           null
 

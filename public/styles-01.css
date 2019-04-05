@@ -189,7 +189,7 @@ focusframe {
   outline:             1px solid red;
 }
 
-.txtmark_xxx {
+.translation_mark {
   /* ### TAINT use symbolic colors */
   /*color:              black !important;*/
   /*background-color:   yellow;*/

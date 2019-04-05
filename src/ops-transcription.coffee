@@ -92,31 +92,15 @@ xrpr                      = ( x ) -> inspect x, { colors: yes, breakLength: Infi
 #-----------------------------------------------------------------------------------------------------------
 @select_transcriptor = ( d ) ->
   @log 'µ776312-1', 'set_transcription', d
-  @log 'µ776312-2', 'set_transcription', rpr d.value.tsnr
-  @log 'µ776312-3', 'S.transcriptors', S.transcriptors
-  @log 'µ776312-4', 'S.transcriptors[ tsnr ]', S.transcriptors[ d.value.tsnr ]
   unless ( transcriptor = S.transcriptors[ d.value.tsnr ] )?
     return @log "µ988373 no such transcriptor: #{rpr d.value}"
+  # if S.transcriptor isnt transcriptor
   S.transcriptor = transcriptor
-  ### obtain current cursor position as position-from ###
-  ### obtain EOL position as position-tp ###
-  ### set text marker ###
-  # CodeMirror.commands.singleSelection editor
-  @log 'µ78764', 'S.codemirror.editor.doc.listSelections', S.codemirror.editor.doc.listSelections()
+  @cm_set_translation_mark()
+  return null
 
 #===========================================================================================================
 # INPUT TRANSLATION
-#-----------------------------------------------------------------------------------------------------------
-@set_translation_mark = ( position_from, position_to ) ->
-  settings =
-    className:      'txtmark_xxx'
-    inclusiveLeft:  false
-    inclusiveRight: true
-  return S.codemirror.editor.markText position_from, position_to, settings
-
-#-----------------------------------------------------------------------------------------------------------
-@set_transcription = ( xxx ) ->
-
 #-----------------------------------------------------------------------------------------------------------
 @input_event_from_change_object = ( change ) ->
   ### Transform `^raw-input` to `^input` events ###
