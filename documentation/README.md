@@ -126,29 +126,34 @@ to erase the three letters typed so far, and insert `きゃ`.
 
 ## How to Transcribe (i.e. Use a MingKwai TypeWriter Transcriptor)
 
-* The editor pane is implemented with [CodeMirror (CM)](https://codemirror.net/).
+The editor pane is implemented with [CodeMirror (CM)](https://codemirror.net/).
 
-* The editor pane always shows the contents of some text file; by default, this is `.cache/default.md`, but
-  one can load any text file.
+The editor pane always shows the contents of some text file; by default, this is `.cache/default.md`, but
+one can load any text file.
 
-* The text in the editor can always be edited as in any text editor; by default, CodeMirror has key bindings
-  and functionalities that make it very similar to [Sublime Text 3](https://www.sublimetext.com/).
+The text in the editor can always be edited as in any text editor; by default, CodeMirror has key bindings
+and functionalities that make it very similar to [Sublime Text 3](https://www.sublimetext.com/).
 
-* Between the user input and the text that is entered into the editor, there's always a 'transcriptor' (TS)
-  that acts as a 'proxy' ('man in the middle', or 'middleware') that may complement or replace user inputs
-  and/or produce a list of 'candidates', that is, possible outputs for the text the user has entered.
+Between the user input and the text that is entered into the editor, there's always a 'transcriptor' (TS)
+that acts as a 'proxy' ('man in the middle', or 'middleware') that may complement or replace user inputs
+and/or produce a list of 'candidates', that is, possible outputs for the text the user has entered.
 
-* The default transcriptor is the 'zero transcriptor' (TS0), which currently does nothing. Transcriptors
-  that actually do some work are called 'positive (or non-zero) transcriptors'; most of the time,
-  'transcriptor' just means 'any transcriptor except for TS0'.
+The default transcriptor is the 'zero transcriptor' (TS0), which currently does nothing. Transcriptors that
+actually do some work are called 'positive (or non-zero) transcriptors'; most of the time, 'transcriptor'
+just means 'any transcriptor except for TS0'.
 
-* TSs use text in the edited text file to decide what to do next (e.g. replace text or show candidates). If
-  one edits a file that already has some text in it—say, `irohanihoheto`—and turns on a (positive)
-  transcriptor—say, `hiragana`—one certainly does not expect that TS to turn that text into `いろはにほへと`, at
-  least not by default. On the other hand, to take some existing stretch of text and give it the TS
-  treatment can occasionally be helpful and exactly what one is looking for, so there should be a way to
-  make that happen.
+TSs use text in the edited text file to decide what to do next (e.g. replace text or show candidates). If
+one edits a file that already has some text in it—say, `irohanihoheto`—and turns on a (positive)
+transcriptor—say, `hiragana`—one certainly does not expect that TS to turn that text into `いろはにほへと`, at
+least not by default. On the other hand, to take some existing stretch of text and give it the TS treatment
+can occasionally be helpful and exactly what one is looking for, so there should be a way to make that
+happen.
 
-* MingKwai TypeWriter uses a CodeMirror facility called 'text markers' to allow users to tell the TS what
-  portion of text is intended for transcription, and which parts are off-limits.
+The point that makes MingKwai TypeWriter really unique is its use of persistent 'transcription regions'
+(TSRs) that allow users to mark text stretches intended for transcription. In a MKTW document, each
+character is always situated in exactly one TSR. TSRs are color coded for the TranScriptor that is valid
+when the cursor is moved inside of them, except for the default, TS0, which remains unmarked.
+
+
+
 
