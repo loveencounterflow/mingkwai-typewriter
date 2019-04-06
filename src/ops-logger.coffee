@@ -17,9 +17,10 @@ info                      = CND.get_logger 'info',      badge
 { jr, }                   = CND
 # { inspect, }              = require 'util'
 # xrpr                      = ( x ) -> inspect x, { colors: yes, breakLength: Infinity, maxArrayLength: Infinity, depth: Infinity, }
+_lognr                    = 0
 
 skip_events = new Set [
-  '^input'
+  # '^input'
   '^ignore-delete'
   '^keyboard'
   ]
@@ -28,6 +29,8 @@ skip_events = new Set [
 @log_almost_all_events = ( key, d ) ->
   # whisper 'µ99823', key #, jr d
   return if skip_events.has key
+  _lognr += +1
+  lognr   = "#{_lognr}".padStart 5, '_'
   v       = d.value ? {}
   logger  = jQuery '#logger'
   ( logger.find ':first-child').remove() while logger.children().length > 10
@@ -37,10 +40,8 @@ skip_events = new Set [
   #   when '^kblevel' then  ( k for k, toggle of S.kblevels when toggle ).join ', '
   #   else                  ( k for k         of d.value                ).join ', '
   #.........................................................................................................
-  logger.append ( "<div>#{Date.now()}: #{rpr key}: #{message}</div>" )
-  console.log 'µ33499', Date.now(), key, d
-  # if ( kblevels = d.value?.S?.kblevels )
-  #   logger.append ( "<div>#{Date.now()}: kblevels: #{rpr kblevels}</div>" )
+  logger.append ( "<div>#{lognr}: #{rpr key}: #{message}</div>" )
+  console.log 'µ33499', lognr, key, d
   logger.scrollTop logger[ 0 ].scrollHeight
   #.........................................................................................................
   return null
@@ -48,13 +49,14 @@ skip_events = new Set [
 #-----------------------------------------------------------------------------------------------------------
 @log = ( P... ) ->
   ### TAINT code duplication ###
-  t0      = Date.now()
+  _lognr += +1
+  lognr   = "#{_lognr}".padStart 5, '_'
   text    = ( ( if CND.isa_text p then p else rpr p ) for p in P ).join ' '
   logger  = jQuery '#logger'
   ( logger.find ':first-child').remove() while logger.children().length > 10
   ### TAINT should escape text (or accept HTML?) ###
-  console.log 'µ33499', t0, text
-  info        'µ33499', t0, text
-  logger.append ( "<div>#{t0}: #{text}</div>" )
+  console.log 'µ33499', lognr, text
+  info        'µ33499', lognr, text
+  logger.append ( "<div>#{lognr}: #{text}</div>" )
   logger.scrollTop logger[ 0 ].scrollHeight
   return null

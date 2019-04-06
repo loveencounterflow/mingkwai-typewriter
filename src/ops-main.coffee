@@ -101,6 +101,19 @@ require                   '../lib/exception-handler'
   #.........................................................................................................
   await @focusframe_to_editor()
   #.........................................................................................................
+  # await @cm_select_all()
+  ```
+  var classes = [];
+  jQuery('[class]').each(function(){
+      jQuery(jQuery(this).attr('class').split(' ')).each(function() {
+          if (this.length>0 && jQuery.inArray(this.valueOf(), classes) === -1) {
+              classes.push(this.valueOf());
+          }
+      });
+  });
+  console.log("LIST START\n\n"+classes.join('\n')+"\n\nLIST END");
+  ```
+  #.........................................................................................................
   return null
 
 

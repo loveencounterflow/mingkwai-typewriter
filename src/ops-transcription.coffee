@@ -96,7 +96,7 @@ xrpr                      = ( x ) -> inspect x, { colors: yes, breakLength: Infi
     return @log "µ988373 no such transcriptor: #{rpr d.value}"
   # if S.transcriptor isnt transcriptor
   S.transcriptor = transcriptor
-  @cm_set_translation_mark()
+  @cm_set_tsrs d.value.tsnr
   return null
 
 #===========================================================================================================
@@ -108,9 +108,6 @@ xrpr                      = ( x ) -> inspect x, { colors: yes, breakLength: Infi
   { editor, }     = S.codemirror
   { doc, }        = editor
   cursor          = doc.getCursor()
-  #.........................................................................................................
-  ### TAINT kludge to collapse multiple selections into a single one ###
-  CodeMirror.commands.singleSelection editor
   #.........................................................................................................
   line_idx        = cursor.line
   line_handle     = doc.getLineHandle line_idx

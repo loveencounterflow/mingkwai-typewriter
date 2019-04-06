@@ -189,13 +189,25 @@ focusframe {
   outline:             1px solid red;
 }
 
-.translation_mark {
+/* TSR: TranScription Region */
+.tsr {
   /* ### TAINT use symbolic colors */
   /*color:              black !important;*/
   /*background-color:   yellow;*/
-  outline:            2px dotted yellow;
+  outline-width:          2px;
+  outline-style:          dotted;
+  outline-color:          white;
+
 }
 
-
-
+.tsr0 { outline-color: transparent;  }
+.tsr1 { outline-color: yellow;  }
+.tsr2 { outline-color: red;     }
+.tsr3 { outline-color: blue;    }
+.tsr4 { outline-color: green;   }
+.tsr5 { outline-color: orange;  }
+.tsr6 { outline-color: lime;    }
+.tsr.hilite {
+  color:                  black;
+  background-color:       yellow; }
 

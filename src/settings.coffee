@@ -71,18 +71,19 @@ module.exports = S =
       indentWithTabs:               true
       inputStyle:                   'contenteditable'
       keyMap:                       'sublime'
-      lineNumbers:                  true
-      lineWrapping:                 false
-      matchBrackets:                true
       # mode:                         'coffeescript'
       # mode:                         'javascript',
       mode:                         'markdown',
+      theme:                        'monokai'
+      # theme:                        'duotone-dark'
+      lineNumbers:                  true
+      lineWrapping:                 false
+      matchBrackets:                true
       rtlMoveVisually:              true
       showCursorWhenSelecting:      true
       smartIndent:                  true
       specialChars:                 /[\u0000-\u001f\u007f-\u009f\u00ad\u061c\u200b-\u200f\u2028\u2029\ufeff]/
       tabSize:                      2
-      theme:                        'monokai'
       selectionsMayTouch:           true
       undoDepth:                    200
       autofocus:                    true
@@ -118,5 +119,7 @@ module.exports = S =
   ignore_delete:              0 ### number of `+delete` events to ignore ###
   transcriptors:              null
   transcriptor:               null
-  translation_mark:           null
+  tsnr:                       0
+  tsr:                        null
+  tsr_text:                   null
 
