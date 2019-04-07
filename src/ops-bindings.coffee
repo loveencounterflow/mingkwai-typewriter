@@ -71,20 +71,20 @@ it would be advantageous to derive them somehow from the source or the running i
 @set_codemirror_event_bindings = ->
   S.codemirror.editor.on 'cursorActivity', ( cm, change ) => @emit_transcribe_event()
   #.........................................................................................................
-  ### Emit the `change` object that comes from a CM `inputRead` event: ###
-  S.codemirror.editor.on 'inputRead', ( cm, change ) =>
-    XE.emit @input_event_from_change_object change
-  #.........................................................................................................
-  ### Emit the `change` object that results from a CM `chnage/+delete` event, except `ignore_delete` is
-  active: ###
-  S.codemirror.editor.on 'change', ( cm, change ) =>
-    ### TAINT when inserting results, will there be a change event? ###
-    return null unless change.origin is '+delete'
-    ### ignore event if it has been generated: ###
-    if S.ignore_delete > 0
-      S.ignore_delete += -1
-      return null
-    XE.emit @input_event_from_change_object change
+  # ### Emit the `change` object that comes from a CM `inputRead` event: ###
+  # S.codemirror.editor.on 'inputRead', ( cm, change ) =>
+  #   XE.emit @input_event_from_change_object change
+  # #.........................................................................................................
+  # ### Emit the `change` object that results from a CM `chnage/+delete` event, except `ignore_delete` is
+  # active: ###
+  # S.codemirror.editor.on 'change', ( cm, change ) =>
+  #   ### TAINT when inserting results, will there be a change event? ###
+  #   return null unless change.origin is '+delete'
+  #   ### ignore event if it has been generated: ###
+  #   if S.ignore_delete > 0
+  #     S.ignore_delete += -1
+  #     return null
+  #   XE.emit @input_event_from_change_object change
   #.........................................................................................................
   ### Adjust `ignore_delete` counter: ###
   XE.listen_to '^ignore-delete', =>
