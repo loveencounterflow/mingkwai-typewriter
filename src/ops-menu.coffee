@@ -28,7 +28,7 @@ PD                        = require 'pipedreams'
     do ( t, tsnr ) =>
       if tsnr < 10 then   label = "&#{tsnr} #{t.display_name}"
       else                label =  "#{tsnr} #{t.display_name}"
-      click = => XE.emit PD.new_event '^select-transcriptor', { tsnr, display_name: t.display_name, }
+      click = => @cm_set_tsrs tsnr
       R.push { label, click, }
   return R
 

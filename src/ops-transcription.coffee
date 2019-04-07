@@ -39,19 +39,19 @@ xrpr                      = ( x ) -> inspect x, { colors: yes, breakLength: Infi
   ### TAINT stopgap code ###
   ### TAINT should search home directory, node_modules as well ###
   ### TAINT use glob ###
-  PATH            = require 'path'
-  FS              = require 'fs'
-  ops             = {}
-  directory_path  = PATH.resolve PATH.join __dirname, './transcriptors'
-  on_input_types  = [
+  PATH                = require 'path'
+  FS                  = require 'fs'
+  ops                 = {}
+  directory_path      = PATH.resolve PATH.join __dirname, './transcriptors'
+  on_transcribe_types = [
     'function'
     'asyncfunction' ]
-  S.transcriptors = []
+  S.transcriptors     = []
   #.........................................................................................................
-  t               = {}
-  t.display_name  = "(no transcriptor)"
-  t.path          = null
-  t.module        = null
+  t                   = {}
+  t.display_name      = "(no transcriptor)"
+  t.path              = null
+  t.module            = null
   S.transcriptors.push t
   #.........................................................................................................
   for filename in FS.readdirSync directory_path
@@ -68,7 +68,7 @@ xrpr                      = ( x ) -> inspect x, { colors: yes, breakLength: Infi
     t.module              = require t.path
     #.......................................................................................................
     if t.module.init?
-      unless ( type = CND.type_of t.module.init ) in on_input_types
+      unless ( type = CND.type_of t.module.init ) in on_transcribe_types
         throw new Error "µ27622 expected a function for #{relative_path}.init, got a #{type}"
       await t.module.init()
     #.......................................................................................................
@@ -77,10 +77,10 @@ xrpr                      = ( x ) -> inspect x, { colors: yes, breakLength: Infi
         throw new Error "µ27622 expected a text for #{relative_path}.display_name, got a #{type}"
       t.display_name = t.module.display_name
     #.......................................................................................................
-    unless ( type = CND.type_of t.module.on_input ) in on_input_types
-      throw new Error "µ27622 expected a function for #{relative_path}.on_input, got a #{type}"
-    unless ( arity = t.module.on_input.length ) is 1
-      throw new Error "µ27622 arity #{arity} for #{relative_path}.on_input not implemented"
+    unless ( type = CND.type_of t.module.on_transcribe ) in on_transcribe_types
+      throw new Error "µ27622 expected a function for #{relative_path}.on_transcribe, got a #{type}"
+    unless ( arity = t.module.on_transcribe.length ) is 1
+      throw new Error "µ27622 arity #{arity} for #{relative_path}.on_transcribe not implemented"
     #.......................................................................................................
     S.transcriptors.push t
     t.tsnr = S.transcriptors.length
@@ -89,33 +89,26 @@ xrpr                      = ( x ) -> inspect x, { colors: yes, breakLength: Infi
   # info 'µ33736', S.transcriptors
   return null
 
-#-----------------------------------------------------------------------------------------------------------
-@select_transcriptor = ( d ) ->
-  @log 'µ776312-1', 'set_transcription', d
-  unless ( transcriptor = S.transcriptors[ d.value.tsnr ] )?
-    return @log "µ988373 no such transcriptor: #{rpr d.value}"
-  # if S.transcriptor isnt transcriptor
-  S.transcriptor = transcriptor
-  @cm_set_tsrs d.value.tsnr
-  return null
-
 #===========================================================================================================
 # INPUT TRANSLATION
 #-----------------------------------------------------------------------------------------------------------
-@input_event_from_change_object = ( change ) ->
-  ### Transform `^raw-input` to `^input` events ###
-  #.........................................................................................................
-  { editor, }     = S.codemirror
-  { doc, }        = editor
-  cursor          = doc.getCursor()
-  #.........................................................................................................
-  line_idx        = cursor.line
-  line_handle     = doc.getLineHandle line_idx
-  line_info       = doc.lineInfo line_handle ### TAINT consider to use line_idx, forego line_handle ###
-  { text, }       = line_info
-  #.........................................................................................................
-  return PD.new_event '^input', { change, line_idx, text, }
+# @input_event_from_change_object = ( change ) ->
+#   ### Transform `^raw-input` to `^input` events ###
+#   #.........................................................................................................
+#   { editor, }     = S.codemirror
+#   { doc, }        = editor
+#   cursor          = doc.getCursor()
+#   #.........................................................................................................
+#   line_idx        = cursor.line
+#   line_handle     = doc.getLineHandle line_idx
+#   line_info       = doc.lineInfo line_handle ### TAINT consider to use line_idx, forego line_handle ###
+#   { text, }       = line_info
+#   #.........................................................................................................
+#   return PD.new_event '^input', { change, line_idx, text, }
 
+#-----------------------------------------------------------------------------------------------------------
+@dispatch_transcribe_event = ( d ) ->
+  @log 'µ33111', 'dispatch_transcribe_event', rpr d
 
 #-----------------------------------------------------------------------------------------------------------
 @display_candidates = ( d ) ->

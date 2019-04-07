@@ -36,11 +36,11 @@ key_replacer = @load_keyboard()
 @init = -> OPS.log "#{badge}/init()"
 
 #-----------------------------------------------------------------------------------------------------------
-@on_input = ( input ) ->
+@on_transcribe = ( d ) ->
   #.........................................................................................................
   # whisper 'µ34343', xrpr change
-  new_text = key_replacer input.text
-  OPS.log 'µ34343', ( xrpr input.text ) + ' -> ' + ( xrpr new_text ) if input.text isnt new_text
+  new_text = key_replacer d.value.text
+  OPS.log 'µ34343', ( xrpr d.value.text ) + ' -> ' + ( xrpr new_text ) if d.value.text isnt new_text
   ### TAINT just emit single event, do not deal w/ MKTW internals here ###
   ### TAINT replacing the text of the entire line is one way to insert new text, but it would conceivably
   more elegant and / or more correct if we just replaced in the editor what we're replacing in the text ###

@@ -84,8 +84,12 @@ PD                        = require 'pipedreams'
   fromto = mark.find()
   return { from: ( @_cm_as_pos fromto.from ), to: ( @_cm_as_pos fromto.to ), clasz: mark.className, }
 
+
+#===========================================================================================================
+# SET TSRs, TRANSCRIPTORS
 #-----------------------------------------------------------------------------------------------------------
 @cm_set_tsrs = ( tsnr ) ->
+  ### Bound to `ctrl+0` ... `ctrl+4` ###
   ### TAINT code duplication ###
   # @cm_select_only_in_single_line()
   # @cm_clear_translation_mark()
@@ -118,25 +122,8 @@ PD                        = require 'pipedreams'
   return count
 
 #-----------------------------------------------------------------------------------------------------------
-@cm_mark_tsrs = ->
-  ### TAINT code duplication ###
-  for fromto in @cm_get_selections_as_fromtos()
-    if CND.equals fromto.from, fromto.to then marks = @cm_get_marks_in_position  fromto.from
-    else                                      marks = @cm_get_marks_in_range     fromto
-    if marks.length is 0
-      @log 'µ83733', "didn't find any marks at #{rpr fromto}"
-    else
-      for mark in marks
-        @log 'µ34464', "found existing mark: #{rpr @position_and_clasz_from_mark mark}"
-        { from, to, clasz, } = @position_and_clasz_from_mark mark
-        mark.clear()
-        clasz = if ( clasz.match /\bhilite\b/ )? then clasz.replace /\s*hilite\s*/g, ' ' else clasz + ' hilite'
-        @cm_set_mark { from, to, }, clasz
-  return null
-
-#-----------------------------------------------------------------------------------------------------------
-@cm_find_transcriptor_and_tsr = ->
-  ### TAINT code duplication ###
+@emit_transcribe_event = ->
+  ### Called on CM `CursorActivity`, reads text from current TSR if any, emits XE `^transcribe` ###
   # @log 'µ36633', 'cm_find_ts', "cursor at #{rpr @cm_get_cursor()}"
   marks = @cm_get_marks_in_position @cm_get_cursor()
   #.........................................................................................................
@@ -161,6 +148,28 @@ PD                        = require 'pipedreams'
   #.........................................................................................................
   @log 'µ34464', "TS##{rpr S.tsnr} (#{rpr S.transcriptor.display_name})"
   XE.emit PD.new_event '^transcribe', { text: S.tsr_text, from, to, } unless S.tsnr is 0
+  return null
+
+
+#===========================================================================================================
+# DIAGNOSTICS
+#-----------------------------------------------------------------------------------------------------------
+@cm_mark_tsrs = ->
+  ### Currently only used for diagnostics, will toggle CSS class `hilite` on all TSRs the selection is
+  touching when `ctrl+m` is hit ###
+  ### TAINT code duplication ###
+  for fromto in @cm_get_selections_as_fromtos()
+    if CND.equals fromto.from, fromto.to then marks = @cm_get_marks_in_position  fromto.from
+    else                                      marks = @cm_get_marks_in_range     fromto
+    if marks.length is 0
+      @log 'µ83733', "didn't find any marks at #{rpr fromto}"
+    else
+      for mark in marks
+        @log 'µ34464', "found existing mark: #{rpr @position_and_clasz_from_mark mark}"
+        { from, to, clasz, } = @position_and_clasz_from_mark mark
+        mark.clear()
+        clasz = if ( clasz.match /\bhilite\b/ )? then clasz.replace /\s*hilite\s*/g, ' ' else clasz + ' hilite'
+        @cm_set_mark { from, to, }, clasz
   return null
 
 

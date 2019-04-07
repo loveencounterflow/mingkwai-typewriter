@@ -69,7 +69,7 @@ it would be advantageous to derive them somehow from the source or the running i
 
 #-----------------------------------------------------------------------------------------------------------
 @set_codemirror_event_bindings = ->
-  S.codemirror.editor.on 'cursorActivity', ( cm, change ) => @cm_find_transcriptor_and_tsr()
+  S.codemirror.editor.on 'cursorActivity', ( cm, change ) => @emit_transcribe_event()
   #.........................................................................................................
   ### Emit the `change` object that comes from a CM `inputRead` event: ###
   S.codemirror.editor.on 'inputRead', ( cm, change ) =>
@@ -97,12 +97,6 @@ it would be advantageous to derive them somehow from the source or the running i
   KEYS.bind 'alt',      @, @show_or_hide_menu_bar
   KEYS.bind 'shift',    @, @toggle_focusframe
   KEYS.bind 'ctrl+s',   @, @save_document
-  # KEYS.bind 'ctrl+m',   @, @cm_mark_tsrs
-  # KEYS.bind 'ctrl+0',   @, -> @cm_set_tsrs 0
-  # KEYS.bind 'ctrl+1',   @, -> @cm_set_tsrs 1
-  # KEYS.bind 'ctrl+2',   @, -> @cm_set_tsrs 2
-  # KEYS.bind 'ctrl+3',   @, -> @cm_set_tsrs 3
-  # KEYS.bind 'ctrl+4',   @, -> @cm_set_tsrs 4
   return null
 
 #-----------------------------------------------------------------------------------------------------------
@@ -111,7 +105,7 @@ it would be advantageous to derive them somehow from the source or the running i
   XE.listen_to '^candidates',           @, @display_candidates
   XE.listen_to '^window-resize',        @, @index_candidates
   XE.listen_to '^window-resize',        @, @adjust_focusframe
-  XE.listen_to '^select-transcriptor',  @, @select_transcriptor
+  XE.listen_to '^transcribe',           @, @dispatch_transcribe_event
 
 #-----------------------------------------------------------------------------------------------------------
 @set_dom_event_bindings = ->
