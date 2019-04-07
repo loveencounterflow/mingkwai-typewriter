@@ -99,32 +99,32 @@ PD                        = require 'pipedreams'
   count   = 0
   for fromto in @cm_get_selections_as_fromtos()
     range_is_point = CND.equals fromto.from, fromto.to
-    if range_is_point then  marks = @cm_get_marks_in_position  fromto.from
-    else                    marks = @cm_get_marks_in_range     fromto
-    for mark in marks
-      do ( mark ) =>
-        @log 'µ34464', "found existing mark: #{rpr @position_and_clasz_from_mark mark}"
-        mark.clear()
+    if range_is_point then  old_marks = @cm_get_marks_in_position  fromto.from
+    else                    old_marks = @cm_get_marks_in_range     fromto
+    for old_mark in old_marks
+      do ( old_mark ) =>
+        @log 'µ53183', "found old mark: #{rpr @position_and_clasz_from_mark old_mark}"
+        old_mark.clear()
     if action is 'set'
       if range_is_point
         S.codemirror.editor.replaceRange '\ue044', fromto.from
         fromto1 = { from: fromto.from, to: { line: fromto.from.line, ch: ( fromto.from.ch + 1 ), }, }
         @cm_select fromto1
         mark    = @cm_set_mark fromto1, clasz
-        # S.codemirror.editor.setBookmark fromto.from, { widget: ( jQuery "<span class='widget'></span>" )[ 0 ], }
       else
         ### TAINT trailing newlines, empty lines are probably a bad idea; if CodeMirror would only visibly
-        mark those ###
+        mark those, but it doesn't ###
         if ( nl_count = ( ( @cm_get_text fromto ).match /(\n*)$/ )[ 1 ].length ) > 0
-          @log 'µ32873', "fromto #{rpr fromto} contains empty lines"
+          @log 'µ53284', "fromto #{rpr fromto} contains empty lines"
         mark = @cm_set_mark fromto, clasz
-      # mark.on 'beforeCursorEnter', => @log 'µ44333', "entered tsr #{rpr @position_and_clasz_from_mark mark}"
+      ### TAINT this is doing too much work for this case: ###
+      @emit_transcribe_event()
   return count
 
 #-----------------------------------------------------------------------------------------------------------
 @emit_transcribe_event = ->
   ### Called on CM `CursorActivity`, reads text from current TSR if any, emits XE `^transcribe` ###
-  # @log 'µ36633', 'cm_find_ts', "cursor at #{rpr @cm_get_cursor()}"
+  # @log 'µ53486', 'cm_find_ts', "cursor at #{rpr @cm_get_cursor()}"
   marks = @cm_get_marks_in_position @cm_get_cursor()
   #.........................................................................................................
   if marks.length is 0
