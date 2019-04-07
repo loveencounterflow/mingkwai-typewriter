@@ -1,10 +1,10 @@
 {
   "name": "mingkwai-ime",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "CJK Input Method",
   "main": "lib/app.js",
   "scripts": {
-    "test":  "./test",
+    "test": "./test",
     "start": "electron lib/app.js"
   },
   "license": "MIT",
