@@ -77,7 +77,7 @@ module.exports = S =
       theme:                        'monokai'
       # theme:                        'duotone-dark'
       lineNumbers:                  true
-      lineWrapping:                 false
+      lineWrapping:                 true
       matchBrackets:                true
       rtlMoveVisually:              true
       showCursorWhenSelecting:      true

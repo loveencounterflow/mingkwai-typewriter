@@ -52,7 +52,7 @@ PD                        = require 'pipedreams'
 
 #-----------------------------------------------------------------------------------------------------------
 @cm_set_mark = ( fromto, clasz ) ->
-  @log 'µ34333', "set mark #{rpr clasz} at #{rpr fromto}"
+  @log 'µ52981', "@cm_set_mark #{rpr fromto}, #{rpr clasz}"
   settings =
     className:      clasz
     inclusiveLeft:  true
@@ -76,7 +76,7 @@ PD                        = require 'pipedreams'
 
 #-----------------------------------------------------------------------------------------------------------
 @cm_select = ( fromto ) ->
-  @log 'µ34484', "cm_select: #{rpr fromto}"
+  @log 'µ53082', "cm_select: #{rpr fromto}"
   return S.codemirror.editor.setSelection fromto.from, fromto.to
 
 #-----------------------------------------------------------------------------------------------------------
@@ -146,7 +146,7 @@ PD                        = require 'pipedreams'
       S.tsnr          = 0
       S.transcriptor  = S.transcriptors[ S.tsnr ]
   #.........................................................................................................
-  @log 'µ34464', "TS##{rpr S.tsnr} (#{rpr S.transcriptor.display_name})"
+  @log 'µ53587', "TS##{rpr S.tsnr} (#{rpr S.transcriptor.display_name})"
   XE.emit PD.new_event '^transcribe', { text: S.tsr_text, from, to, } unless S.tsnr is 0
   return null
 
@@ -162,10 +162,10 @@ PD                        = require 'pipedreams'
     if CND.equals fromto.from, fromto.to then marks = @cm_get_marks_in_position  fromto.from
     else                                      marks = @cm_get_marks_in_range     fromto
     if marks.length is 0
-      @log 'µ83733', "didn't find any marks at #{rpr fromto}"
+      @log 'µ53688', "didn't find any marks at #{rpr fromto}"
     else
       for mark in marks
-        @log 'µ34464', "found existing mark: #{rpr @position_and_clasz_from_mark mark}"
+        @log 'µ53789', "found existing mark: #{rpr @position_and_clasz_from_mark mark}"
         { from, to, clasz, } = @position_and_clasz_from_mark mark
         mark.clear()
         clasz = if ( clasz.match /\bhilite\b/ )? then clasz.replace /\s*hilite\s*/g, ' ' else clasz + ' hilite'
