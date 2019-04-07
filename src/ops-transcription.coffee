@@ -108,7 +108,19 @@ xrpr                      = ( x ) -> inspect x, { colors: yes, breakLength: Infi
 
 #-----------------------------------------------------------------------------------------------------------
 @dispatch_transcribe_event = ( d ) ->
-  @log 'µ33111', 'dispatch_transcribe_event', rpr d
+  if S.transcriptor?.module?.on_transcribe?
+    @log 'µ33111', "calling S.transcriptor.display_name", rpr d
+    S.transcriptor.module.on_transcribe d
+  else
+    @log 'µ33111', 'no transcriptor'
+  return null
+
+#-----------------------------------------------------------------------------------------------------------
+@on_replace_text = ( d ) ->
+  @cm_select d.value
+  ### TAINT use `@cm_*()` API ###
+  S.codemirror.editor.doc.replaceSelection d.value.text
+  return null
 
 #-----------------------------------------------------------------------------------------------------------
 @display_candidates = ( d ) ->
