@@ -100,19 +100,9 @@ require                   '../lib/exception-handler'
   await @set_dom_event_bindings()
   #.........................................................................................................
   await @focusframe_to_editor()
-  #.........................................................................................................
+  await @dbg_set_debugging_globals()
+  # await @dbg_list_all_css_classes_in_document()
   # await @cm_select_all()
-  ```
-  var classes = [];
-  jQuery('[class]').each(function(){
-      jQuery(jQuery(this).attr('class').split(' ')).each(function() {
-          if (this.length>0 && jQuery.inArray(this.valueOf(), classes) === -1) {
-              classes.push(this.valueOf());
-          }
-      });
-  });
-  console.log("LIST START\n\n"+classes.join('\n')+"\n\nLIST END");
-  ```
   #.........................................................................................................
   return null
 
