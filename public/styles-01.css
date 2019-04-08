@@ -139,8 +139,8 @@ table#candidates {
 }
 
 #logger {
-  font-size:              4mm;
-  line-height:            4mm;
+  font-size:              50%;
+  /*line-height:            75%;*/
   background-color:       green;
   height:                 100%;
   max-height:             100%;
