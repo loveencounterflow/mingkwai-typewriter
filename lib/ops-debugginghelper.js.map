@@ -1,0 +1,13 @@
+{
+  "version": 3,
+  "file": "ops-debugginghelper.js",
+  "sourceRoot": "..",
+  "sources": [
+    "src/ops-debugginghelper.coffee"
+  ],
+  "names": [],
+  "mappings": ";AACA;EAAA,aAAA;;EAGA,IAAC,CAAA,yBAAD,GAA6B,QAAA,CAAA,CAAA;IAC3B,MAAM,CAAC,CAAP,GAAgB,CAAC,CAAC,UAAU,CAAC;IAC7B,MAAM,CAAC,IAAP,GAAgB,MAAA,CAAO,sDAAP,CAA+D,CAAA,CAAA;WAC/E,MAAM,CAAC,KAAP,GAAgB,MAAA,CAAO,oDAAP,CAA6D,CAAA,CAAA;EAHlD,EAH7B;;;;;EAUA,IAAC,CAAA,oCAAD,GAAwC,QAAA,CAAA,CAAA;WACtC;;;;;;;;;;;EADsC;AAVxC",
+  "sourcesContent": [
+    "\n'use strict'\n\n#-----------------------------------------------------------------------------------------------------------\n@dbg_set_debugging_globals = ->\n  global.e      = S.codemirror.editor\n  global.left   = jQuery('<span style=\"color:black;background:green;\">(</span>')[0]\n  global.right  = jQuery('<span style=\"color:black;background:red;\">)</span>')[0]\n  # console.log \"loaded #{__filename}\"\n\n#-----------------------------------------------------------------------------------------------------------\n@dbg_list_all_css_classes_in_document = ->\n  ```\n  var classes = [];\n  jQuery('[class]').each(function(){\n      jQuery(jQuery(this).attr('class').split(' ')).each(function() {\n          if (this.length>0 && jQuery.inArray(this.valueOf(), classes) === -1) {\n              classes.push(this.valueOf());\n          }\n      });\n  });\n  console.log(\"LIST START\\n\\n\"+classes.join('\\n')+\"\\n\\nLIST END\");\n  ```\n\n"
+  ]
+}
