@@ -58,18 +58,18 @@ it would be advantageous to derive them somehow from the source or the running i
     'End':        ( cm ) => @move_to_end               cm
     'Space':      ( cm ) => @insert_space_or_selection cm
     'Ctrl-M':     ( cm ) => @cm_mark_tsrs()
-    'Ctrl-0':     ( cm ) => @cm_set_tsrs 0
-    'Ctrl-1':     ( cm ) => @cm_set_tsrs 1
-    'Ctrl-2':     ( cm ) => @cm_set_tsrs 2
-    'Ctrl-3':     ( cm ) => @cm_set_tsrs 3
-    'Ctrl-4':     ( cm ) => @cm_set_tsrs 4
+    'Ctrl-0':     ( cm ) => @cm_set_tsrs_NG 0
+    'Ctrl-1':     ( cm ) => @cm_set_tsrs_NG 1
+    'Ctrl-2':     ( cm ) => @cm_set_tsrs_NG 2
+    'Ctrl-3':     ( cm ) => @cm_set_tsrs_NG 3
+    'Ctrl-4':     ( cm ) => @cm_set_tsrs_NG 4
   #.........................................................................................................
   S.codemirror.editor.addKeyMap mktw_keymap
   return null
 
 #-----------------------------------------------------------------------------------------------------------
 @set_codemirror_event_bindings = ->
-  S.codemirror.editor.on 'cursorActivity', ( cm, change ) => @emit_transcribe_event()
+  S.codemirror.editor.on 'cursorActivity', ( cm, change ) => @emit_transcribe_event_NG()
   #.........................................................................................................
   # ### Emit the `change` object that comes from a CM `inputRead` event: ###
   # S.codemirror.editor.on 'inputRead', ( cm, change ) =>

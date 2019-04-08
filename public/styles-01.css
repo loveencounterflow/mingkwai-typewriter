@@ -211,3 +211,19 @@ focusframe {
   color:                  black;
   background-color:       yellow; }
 
+.tsrNG {
+  /* ### TAINT use symbolic colors */
+  color:                  black !important;
+  background-color:       white !important;
+}
+
+/*.tsrNG0 { background-color: transparent;  }*/
+.tsrNG1 { background-color: yellow  !important; }
+.tsrNG2 { background-color: red     !important; }
+.tsrNG3 { background-color: blue    !important; }
+.tsrNG4 { background-color: green   !important; }
+.tsrNG5 { background-color: orange  !important; }
+.tsrNG6 { background-color: lime    !important; }
+
+
+
