@@ -48,19 +48,11 @@ _transcribe = @load_keyboard()
   # whisper 'µ34343', xrpr change
   text = @transcribe d.value.text
   if d.value.text is text
-    OPS.log 'µ34343', "no matches:", ( xrpr d.value.text )
+    # OPS.log 'µ34343', "no matches:", ( rpr d.value.text )
+    null
   else
-    OPS.log 'µ34343', ( xrpr d.value.text ) + ' -> ' + ( xrpr text )
+    OPS.log 'µ34343', ( rpr d.value.text ) + ' -> ' + ( rpr text )
     XE.emit PD.new_event '^replace-text', assign {}, d.value, { text: text, }
-  # ### TAINT just emit single event, do not deal w/ MKTW internals here ###
-  # ### TAINT replacing the text of the entire line is one way to insert new text, but it would conceivably
-  # more elegant and / or more correct if we just replaced in the editor what we're replacing in the text ###
-  # ### TAINT consider to build micro shim so we get rid of these (for our use case) bizarre API choices ###
-  # ### Announce to ignore next `+delete` event as it did not originate from user input: ###
-  # await XE.emit PD.new_event '^ignore-delete'
-  # CodeMirror.commands.goLineEnd   S.codemirror.editor
-  # CodeMirror.commands.delLineLeft S.codemirror.editor
-  # S.codemirror.editor.doc.replaceSelection text
   return null
 
 

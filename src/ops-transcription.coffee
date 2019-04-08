@@ -117,15 +117,23 @@ xrpr                      = ( x ) -> inspect x, { colors: yes, breakLength: Infi
 
 #-----------------------------------------------------------------------------------------------------------
 @on_replace_text = ( d ) ->
-  @cm_select d.value
-  ### TAINT use `@cm_*()` API ###
-  S.codemirror.editor.doc.replaceSelection d.value.text
+  # cursor_position = @cm_get_cursor()
+  # @log 'µ53486', 'on_replace_text', "cursor at #{rpr cursor_position}"
+  @cm_select            d.value
+  @cm_replace_selection d.value.text
+  # @cm_set_cursor        cursor_position
   return null
 
 #-----------------------------------------------------------------------------------------------------------
 @display_candidates = ( d ) ->
-  @focusframe_to_candidates() unless S.focus_is_candidates
   v       = d.value
+  #.........................................................................................................
+  if v.candidates.length is 0
+    @focusframe_to_editor if S.focus_is_candidates
+    # @index_candidates()
+    return null
+  #.........................................................................................................
+  @focusframe_to_candidates() unless S.focus_is_candidates
   rows    = ( ( T.get_flexgrid_html ( idx + 1 ), glyph ) for glyph, idx in v.candidates ).join '\n'
   ( jQuery '#candidates-flexgrid div' ).remove()
   ( jQuery '#candidates-flexgrid'     ).append rows
