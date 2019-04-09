@@ -196,6 +196,9 @@ focusframe {
   /* ### TAINT use symbolic colors */
   color:                  black !important;
   background-color:       white !important;
+  font-size:              80%;
+  border-radius:          3mm;
+  padding:                1mm;
 }
 
 /*.tsr0 { background-color: transparent;  }*/
