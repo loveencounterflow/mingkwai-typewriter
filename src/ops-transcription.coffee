@@ -169,9 +169,9 @@ xrpr                      = ( x ) -> inspect x, { colors: yes, breakLength: Infi
     glyphboxes.removeClass  'cdtsel'
     me.addClass             'cdtsel'
     #.......................................................................................................
-    lnr   = me.attr 'lnr'
-    lcol  = me.attr 'lcol'
-    @log "µ33983 clicked on #{me.text()} #{jr lnr} / #{jr lcol}"
+    # lnr   = me.attr 'lnr'
+    # lcol  = me.attr 'lcol'
+    # @log "µ33983 clicked on #{me.text()} #{jr lnr} / #{jr lcol}"
     d.value.ntext = me.text()
     XE.emit PD.new_event '^replace-text', d.value
   #.........................................................................................................
