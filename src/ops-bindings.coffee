@@ -88,7 +88,7 @@ it would be advantageous to derive them somehow from the source or the running i
   XE.listen_to '^window-resize',        @, @index_candidates
   XE.listen_to '^window-resize',        @, @adjust_focusframe
   XE.listen_to '^transcribe',           @, @dispatch_transcribe_event
-  XE.listen_to '^open-document',        @, @format_tsr_marks
+  XE.listen_to '^open-document',        @, @format_existing_tsr_marks
 
 #-----------------------------------------------------------------------------------------------------------
 @set_dom_event_bindings = ->

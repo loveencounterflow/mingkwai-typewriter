@@ -90,6 +90,94 @@ xrpr                      = ( x ) -> inspect x, { colors: yes, breakLength: Infi
   # info 'µ33736', S.transcriptors
   return null
 
+#===========================================================================================================
+# SET TSRs, TRANSCRIPTORS
+#-----------------------------------------------------------------------------------------------------------
+@format_existing_tsr_marks = ( d ) ->
+  ### TAINT precompute, store in S: ###
+  ### TAINT code duplication ###
+  tsrm_prefix   = S.transcriptor_region_markers?.prefix ? '\u{f11c}'
+  tsrm_suffix   = S.transcriptor_region_markers?.suffix ? '\u{f005}'
+  pattern       = /// #{tsrm_prefix} (?<tsnr>[0-9]+) #{tsrm_suffix} ///
+  finds         = []
+  cursor        = S.codemirror.editor.getSearchCursor pattern
+  # @log 'µ11121', rpr ( key for key of cursor )
+  #.........................................................................................................
+  while cursor.findNext()
+    from      = cursor.from()
+    to        = cursor.to()
+    fromto    = { from, to, }
+    text      = @cm_get_text fromto
+    { tsnr, } = ( text.match pattern ).groups
+    tsnr      = parseInt tsnr, 10
+    finds.push { fromto, tsnr, }
+  #.........................................................................................................
+  for { fromto, tsnr, } in finds
+    @log "µ46674", "found TSR mark at #{rpr fromto}: #{rpr text} (TS ##{tsnr})"
+    @cm_format_as_tsr_mark fromto, tsnr
+  #.........................................................................................................
+  return null
+  # for line_idx in [ S.codemirror.editor.firstLine() .. S.codemirror.editor.lastLine() ]
+  #   text =
+
+#-----------------------------------------------------------------------------------------------------------
+@cm_format_as_tsr_mark = ( fromto, tsnr ) ->
+  ### TAINT use own API ###
+  settings      =
+    className:        "tsr tsr#{tsnr}"
+    atomic:           true
+    inclusiveLeft:    false
+    inclusiveRight:   false
+  S.codemirror.editor.markText fromto.from, fromto.to, settings
+  return null
+
+#-----------------------------------------------------------------------------------------------------------
+@cm_insert_tsr_mark = ( fromto, tsnr ) ->
+  ### TSRM: TranScription Region Marker. TSR extends from marker up to cursor. ###
+  ### TAINT precompute, store in S.transcriptors: ###
+  tsrm_prefix   = S.transcriptor_region_markers?.prefix ? '\u{f11c}'
+  tsrm_suffix   = S.transcriptor_region_markers?.suffix ? '\u{f005}'
+  ### TAINT use configured TS sigil instead of tsnr ###
+  tsrm          = "#{tsrm_prefix}#{tsnr}#{tsrm_suffix}"
+  clasz         = "tsr tsr#{tsnr}"
+  fromto_right  = { line: fromto.from.line, ch: ( fromto.from.ch + tsrm.length ), }
+  settings      =
+    className:        clasz
+    atomic:           true
+    inclusiveLeft:    false
+    inclusiveRight:   false
+  ### TAINT use own API ###
+  S.codemirror.editor.replaceRange tsrm, fromto.from
+  S.codemirror.editor.markText fromto.from, fromto_right, settings
+  return null
+
+#-----------------------------------------------------------------------------------------------------------
+@cm_set_tsrs = ( tsnr ) ->
+  ### Bound to `ctrl+0` ... `ctrl+4` ###
+  action  = if tsnr is 0 then 'clear' else 'set'
+  if action is 'clear'
+    @log 'µ48733-1', "clear TSR not implemented"
+    return null
+  delta   = if action is 'clear' then -1 else +1
+  clasz   = "tsr tsr#{tsnr}"
+  for fromto in @cm_get_selections_as_fromtos()
+    unless @cm_range_is_point fromto
+      @log 'µ48733-2', "non-point ranges not implemented"
+      return null
+    @log 'µ48733-4', rpr fromto
+    ### TAINT allow to configure appearance of TSR mark ###
+    # tsrm = "[#{S.transcriptors[ tsnr ].display_name}:"
+    @cm_insert_tsr_mark fromto, tsnr
+  @emit_transcribe_event()
+  return null
+
+
+#===========================================================================================================
+# MOVES
+#-----------------------------------------------------------------------------------------------------------
+@cm_jump_to_tsr_or_bracket = -> @log 'µ44455', "cm_jump_to_tsr_or_bracket not implemented"
+@cm_mark_tsr_or_bracket    = -> @log 'µ44455', "cm_mark_tsr_or_bracket not implemented"
+
 
 #===========================================================================================================
 # INPUT TRANSLATION
