@@ -48,21 +48,22 @@ it would be advantageous to derive them somehow from the source or the running i
 #-----------------------------------------------------------------------------------------------------------
 @set_codemirror_keybindings = ->
   mktw_keymap =
-    'Left':       ( cm ) => @move_left                        cm
-    'Right':      ( cm ) => @move_right                       cm
-    'Up':         ( cm ) => @move_up                          cm
-    'Down':       ( cm ) => @move_down                        cm
-    'Tab':        ( cm ) => @move_nxtline_first               cm
-    'Shift-Tab':  ( cm ) => @move_prvline_first               cm
-    'Home':       ( cm ) => @move_to_home                     cm
-    'End':        ( cm ) => @move_to_end                      cm
-    'Space':      ( cm ) => @select_candidate_or_insert_space cm
-    'Ctrl-M':     ( cm ) => @cm_mark_tsrs()
-    'Ctrl-0':     ( cm ) => @cm_set_tsrs 0
-    'Ctrl-1':     ( cm ) => @cm_set_tsrs 1
-    'Ctrl-2':     ( cm ) => @cm_set_tsrs 2
-    'Ctrl-3':     ( cm ) => @cm_set_tsrs 3
-    'Ctrl-4':     ( cm ) => @cm_set_tsrs 4
+    'Left':         ( cm ) => @move_left                        cm
+    'Right':        ( cm ) => @move_right                       cm
+    'Up':           ( cm ) => @move_up                          cm
+    'Down':         ( cm ) => @move_down                        cm
+    'Tab':          ( cm ) => @move_nxtline_first               cm
+    'Shift-Tab':    ( cm ) => @move_prvline_first               cm
+    'Home':         ( cm ) => @move_to_home                     cm
+    'End':          ( cm ) => @move_to_end                      cm
+    'Space':        ( cm ) => @select_candidate_or_insert_space cm
+    'Ctrl-M':       ( cm ) => @cm_jump_to_tsr_or_bracket()
+    'Shift-Ctrl-M': ( cm ) => @cm_mark_tsr_or_bracket()
+    'Ctrl-0':       ( cm ) => @cm_set_tsrs 0
+    'Ctrl-1':       ( cm ) => @cm_set_tsrs 1
+    'Ctrl-2':       ( cm ) => @cm_set_tsrs 2
+    'Ctrl-3':       ( cm ) => @cm_set_tsrs 3
+    'Ctrl-4':       ( cm ) => @cm_set_tsrs 4
   #.........................................................................................................
   S.codemirror.editor.addKeyMap mktw_keymap
   return null
