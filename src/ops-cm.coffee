@@ -167,23 +167,8 @@ PD                        = require 'pipedreams'
 #===========================================================================================================
 # DIAGNOSTICS
 #-----------------------------------------------------------------------------------------------------------
-@cm_mark_tsrs = ->
-  ### Currently only used for diagnostics, will toggle CSS class `hilite` on all TSRs the selection is
-  touching when `ctrl+m` is hit ###
-  ### TAINT code duplication ###
-  for fromto in @cm_get_selections_as_fromtos()
-    if CND.equals fromto.from, fromto.to then marks = @cm_get_marks_in_position  fromto.from
-    else                                      marks = @cm_get_marks_in_range     fromto
-    if marks.length is 0
-      @log 'µ53688', "didn't find any marks at #{rpr fromto}"
-    else
-      for mark in marks
-        @log 'µ53789', "found existing mark: #{rpr @position_and_clasz_from_mark mark}"
-        { from, to, clasz, } = @position_and_clasz_from_mark mark
-        mark.clear()
-        clasz = if ( clasz.match /\bhilite\b/ )? then clasz.replace /\s*hilite\s*/g, ' ' else clasz + ' hilite'
-        @cm_set_mark { from, to, }, clasz
-  return null
+@cm_jump_to_tsr_or_bracket = -> @log 'µ44455', "cm_jump_to_tsr_or_bracket not implemented"
+@cm_mark_tsr_or_bracket    = -> @log 'µ44455', "cm_mark_tsr_or_bracket not implemented"
 
 
 
