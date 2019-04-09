@@ -93,9 +93,13 @@ PD                        = require 'pipedreams'
 #-----------------------------------------------------------------------------------------------------------
 @format_tsr_marks = ( d ) ->
   # S.codemirror.editor.getSearchCursor /🛸(?<tsnr>[0-9]+):(?<text>[.*?])$/, start, options)
-  pattern = /🛸(?<tsnr>[0-9]+):/
-  finds   = []
-  cursor  = S.codemirror.editor.getSearchCursor pattern
+  ### TAINT precompute, store in S: ###
+  ### TAINT code duplication ###
+  tsrm_prefix   = S.transcriptor_region_markers?.prefix ? '\u{f11c}'
+  tsrm_suffix   = S.transcriptor_region_markers?.suffix ? '\u{f005}'
+  pattern       = /// #{tsrm_prefix} (?<tsnr>[0-9]+) #{tsrm_suffix} ///
+  finds         = []
+  cursor        = S.codemirror.editor.getSearchCursor pattern
   # @log 'µ11121', rpr ( key for key of cursor )
   #.........................................................................................................
   while cursor.findNext()
@@ -108,7 +112,6 @@ PD                        = require 'pipedreams'
     finds.push { fromto, tsnr, }
   #.........................................................................................................
   for { fromto, tsnr, } in finds
-    # /🛸(?<tsnr>[0-9]+):(?<text>[.*?])$/
     @log "µ46674", "found TSR mark at #{rpr fromto}: #{rpr text} (TS ##{tsnr})"
     @cm_format_as_tsr_mark fromto, tsnr
   #.........................................................................................................
@@ -129,17 +132,21 @@ PD                        = require 'pipedreams'
 
 #-----------------------------------------------------------------------------------------------------------
 @cm_insert_tsr_mark = ( fromto, tsnr ) ->
-  ### TAINT use own API ###
-  tsr_mark_left = "🛸#{tsnr}:"
+  ### TSRM: TranScription Region Marker. TSR extends from marker up to cursor. ###
+  ### TAINT precompute, store in S.transcriptors: ###
+  tsrm_prefix   = S.transcriptor_region_markers?.prefix ? '\u{f11c}'
+  tsrm_suffix   = S.transcriptor_region_markers?.suffix ? '\u{f005}'
+  ### TAINT use configured TS sigil instead of tsnr ###
+  tsrm          = "#{tsrm_prefix}#{tsnr}#{tsrm_suffix}"
   clasz         = "tsr tsr#{tsnr}"
-  fromto_right  = { line: fromto.from.line, ch: ( fromto.from.ch + tsr_mark_left.length ), }
+  fromto_right  = { line: fromto.from.line, ch: ( fromto.from.ch + tsrm.length ), }
   settings      =
     className:        clasz
     atomic:           true
     inclusiveLeft:    false
     inclusiveRight:   false
   ### TAINT use own API ###
-  S.codemirror.editor.replaceRange tsr_mark_left, fromto.from
+  S.codemirror.editor.replaceRange tsrm, fromto.from
   S.codemirror.editor.markText fromto.from, fromto_right, settings
   return null
 
@@ -158,7 +165,7 @@ PD                        = require 'pipedreams'
       return null
     @log 'µ48733-4', rpr fromto
     ### TAINT allow to configure appearance of TSR mark ###
-    # tsr_mark_left = "[#{S.transcriptors[ tsnr ].display_name}:"
+    # tsrm = "[#{S.transcriptors[ tsnr ].display_name}:"
     @cm_insert_tsr_mark fromto, tsnr
   @emit_transcribe_event()
   return null

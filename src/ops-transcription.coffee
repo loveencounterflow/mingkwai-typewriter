@@ -98,7 +98,12 @@ xrpr                      = ( x ) -> inspect x, { colors: yes, breakLength: Infi
   position  = @cm_get_cursor()
   full_text = ( @cm_text_from_line_idx position.line )[ ... position.ch ]
   return null if full_text.length is 0 ### TAINT consider whether transcriptions with empty text might be useful ###
-  return unless ( match = full_text.match /^.*(?<all>🛸(?<tsnr>[0-9]+):(?<otext>.*?))$/ )?
+  ### TAINT precompute, store in S: ###
+  ### TAINT code duplication, see `ops-cm/format_tsr_marks()` ###
+  tsrm_prefix   = S.transcriptor_region_markers?.prefix ? '\u{f11c}'
+  tsrm_suffix   = S.transcriptor_region_markers?.suffix ? '\u{f005}'
+  pattern       = /// ^ .* (?<all> #{tsrm_prefix} (?<tsnr>[0-9]+) #{tsrm_suffix} (?<otext>.*?) ) $ ///
+  return unless ( match = full_text.match pattern )?
   { tsnr
     otext
     all   } = match.groups
