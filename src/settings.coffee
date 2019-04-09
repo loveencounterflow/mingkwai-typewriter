@@ -130,4 +130,4 @@ module.exports = S =
   tsnr:                       0
   tsr:                        null
   tsr_text:                   null
-
+  is_frozen:                  false

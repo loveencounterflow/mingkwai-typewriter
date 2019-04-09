@@ -90,8 +90,6 @@ require                   '../lib/exception-handler'
   #.........................................................................................................
   await @load_transcriptors()
   await @add_menu()
-  await @restore_documents()
-  await @focusframe_to_editor()
   #.........................................................................................................
   await @set_codemirror_keybindings()
   await @set_codemirror_event_bindings()
@@ -103,6 +101,9 @@ require                   '../lib/exception-handler'
   await @dbg_set_debugging_globals()
   # await @dbg_list_all_css_classes_in_document()
   # await @cm_select_all()
+  #.........................................................................................................
+  await @restore_documents()
+  await @focusframe_to_editor()
   #.........................................................................................................
   return null
 

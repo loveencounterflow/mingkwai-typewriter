@@ -21,6 +21,7 @@ FS                        = require 'fs'
 PD                        = require 'pipedreams'
 { jr, }                   = CND
 { after, }                = CND.suspend
+assign                    = Object.assign
 defer                     = setImmediate
 { $
   $async }                = PD
@@ -89,44 +90,66 @@ xrpr                      = ( x ) -> inspect x, { colors: yes, breakLength: Infi
   # info 'µ33736', S.transcriptors
   return null
 
+
 #===========================================================================================================
 # INPUT TRANSLATION
 #-----------------------------------------------------------------------------------------------------------
-# @input_event_from_change_object = ( change ) ->
-#   ### Transform `^raw-input` to `^input` events ###
-#   #.........................................................................................................
-#   { editor, }     = S.codemirror
-#   { doc, }        = editor
-#   cursor          = doc.getCursor()
-#   #.........................................................................................................
-#   line_idx        = cursor.line
-#   line_handle     = doc.getLineHandle line_idx
-#   line_info       = doc.lineInfo line_handle ### TAINT consider to use line_idx, forego line_handle ###
-#   { text, }       = line_info
-#   #.........................................................................................................
-#   return PD.new_event '^input', { change, line_idx, text, }
+@emit_transcribe_event = ->
+  position  = @cm_get_cursor()
+  full_text = ( @cm_text_from_line_idx position.line )[ ... position.ch ]
+  return null if full_text.length is 0 ### TAINT consider whether transcriptions with empty text might be useful ###
+  return unless ( match = full_text.match /^.*(?<all>🛸(?<tsnr>[0-9]+):(?<otext>.*?))$/ )?
+  { tsnr
+    otext
+    all   } = match.groups
+  tsnr      = parseInt tsnr, 10
+  return null if tsnr is 0
+  value     =
+    otext:    otext
+    tsnr:     tsnr
+    target:   { line: position.line, ch: position.ch - all.length,    }
+    origin:
+      from:     { line: position.line, ch: position.ch - otext.length,  }
+      to:       position
+  XE.emit PD.new_event '^transcribe', value
+  return null
 
 #-----------------------------------------------------------------------------------------------------------
 @dispatch_transcribe_event = ( d ) ->
-  if S.transcriptor?.module?.on_transcribe?
-    @log 'µ33111', "calling S.transcriptor.display_name", rpr d
-    S.transcriptor.module.on_transcribe d
+  transcriptor = S.transcriptors[ d.value.tsnr ]
+  #.......................................................................................................
+  unless transcriptor?.module?.on_transcribe?
+    tsnr          = 0
+    transcriptor  = S.transcriptors[ tsnr ]
+  #.......................................................................................................
+  if transcriptor?.module?.on_transcribe?
+    @log 'µ33111', "calling #{transcriptor.display_name}", rpr d
+    transcriptor.module.on_transcribe d
+  #.......................................................................................................
   else
     @log 'µ33111', 'no transcriptor'
   return null
 
 #-----------------------------------------------------------------------------------------------------------
+@freeze     = -> S.is_frozen = true
+@is_frozen  = -> S.is_frozen
+@thaw       = -> S.is_frozen = false
+
+#-----------------------------------------------------------------------------------------------------------
 @on_replace_text = ( d ) ->
-  # cursor_position = @cm_get_cursor()
-  # @log 'µ53486', 'on_replace_text', "cursor at #{rpr cursor_position}"
-  @cm_select            d.value
-  @cm_replace_selection d.value.text
-  # @cm_set_cursor        cursor_position
+  @log 'µ53486', 'on_replace_text', rpr d
+  v = d.value
+  @freeze()
+  ### TAINT use own API ###
+  S.codemirror.editor.replaceRange '', v.origin.from, v.origin.to
+  S.codemirror.editor.replaceRange v.ntext, v.target
+  @thaw()
   return null
 
 #-----------------------------------------------------------------------------------------------------------
 @display_candidates = ( d ) ->
-  v       = d.value
+  v = d.value
+  ( jQuery '#candidates-flexgrid div' ).remove()
   #.........................................................................................................
   if v.candidates.length is 0
     @focusframe_to_editor if S.focus_is_candidates
@@ -135,7 +158,6 @@ xrpr                      = ( x ) -> inspect x, { colors: yes, breakLength: Infi
   #.........................................................................................................
   @focusframe_to_candidates() unless S.focus_is_candidates
   rows    = ( ( T.get_flexgrid_html ( idx + 1 ), glyph ) for glyph, idx in v.candidates ).join '\n'
-  ( jQuery '#candidates-flexgrid div' ).remove()
   ( jQuery '#candidates-flexgrid'     ).append rows
   #.........................................................................................................
   ### TAINT code duplication ###
@@ -146,9 +168,27 @@ xrpr                      = ( x ) -> inspect x, { colors: yes, breakLength: Infi
     ### TAINT use API to move selection ###
     glyphboxes.removeClass  'cdtsel'
     me.addClass             'cdtsel'
-    @log "µ33983-1 #{me.text()} #{jr me.offset()}"
+    #.......................................................................................................
+    lnr   = me.attr 'lnr'
+    lcol  = me.attr 'lcol'
+    @log "µ33983 clicked on #{me.text()} #{jr lnr} / #{jr lcol}"
+    d.value.ntext = me.text()
+    XE.emit PD.new_event '^replace-text', d.value
   #.........................................................................................................
   @index_candidates()
+  return null
+
+#-----------------------------------------------------------------------------------------------------------
+@select_candidate_or_insert_space = ->
+  ### TAINT this implementation precludes any other functionality that the space bar might be associated
+  with in CodeMirror ###
+  cdtsel = jQuery '.cdtsel'
+  ### TAINT honour multiple selection ###
+  if cdtsel.length > 0
+    cdtsel.click()
+  else
+    S.codemirror.editor.replaceSelection ' '
+  @focusframe_to_editor()
   return null
 
 #-----------------------------------------------------------------------------------------------------------
@@ -205,17 +245,6 @@ xrpr                      = ( x ) -> inspect x, { colors: yes, breakLength: Infi
       glyphbox.attr 'rrow', row_count - row_idx
   #.........................................................................................................
   rows.length = 0 ### not strictly needed, just to make de-allocation explicit ###
-  return null
-
-#-----------------------------------------------------------------------------------------------------------
-@insert_space_or_selection = ->
-  ### TAINT this implementation precludes any other functionality that the space bar might be associated
-  with in CodeMirror ###
-  cdtsel = jQuery '.cdtsel'
-  ### TAINT honour multiple selection ###
-  text   = if cdtsel.length > 0 then cdtsel.text() else ' '
-  S.codemirror.editor.replaceSelection text
-  @focusframe_to_editor()
   return null
 
 #-----------------------------------------------------------------------------------------------------------

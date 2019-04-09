@@ -91,7 +91,60 @@ PD                        = require 'pipedreams'
 #===========================================================================================================
 # SET TSRs, TRANSCRIPTORS
 #-----------------------------------------------------------------------------------------------------------
-@cm_set_tsrs_NG = ( tsnr ) ->
+@format_tsr_marks = ( d ) ->
+  # S.codemirror.editor.getSearchCursor /🛸(?<tsnr>[0-9]+):(?<text>[.*?])$/, start, options)
+  pattern = /🛸(?<tsnr>[0-9]+):/
+  finds   = []
+  cursor  = S.codemirror.editor.getSearchCursor pattern
+  # @log 'µ11121', rpr ( key for key of cursor )
+  #.........................................................................................................
+  while cursor.findNext()
+    from      = cursor.from()
+    to        = cursor.to()
+    fromto    = { from, to, }
+    text      = @cm_get_text fromto
+    { tsnr, } = ( text.match pattern ).groups
+    tsnr      = parseInt tsnr, 10
+    finds.push { fromto, tsnr, }
+  #.........................................................................................................
+  for { fromto, tsnr, } in finds
+    # /🛸(?<tsnr>[0-9]+):(?<text>[.*?])$/
+    @log "µ46674", "found TSR mark at #{rpr fromto}: #{rpr text} (TS ##{tsnr})"
+    @cm_format_as_tsr_mark fromto, tsnr
+  #.........................................................................................................
+  return null
+  # for line_idx in [ S.codemirror.editor.firstLine() .. S.codemirror.editor.lastLine() ]
+  #   text =
+
+#-----------------------------------------------------------------------------------------------------------
+@cm_format_as_tsr_mark = ( fromto, tsnr ) ->
+  ### TAINT use own API ###
+  settings      =
+    className:        "tsr tsr#{tsnr}"
+    atomic:           true
+    inclusiveLeft:    false
+    inclusiveRight:   false
+  S.codemirror.editor.markText fromto.from, fromto.to, settings
+  return null
+
+#-----------------------------------------------------------------------------------------------------------
+@cm_insert_tsr_mark = ( fromto, tsnr ) ->
+  ### TAINT use own API ###
+  tsr_mark_left = "🛸#{tsnr}:"
+  clasz         = "tsr tsr#{tsnr}"
+  fromto_right  = { line: fromto.from.line, ch: ( fromto.from.ch + tsr_mark_left.length ), }
+  settings      =
+    className:        clasz
+    atomic:           true
+    inclusiveLeft:    false
+    inclusiveRight:   false
+  ### TAINT use own API ###
+  S.codemirror.editor.replaceRange tsr_mark_left, fromto.from
+  S.codemirror.editor.markText fromto.from, fromto_right, settings
+  return null
+
+#-----------------------------------------------------------------------------------------------------------
+@cm_set_tsrs = ( tsnr ) ->
   ### Bound to `ctrl+0` ... `ctrl+4` ###
   action  = if tsnr is 0 then 'clear' else 'set'
   if action is 'clear'
@@ -104,100 +157,11 @@ PD                        = require 'pipedreams'
       @log 'µ48733-2', "non-point ranges not implemented"
       return null
     @log 'µ48733-4', rpr fromto
-    ### TAINT use own API ###
     ### TAINT allow to configure appearance of TSR mark ###
     # tsr_mark_left = "[#{S.transcriptors[ tsnr ].display_name}:"
-    tsr_mark_left = "🛸#{tsnr}:"
-    clasz         = "tsrNG tsrNG#{tsnr}"
-    fromto_right  = { line: fromto.from.line, ch: ( fromto.from.ch + tsr_mark_left.length ), }
-    settings      =
-      className:        clasz
-      atomic:           true
-      inclusiveLeft:    false
-      inclusiveRight:   false
-    S.codemirror.editor.replaceRange tsr_mark_left, fromto.from
-    S.codemirror.editor.markText fromto.from, fromto_right, settings
-  S.emit_transcribe_event_NG()
+    @cm_insert_tsr_mark fromto, tsnr
+  @emit_transcribe_event()
   return null
-
-#-----------------------------------------------------------------------------------------------------------
-@emit_transcribe_event_NG = ->
-  text = @cm_text_from_line_idx @cm_get_cursor().line
-  return null if text.length is 0
-  return unless ( match = text.match /🛸(?<tsnr>[0-9]+):(?<text>[.*?])$/ )?
-  @log 'µ76663', rpr match.groups
-  return null
-
-# #-----------------------------------------------------------------------------------------------------------
-# @cm_set_tsrs = ( tsnr ) ->
-#   ### Bound to `ctrl+0` ... `ctrl+4` ###
-#   ### TAINT code duplication ###
-#   # @cm_select_only_in_single_line()
-#   # @cm_clear_translation_mark()
-#   action  = if tsnr is 0 then 'clear' else 'set'
-#   delta   = if action is 'clear' then -1 else +1
-#   clasz   = "tsr tsr#{tsnr}"
-#   count   = 0
-#   for fromto in @cm_get_selections_as_fromtos()
-#     range_is_point = @cm_range_is_point fromto
-#     if range_is_point then  old_marks = @cm_get_marks_in_position  fromto.from
-#     else                    old_marks = @cm_get_marks_in_range     fromto
-#     for old_mark in old_marks
-#       do ( old_mark ) =>
-#         @log 'µ53183', "found old mark: #{rpr @position_and_clasz_from_mark old_mark}"
-#         old_mark.clear()
-#     if action is 'set'
-#       if range_is_point
-#         ### TAINT use own API ###
-#         S.codemirror.editor.replaceRange '\ue044', fromto.from
-#         fromto1 = { from: fromto.from, to: { line: fromto.from.line, ch: ( fromto.from.ch + 1 ), }, }
-#         @cm_select fromto1
-#         mark    = @cm_set_mark fromto1, clasz
-#       else
-#         ### TAINT trailing newlines, empty lines are probably a bad idea; if CodeMirror would only visibly
-#         mark those, but it doesn't ###
-#         if ( nl_count = ( ( @cm_get_text fromto ).match /(\n*)$/ )[ 1 ].length ) > 0
-#           @log 'µ53284', "fromto #{rpr fromto} contains empty lines"
-#         mark = @cm_set_mark fromto, clasz
-#       ### TAINT this is doing too much work for this case: ###
-#       @emit_transcribe_event()
-#   return count
-
-# #-----------------------------------------------------------------------------------------------------------
-# @emit_transcribe_event = ->
-#   ### Called on CM `CursorActivity`, reads text from current TSR if any, emits XE `^transcribe` ###
-#   # @log 'µ53486', 'cm_find_ts', "cursor at #{rpr @cm_get_cursor()}"
-#   marks = @cm_get_marks_in_position @cm_get_cursor()
-#   #.........................................................................................................
-#   if marks.length is 0
-#     S.tsnr          = 0
-#     S.tsr           = null
-#     S.tsr_text      = null
-#     S.transcriptor  = S.transcriptors[ 0 ]
-#   #.........................................................................................................
-#   else
-#     S.transcriptor  = null
-#     ### TAINT this call may crash the app when text marker has length zero ###
-#     try
-#       { clasz
-#         from
-#         to  }         = @position_and_clasz_from_mark marks[ 0 ]
-#     catch error
-#       @log 'µ44774', "failed when trying to get position, class from mark:", rpr error.message
-#       return null
-#     S.tsnr          = parseInt ( clasz.replace /^.*\btsr([0-9]+)\b.*$/, '$1' ), 10
-#     S.tsnr          = 0 unless CND.isa_number S.tsnr
-#     S.tsr_text      = @cm_text_from_mark marks[ 0 ]
-#     S.transcriptor  = S.transcriptors[ S.tsnr ]
-#     #.......................................................................................................
-#     unless S.transcriptor?
-#       S.tsnr          = 0
-#       S.transcriptor  = S.transcriptors[ S.tsnr ]
-#   #.........................................................................................................
-#   unless S.tsnr is 0
-#     @log 'µ53587', "TS##{rpr S.tsnr} (#{rpr S.transcriptor.display_name})"
-#     XE.emit PD.new_event '^transcribe', { text: S.tsr_text, from, to, }
-#   return null
 
 
 #===========================================================================================================

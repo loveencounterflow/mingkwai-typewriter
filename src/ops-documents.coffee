@@ -14,6 +14,7 @@ badge                     = '明快打字机/OPS-DOCUMENTS'
 # help                      = CND.get_logger 'help',      badge
 # urge                      = CND.get_logger 'urge',      badge
 # info                      = CND.get_logger 'info',      badge
+PD                        = require 'pipedreams'
 PATH                      = require 'path'
 FS                        = require 'fs'
 
@@ -26,6 +27,7 @@ FS                        = require 'fs'
   ### TAINT auto-create file when not present ###
   file_path = PATH.resolve PATH.join __dirname, '../.cache/default.md'
   S.codemirror.editor.doc.setValue FS.readFileSync file_path, { encoding: 'utf-8', }
+  XE.emit PD.new_event '^open-document', { file_path, }
   return null
 
 #-----------------------------------------------------------------------------------------------------------

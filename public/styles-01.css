@@ -192,38 +192,20 @@ focusframe {
 /* TSR: TranScription Region */
 .tsr {
   /* ### TAINT use symbolic colors */
-  /*color:              black !important;*/
-  /*background-color:   yellow;*/
-  outline-width:          2px;
-  outline-style:          dotted;
-  outline-color:          white;
-
-}
-
-.tsr0 { outline-color: transparent;  }
-.tsr1 { outline-color: yellow;  }
-.tsr2 { outline-color: red;     }
-.tsr3 { outline-color: blue;    }
-.tsr4 { outline-color: green;   }
-.tsr5 { outline-color: orange;  }
-.tsr6 { outline-color: lime;    }
-.tsr.hilite {
-  color:                  black;
-  background-color:       yellow; }
-
-.tsrNG {
-  /* ### TAINT use symbolic colors */
   color:                  black !important;
   background-color:       white !important;
 }
 
-/*.tsrNG0 { background-color: transparent;  }*/
-.tsrNG1 { background-color: yellow  !important; }
-.tsrNG2 { background-color: red     !important; }
-.tsrNG3 { background-color: blue    !important; }
-.tsrNG4 { background-color: green   !important; }
-.tsrNG5 { background-color: orange  !important; }
-.tsrNG6 { background-color: lime    !important; }
+/*.tsr0 { background-color: transparent;  }*/
+.tsr1 { background-color: yellow  !important; color: black !important; }
+.tsr2 { background-color: red     !important; color: black !important; }
+.tsr3 { background-color: blue    !important; color: orange !important; }
+.tsr4 { background-color: green   !important; color: white !important; }
+.tsr5 { background-color: orange  !important; color: black !important; }
+.tsr6 { background-color: lime    !important; color: black !important; }
 
+.tsr.hilite {
+  color:                  black;
+  background-color:       yellow; }
 
 

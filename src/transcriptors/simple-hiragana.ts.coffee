@@ -46,13 +46,11 @@ _transcribe = @load_keyboard()
 @on_transcribe = ( d ) ->
   #.........................................................................................................
   # whisper 'µ34343', xrpr change
-  text = @transcribe d.value.text
-  if d.value.text is text
-    # OPS.log 'µ34343', "no matches:", ( rpr d.value.text )
-    null
-  else
-    OPS.log 'µ34343', ( rpr d.value.text ) + ' -> ' + ( rpr text )
-    XE.emit PD.new_event '^replace-text', assign {}, d.value, { text: text, }
+  { otext, }  = d.value
+  ntext       = @transcribe otext
+  if otext isnt ntext
+    OPS.log 'µ34343', ( rpr otext ) + ' -> ' + ( rpr ntext )
+    XE.emit PD.new_event '^replace-text', assign {}, d.value, { ntext, }
   return null
 
 

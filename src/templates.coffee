@@ -147,6 +147,8 @@ Object.assign @, TEACUP
     @JS     './codemirror/mode/coffeescript/coffeescript.js'
     @JS     './codemirror/mode/markdown/markdown.js'
     @JS     './codemirror/addon/search/searchcursor.js'
+    @JS     './codemirror/addon/search/matchesonscrollbar.js'
+    @CSS    './codemirror/addon/search/matchesonscrollbar.css'
     @JS     './codemirror/addon/search/search.js'
     @JS     './codemirror/addon/dialog/dialog.js'
     @JS     './codemirror/addon/edit/matchbrackets.js'

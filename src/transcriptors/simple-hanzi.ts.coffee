@@ -19,6 +19,7 @@ whisper                   = CND.get_logger 'whisper',   badge
 echo                      = CND.echo.bind CND
 #...........................................................................................................
 PD                        = require 'pipedreams'
+assign                    = Object.assign
 #...........................................................................................................
 XXX_SETTINGS =
   max_search_results:         500
@@ -48,8 +49,10 @@ kanji_triode = @load_keyboard()
 
 #-----------------------------------------------------------------------------------------------------------
 @on_transcribe = ( d ) ->
-  candidates = @kanji_from_pinyin d.value.text
-  XE.emit PD.new_event '^candidates', { candidates, }
+  { otext, }  = d.value
+  return XE.emit PD.new_event '^candidates', { candidates: [], } if otext.length is 0
+  candidates = @kanji_from_pinyin otext
+  XE.emit PD.new_event '^candidates', assign { candidates, }, d.value
   return null
 
 

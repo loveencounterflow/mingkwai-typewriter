@@ -33,7 +33,7 @@ skip_events = new Set [
   lognr   = "#{_lognr}".padStart 5, '_'
   v       = d.value ? {}
   logger  = jQuery '#logger'
-  ( logger.find ':first-child').remove() while logger.children().length > 10
+  ( logger.find ':first-child').remove() while logger.children().length > 1000
   message = rpr v
   # message = ( k for k         of d.value                ).join ', '
   # message = switch key
@@ -53,7 +53,7 @@ skip_events = new Set [
   lognr   = "#{_lognr}".padStart 5, '_'
   text    = ( ( if CND.isa_text p then p else rpr p ) for p in P ).join ' '
   logger  = jQuery '#logger'
-  ( logger.find ':first-child').remove() while logger.children().length > 10
+  ( logger.find ':first-child').remove() while logger.children().length > 1000
   ### TAINT should escape text (or accept HTML?) ###
   console.log lognr, text
   info        lognr, text
