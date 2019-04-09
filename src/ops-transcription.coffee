@@ -152,7 +152,7 @@ xrpr                      = ( x ) -> inspect x, { colors: yes, breakLength: Infi
   return null
 
 #-----------------------------------------------------------------------------------------------------------
-@cm_set_tsrs = ( tsnr ) ->
+@insert_tsm = ( tsnr ) ->
   ### Bound to `ctrl+0` ... `ctrl+4` ###
   action  = if tsnr is 0 then 'clear' else 'set'
   if action is 'clear'

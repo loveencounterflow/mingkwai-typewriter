@@ -59,11 +59,11 @@ it would be advantageous to derive them somehow from the source or the running i
     'Space':        ( cm ) => @select_candidate_or_insert_space cm
     'Ctrl-M':       ( cm ) => @cm_jump_to_tsr_or_bracket()
     'Shift-Ctrl-M': ( cm ) => @cm_mark_tsr_or_bracket()
-    'Ctrl-0':       ( cm ) => @cm_set_tsrs 0
-    'Ctrl-1':       ( cm ) => @cm_set_tsrs 1
-    'Ctrl-2':       ( cm ) => @cm_set_tsrs 2
-    'Ctrl-3':       ( cm ) => @cm_set_tsrs 3
-    'Ctrl-4':       ( cm ) => @cm_set_tsrs 4
+    'Ctrl-0':       ( cm ) => @insert_tsm 0
+    'Ctrl-1':       ( cm ) => @insert_tsm 1
+    'Ctrl-2':       ( cm ) => @insert_tsm 2
+    'Ctrl-3':       ( cm ) => @insert_tsm 3
+    'Ctrl-4':       ( cm ) => @insert_tsm 4
   #.........................................................................................................
   S.codemirror.editor.addKeyMap mktw_keymap
   return null
