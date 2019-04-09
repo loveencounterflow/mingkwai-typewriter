@@ -93,12 +93,12 @@ xrpr                      = ( x ) -> inspect x, { colors: yes, breakLength: Infi
 #===========================================================================================================
 # SET TSRs, TRANSCRIPTORS
 #-----------------------------------------------------------------------------------------------------------
-@format_existing_tsr_marks = ( d ) ->
+@format_existing_tsms = ( d ) ->
   ### TAINT precompute, store in S: ###
   ### TAINT code duplication ###
-  tsrm_prefix   = S.transcriptor_region_markers?.prefix ? '\u{f11c}'
-  tsrm_suffix   = S.transcriptor_region_markers?.suffix ? '\u{f005}'
-  pattern       = /// #{tsrm_prefix} (?<tsnr>[0-9]+) #{tsrm_suffix} ///
+  tsm_prefix    = S.transcriptor_region_markers?.prefix ? '\u{f11c}'
+  tsm_suffix    = S.transcriptor_region_markers?.suffix ? '\u{f005}'
+  pattern       = /// #{tsm_prefix} (?<tsnr>[0-9]+) #{tsm_suffix} ///
   finds         = []
   cursor        = S.codemirror.editor.getSearchCursor pattern
   # @log 'µ11121', rpr ( key for key of cursor )
@@ -114,14 +114,15 @@ xrpr                      = ( x ) -> inspect x, { colors: yes, breakLength: Infi
   #.........................................................................................................
   for { fromto, tsnr, } in finds
     @log "µ46674", "found TSR mark at #{rpr fromto}: #{rpr text} (TS ##{tsnr})"
-    @cm_format_as_tsr_mark fromto, tsnr
+    @_format_as_tsm fromto, tsnr
   #.........................................................................................................
   return null
   # for line_idx in [ S.codemirror.editor.firstLine() .. S.codemirror.editor.lastLine() ]
   #   text =
 
 #-----------------------------------------------------------------------------------------------------------
-@cm_format_as_tsr_mark = ( fromto, tsnr ) ->
+### TAINT rename, unify with `_insert_tsm` ###
+@_format_as_tsm = ( fromto, tsnr ) ->
   ### TAINT use own API ###
   settings      =
     className:        "tsr tsr#{tsnr}"
@@ -132,22 +133,23 @@ xrpr                      = ( x ) -> inspect x, { colors: yes, breakLength: Infi
   return null
 
 #-----------------------------------------------------------------------------------------------------------
-@cm_insert_tsr_mark = ( fromto, tsnr ) ->
+### TAINT rename, unify with `_format_as_tsm` ###
+@_insert_tsm = ( fromto, tsnr ) ->
   ### TSRM: TranScription Region Marker. TSR extends from marker up to cursor. ###
   ### TAINT precompute, store in S.transcriptors: ###
-  tsrm_prefix   = S.transcriptor_region_markers?.prefix ? '\u{f11c}'
-  tsrm_suffix   = S.transcriptor_region_markers?.suffix ? '\u{f005}'
+  tsm_prefix    = S.transcriptor_region_markers?.prefix ? '\u{f11c}'
+  tsm_suffix    = S.transcriptor_region_markers?.suffix ? '\u{f005}'
   ### TAINT use configured TS sigil instead of tsnr ###
-  tsrm          = "#{tsrm_prefix}#{tsnr}#{tsrm_suffix}"
+  tsm           = "#{tsm_prefix}#{tsnr}#{tsm_suffix}"
   clasz         = "tsr tsr#{tsnr}"
-  fromto_right  = { line: fromto.from.line, ch: ( fromto.from.ch + tsrm.length ), }
+  fromto_right  = { line: fromto.from.line, ch: ( fromto.from.ch + tsm.length ), }
   settings      =
     className:        clasz
     atomic:           true
     inclusiveLeft:    false
     inclusiveRight:   false
   ### TAINT use own API ###
-  S.codemirror.editor.replaceRange tsrm, fromto.from
+  S.codemirror.editor.replaceRange tsm, fromto.from
   S.codemirror.editor.markText fromto.from, fromto_right, settings
   return null
 
@@ -166,8 +168,8 @@ xrpr                      = ( x ) -> inspect x, { colors: yes, breakLength: Infi
       return null
     @log 'µ48733-4', rpr fromto
     ### TAINT allow to configure appearance of TSR mark ###
-    # tsrm = "[#{S.transcriptors[ tsnr ].display_name}:"
-    @cm_insert_tsr_mark fromto, tsnr
+    # tsm = "[#{S.transcriptors[ tsnr ].display_name}:"
+    @_insert_tsm fromto, tsnr
   @emit_transcribe_event()
   return null
 
@@ -188,9 +190,9 @@ xrpr                      = ( x ) -> inspect x, { colors: yes, breakLength: Infi
   return null if full_text.length is 0 ### TAINT consider whether transcriptions with empty text might be useful ###
   ### TAINT precompute, store in S: ###
   ### TAINT code duplication, see `ops-cm/format_tsr_marks()` ###
-  tsrm_prefix   = S.transcriptor_region_markers?.prefix ? '\u{f11c}'
-  tsrm_suffix   = S.transcriptor_region_markers?.suffix ? '\u{f005}'
-  pattern       = /// ^ .* (?<all> #{tsrm_prefix} (?<tsnr>[0-9]+) #{tsrm_suffix} (?<otext>.*?) ) $ ///
+  tsm_prefix   = S.transcriptor_region_markers?.prefix ? '\u{f11c}'
+  tsm_suffix   = S.transcriptor_region_markers?.suffix ? '\u{f005}'
+  pattern       = /// ^ .* (?<all> #{tsm_prefix} (?<tsnr>[0-9]+) #{tsm_suffix} (?<otext>.*?) ) $ ///
   return unless ( match = full_text.match pattern )?
   { tsnr
     otext
