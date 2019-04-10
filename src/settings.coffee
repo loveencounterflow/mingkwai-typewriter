@@ -108,14 +108,16 @@ module.exports = S =
       autocapitalize:               false
   #.......................................................................................................
   kblevels:
-    prv_down:       null
-    alt:            true
-    altgr:          false
-    shift:          false
-    capslock:       false
-    ctrl:           false
-  transcriptors:              null
-  is_frozen:                  false
+    prv_down:         null
+    alt:              true
+    altgr:            false
+    shift:            false
+    capslock:         false
+    ctrl:             false
+  #.......................................................................................................
+  is_frozen:        false
+  transcriptors:    null
+  tsnr_by_sigils:   {}
   transcriptor_region_markers:
     prefix:         '\u{f11c}'
     suffix:         '\u{f005}'

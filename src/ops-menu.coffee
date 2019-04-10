@@ -26,8 +26,8 @@ PD                        = require 'pipedreams'
   R = []
   for t, tsnr in S.transcriptors
     do ( t, tsnr ) =>
-      if tsnr < 10 then   label = "&#{tsnr} #{t.display_name}"
-      else                label =  "#{tsnr} #{t.display_name}"
+      if tsnr < 10 then   label = "&#{tsnr} [#{t.sigil}] #{t.display_name}"
+      else                label =  "#{tsnr} [#{t.sigil}] #{t.display_name}"
       click = => @insert_tsm tsnr
       R.push { label, click, }
   return R

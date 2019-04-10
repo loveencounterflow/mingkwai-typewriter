@@ -42,50 +42,65 @@ xrpr                      = ( x ) -> inspect x, { colors: yes, breakLength: Infi
   ### TAINT use glob ###
   PATH                = require 'path'
   FS                  = require 'fs'
+  tsnr                = 0
   ops                 = {}
   directory_path      = PATH.resolve PATH.join __dirname, './transcriptors'
   on_transcribe_types = [
     'function'
     'asyncfunction' ]
   S.transcriptors     = []
+  tsnr_by_sigils      = {}
   #.........................................................................................................
-  t                   = {}
-  t.display_name      = "(no transcriptor)"
-  t.path              = null
-  t.module            = null
-  S.transcriptors.push t
+  ### insert TS0; consider to do this within the loop to avoid code duplication ###
+  ts                  = {}
+  ts.standard_name    = "(no transcriptor)"
+  ts.display_name     = ts.standard_name
+  ts.tsnr             = 0
+  ts.sigil            = 'ts0'
+  ts.path             = null
+  ts.module           = null
+  S.transcriptors.push ts
   #.........................................................................................................
   for filename in FS.readdirSync directory_path
     continue unless filename.endsWith '.ts.js'
     #.......................................................................................................
-    t                     = {}
-    t.path                = PATH.join directory_path, filename
-    t.display_name        = filename
-    t.display_name        = t.display_name.replace /\.ts\.js$/g, ''
-    t.display_name        = t.display_name.replace /-/g, ' '
+    tsnr                 += +1
+    ts                    = {}
+    ts.tsnr               = tsnr
+    ts.path               = PATH.join directory_path, filename
+    ts.standard_name      = filename
+    ts.standard_name      = ts.standard_name.replace /\.ts\.js$/g, ''
+    ts.standard_name      = ts.standard_name.replace /-/g, ' '
+    ts.display_name       = ts.standard_name
+    ts.sigil              = "ts#{ts.tsnr}"
     #.......................................................................................................
-    relative_path         = PATH.relative process.cwd(), t.path
+    relative_path         = PATH.relative process.cwd(), ts.path
     @log "µ44755 loading transcription #{relative_path}"
-    t.module              = require t.path
+    ts.module             = require ts.path
     #.......................................................................................................
-    if t.module.init?
-      unless ( type = CND.type_of t.module.init ) in on_transcribe_types
+    if ts.module.init?
+      unless ( type = CND.type_of ts.module.init ) in on_transcribe_types
         throw new Error "µ27622 expected a function for #{relative_path}.init, got a #{type}"
-      await t.module.init()
+      await ts.module.init()
     #.......................................................................................................
-    if t.module.display_name?
-      unless ( type = CND.type_of t.module.display_name ) is 'text'
+    if ts.module.display_name?
+      unless ( type = CND.type_of ts.module.display_name ) is 'text'
         throw new Error "µ27622 expected a text for #{relative_path}.display_name, got a #{type}"
-      t.display_name = t.module.display_name
+      ts.display_name = ts.module.display_name
     #.......................................................................................................
-    unless ( type = CND.type_of t.module.on_transcribe ) in on_transcribe_types
+    if ts.module.sigil?
+      unless ( type = CND.type_of ts.module.sigil ) is 'text'
+        throw new Error "µ27622 expected a text for #{relative_path}.sigil, got a #{type}"
+      ts.sigil = ts.module.sigil
+    #.......................................................................................................
+    unless ( type = CND.type_of ts.module.on_transcribe ) in on_transcribe_types
       throw new Error "µ27622 expected a function for #{relative_path}.on_transcribe, got a #{type}"
-    unless ( arity = t.module.on_transcribe.length ) is 1
+    unless ( arity = ts.module.on_transcribe.length ) is 1
       throw new Error "µ27622 arity #{arity} for #{relative_path}.on_transcribe not implemented"
     #.......................................................................................................
-    S.transcriptors.push t
-    t.tsnr = S.transcriptors.length
-    @log "µ44755 #{filename} loaded as #{rpr t.display_name} (TRS# #{t.tsnr})"
+    S.tsnr_by_sigils[ ts.sigil ] = ts.tsnr
+    S.transcriptors.push ts
+    @log "µ44755 #{filename} loaded as #{rpr ts.display_name} (TRS# #{ts.tsnr})"
   #.........................................................................................................
   # info 'µ33736', S.transcriptors
   return null
@@ -96,25 +111,27 @@ xrpr                      = ( x ) -> inspect x, { colors: yes, breakLength: Infi
 @format_existing_tsms = ( d ) ->
   ### TAINT precompute, store in S: ###
   ### TAINT code duplication ###
+  #.........................................................................................................
   tsm_prefix    = S.transcriptor_region_markers?.prefix ? '\u{f11c}'
   tsm_suffix    = S.transcriptor_region_markers?.suffix ? '\u{f005}'
-  pattern       = /// #{tsm_prefix} (?<tsnr>[0-9]+) #{tsm_suffix} ///
+  pattern       = /// #{tsm_prefix} (?<sigil>[^#{tsm_suffix}]+) #{tsm_suffix} ///
   finds         = []
   cursor        = S.codemirror.editor.getSearchCursor pattern
   # @log 'µ11121', rpr ( key for key of cursor )
   #.........................................................................................................
   while cursor.findNext()
-    from      = cursor.from()
-    to        = cursor.to()
-    fromto    = { from, to, }
-    text      = @cm_get_text fromto
-    { tsnr, } = ( text.match pattern ).groups
-    tsnr      = parseInt tsnr, 10
-    finds.push { fromto, tsnr, }
+    from          = cursor.from()
+    to            = cursor.to()
+    fromto        = { from, to, }
+    text          = @cm_get_text fromto
+    { sigil, }    = ( text.match pattern ).groups
+    tsnr          = S.tsnr_by_sigils[ sigil ]
+    ### TAINT must fall back to 'unknown TS' or similar when sigil not found ###
+    finds.push { fromto, tsnr, sigil, }
   #.........................................................................................................
-  for { fromto, tsnr, } in finds
+  for { fromto, tsnr, sigil, } in finds
     @log "µ46674", "found TSR mark at #{rpr fromto}: #{rpr text} (TS ##{tsnr})"
-    @_format_as_tsm fromto, tsnr
+    @_format_as_tsm fromto, tsnr, sigil
   #.........................................................................................................
   return null
   # for line_idx in [ S.codemirror.editor.firstLine() .. S.codemirror.editor.lastLine() ]
@@ -122,7 +139,7 @@ xrpr                      = ( x ) -> inspect x, { colors: yes, breakLength: Infi
 
 #-----------------------------------------------------------------------------------------------------------
 ### TAINT rename, unify with `_insert_tsm` ###
-@_format_as_tsm = ( fromto, tsnr ) ->
+@_format_as_tsm = ( fromto, tsnr, sigil ) ->
   ### TAINT use own API ###
   settings      =
     className:        "tsr tsr#{tsnr}"
@@ -134,13 +151,12 @@ xrpr                      = ( x ) -> inspect x, { colors: yes, breakLength: Infi
 
 #-----------------------------------------------------------------------------------------------------------
 ### TAINT rename, unify with `_format_as_tsm` ###
-@_insert_tsm = ( fromto, tsnr ) ->
+@_insert_tsm = ( fromto, tsnr, sigil ) ->
   ### TSRM: TranScription Region Marker. TSR extends from marker up to cursor. ###
   ### TAINT precompute, store in S.transcriptors: ###
   tsm_prefix    = S.transcriptor_region_markers?.prefix ? '\u{f11c}'
   tsm_suffix    = S.transcriptor_region_markers?.suffix ? '\u{f005}'
-  ### TAINT use configured TS sigil instead of tsnr ###
-  tsm           = "#{tsm_prefix}#{tsnr}#{tsm_suffix}"
+  tsm           = "#{tsm_prefix}#{sigil}#{tsm_suffix}"
   clasz         = "tsr tsr#{tsnr}"
   fromto_right  = { line: fromto.from.line, ch: ( fromto.from.ch + tsm.length ), }
   settings      =
@@ -156,6 +172,8 @@ xrpr                      = ( x ) -> inspect x, { colors: yes, breakLength: Infi
 #-----------------------------------------------------------------------------------------------------------
 @insert_tsm = ( tsnr ) ->
   ### Bound to `ctrl+0` ... `ctrl+4` ###
+  ts      = S.transcriptors[ tsnr ]
+  ts     ?= S.transcriptors[ 0 ]
   action  = if tsnr is 0 then 'clear' else 'set'
   if action is 'clear'
     @log 'µ48733-1', "clear TSR not implemented"
@@ -169,7 +187,7 @@ xrpr                      = ( x ) -> inspect x, { colors: yes, breakLength: Infi
     @log 'µ48733-4', rpr fromto
     ### TAINT allow to configure appearance of TSR mark ###
     # tsm = "[#{S.transcriptors[ tsnr ].display_name}:"
-    @_insert_tsm fromto, tsnr
+    @_insert_tsm fromto, tsnr, ts.sigil
   @emit_transcribe_event()
   return null
 
@@ -192,12 +210,13 @@ xrpr                      = ( x ) -> inspect x, { colors: yes, breakLength: Infi
   ### TAINT code duplication, see `ops-cm/format_tsr_marks()` ###
   tsm_prefix   = S.transcriptor_region_markers?.prefix ? '\u{f11c}'
   tsm_suffix   = S.transcriptor_region_markers?.suffix ? '\u{f005}'
-  pattern       = /// ^ .* (?<all> #{tsm_prefix} (?<tsnr>[0-9]+) #{tsm_suffix} (?<otext>.*?) ) $ ///
+  pattern       = /// ^ .* (?<all> #{tsm_prefix} (?<sigil>[^#{tsm_suffix}]+) #{tsm_suffix} (?<otext>.*?) ) $ ///
   return unless ( match = full_text.match pattern )?
-  { tsnr
+  { sigil
     otext
     all   } = match.groups
-  tsnr      = parseInt tsnr, 10
+  tsnr      = S.tsnr_by_sigils[ sigil ]
+  tsnr     ?= 0
   return null if tsnr is 0
   value     =
     otext:    otext
