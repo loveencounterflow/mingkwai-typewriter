@@ -27,17 +27,17 @@ XXX_SETTINGS =
 
 #-----------------------------------------------------------------------------------------------------------
 @display_name = '簡單繁體漢字'
-@sigil        = '中'
+@sigil        = '繁'
 
 #-----------------------------------------------------------------------------------------------------------
-@load_keyboard = ->
+@load_candidates = ->
   ### TAINT compare filedates, refresh cache ###
   t0  = Date.now()
-  R   = require '../../.cache/cedict_ts.u8.js'
+  R   = require '../../.cache/cedict_ts.cdt.js'
   t1  = Date.now()
   debug 'µ33344', "took #{t1 - t0}ms to load dictionary"
   return R
-kanji_triode = @load_keyboard()
+kanji_triode = @load_candidates()
 
 #-----------------------------------------------------------------------------------------------------------
 @kanji_from_pinyin = ( text ) ->

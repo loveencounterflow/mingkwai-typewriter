@@ -24,16 +24,17 @@ xrpr                      = ( x ) -> inspect x, { colors: yes, breakLength: Infi
 PD                        = require 'pipedreams'
 
 #-----------------------------------------------------------------------------------------------------------
-@load_keyboard = ->
-  ### TAINT compare filedates, refresh cache ###
-  return require '../../.cache/jp_kana.hrgn.keyboard.wsv.js'
+### TAINT compare filedates, refresh cache ###
+@load_kbd = -> require '../../.cache/jp_kana.kbd.js'
+@load_cdt = -> require '../../.cache/jp_kana.cdt.js'
   # return require '../../.cache/gr_gr.keyboard.wsv.js'
-_transcribe = @load_keyboard()
+transcribe      = @load_kbd()
+hiragana_triode = @load_cdt()
 
 #-----------------------------------------------------------------------------------------------------------
 @transcribe = ( text ) ->
   R = ''
-  R = ( _transcribe R + chr ) for chr in Array.from text
+  R = ( transcribe R + chr ) for chr in Array.from text
   return R
 
 #-----------------------------------------------------------------------------------------------------------
