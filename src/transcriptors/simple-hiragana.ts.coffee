@@ -24,6 +24,11 @@ xrpr                      = ( x ) -> inspect x, { colors: yes, breakLength: Infi
 PD                        = require 'pipedreams'
 
 #-----------------------------------------------------------------------------------------------------------
+@display_name     = '簡単なひらがな'
+@sigil            = 'ひ'
+@focus_candidates = false
+
+#-----------------------------------------------------------------------------------------------------------
 ### TAINT compare filedates, refresh cache ###
 @load_kbd = -> require '../../.cache/jp_kana.kbd.js'
 @load_cdt = -> require '../../.cache/jp_kana.cdt.js'
@@ -38,17 +43,21 @@ hiragana_triode = @load_cdt()
   return R
 
 #-----------------------------------------------------------------------------------------------------------
-@display_name = '簡単なひらがな'
-@sigil        = 'ひ'
-
-#-----------------------------------------------------------------------------------------------------------
 @init = -> OPS.log "#{badge}/init()"
 
 #-----------------------------------------------------------------------------------------------------------
 @on_transcribe = ( d ) ->
+  { otext, }        = d.value
+  focus_candidates  = @focus_candidates
   #.........................................................................................................
-  # whisper 'µ34343', xrpr change
-  { otext, }  = d.value
+  ### Candidates: ###
+  if otext.length is 0
+    XE.emit PD.new_event '^candidates', { candidates: [], focus_candidates, }
+  else
+    candidates        = ( lemma for [ transcription, lemma, ] in hiragana_triode.find otext )
+    XE.emit PD.new_event '^candidates', assign { candidates, focus_candidates, }, d.value
+  #.........................................................................................................
+  ### Keyboard: ###
   ntext       = @transcribe otext
   if otext isnt ntext
     OPS.log 'µ34343', ( rpr otext ) + ' -> ' + ( rpr ntext )

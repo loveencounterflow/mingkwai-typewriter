@@ -270,7 +270,7 @@ xrpr                      = ( x ) -> inspect x, { colors: yes, breakLength: Infi
     # @index_candidates()
     return null
   #.........................................................................................................
-  @focusframe_to_candidates() unless S.focus_is_candidates
+  @focusframe_to_candidates() if ( not S.focus_is_candidates ) and ( v.focus_candidates ? true )
   rows    = ( ( T.get_flexgrid_html ( idx + 1 ), glyph ) for glyph, idx in v.candidates ).join '\n'
   ( jQuery '#candidates-flexgrid'     ).append rows
   #.........................................................................................................
