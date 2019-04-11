@@ -237,7 +237,7 @@ xrpr                      = ( x ) -> inspect x, { colors: yes, breakLength: Infi
     transcriptor  = S.transcriptors[ tsnr ]
   #.......................................................................................................
   if transcriptor?.module?.on_transcribe?
-    @log 'µ33111', "calling #{transcriptor.display_name}", rpr d
+    # @log 'µ33111', "calling #{transcriptor.display_name}", rpr d
     transcriptor.module.on_transcribe d
   #.......................................................................................................
   else
@@ -251,7 +251,7 @@ xrpr                      = ( x ) -> inspect x, { colors: yes, breakLength: Infi
 
 #-----------------------------------------------------------------------------------------------------------
 @on_replace_text = ( d ) ->
-  @log 'µ53486', 'on_replace_text', rpr d
+  # @log 'µ53486', 'on_replace_text', rpr d
   v = d.value
   @freeze()
   ### TAINT use own API ###
