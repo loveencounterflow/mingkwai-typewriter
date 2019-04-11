@@ -119,7 +119,7 @@ module.exports = S =
   transcriptors:    null
   tsnr_by_sigils:   {}
   transcriptor_region_markers:
-    prefix:         '\u{f11c}'
-    suffix:         '\u{f005}'
+    prefix:         '\u{f002}'
+    suffix:         '\u{f003}'
 
 
