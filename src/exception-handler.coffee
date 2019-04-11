@@ -34,12 +34,9 @@ echo                      = CND.echo.bind CND
 @exit_handler = @exit_handler.bind @
 
 
-###
-are these needed when we use electron-unhandled?
-
-process.on 'uncaughtException', @exit_handler
-process.on 'unhandledRejection', @exit_handler
-###
-
-( require 'electron-unhandled' ) { showDialog: true, logger: @exit_handler, }
+if typeof app is 'undefined'
+  process.on 'uncaughtException', @exit_handler
+  process.on 'unhandledRejection', @exit_handler
+else
+  ( require 'electron-unhandled' ) { showDialog: true, logger: @exit_handler, }
 
