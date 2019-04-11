@@ -296,6 +296,8 @@ xrpr                      = ( x ) -> inspect x, { colors: yes, breakLength: Infi
 @select_candidate_or_insert_space = ->
   ### TAINT this implementation precludes any other functionality that the space bar might be associated
   with in CodeMirror ###
+  ### TAINT code duplication ###
+  return S.codemirror.editor.replaceSelection ' ' unless S.focus_is_candidates
   cdtsel = jQuery '.cdtsel'
   ### TAINT honour multiple selection ###
   if cdtsel.length > 0
