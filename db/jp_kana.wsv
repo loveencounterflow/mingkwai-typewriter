@@ -1,43 +1,52 @@
+#
+# Japanese Kana
+#
+# * Ordering does matter;
+# * Katakana are derived from Hiragana by upper-casing the sources, i.e. fu ふ -> FU フ and by
+#   applying a kana conversion library method;
+# * in order to define an arbitrary Katakana for a given key, write that key in upper case before the
+#
 
-#
-# Japanese Kana: Hiragana
-#
+SECTION Punctuation 約物 (やくもの)
 
 #===========================================================================================================
-# Punctuation 約物 (やくもの)
 !           ！
 (           （
 )           ）
 ,           、
 .           。
-=.          ・ # interpunct, 中黒 (なかぐろ)
+=.          ・ # interpunct, 中黒 (なかぐろ) 30FB ・ KATAKANA MIDDLE DOT
 :           ：
 ?           ？
 [           ［
 ]           ］
 {.          「
 }.          」
---          ー
+--          ー # 30FC ー KATAKANA-HIRAGANA PROLONGED SOUND MARK
 {:          『 # 二重鉤括弧 (にじゅうかぎかっこ)
 }:          』
 &#x20;      &#x3000; # スペース
 ~           〜 # 波ダッシュ (なみだっしゅ)
-x00           ！
-x01           （
-x02           ）
-x03           、
-x04           。
-x05           ・ # interpunct, 中黒 (なかぐろ)
-x06           ：
-x07           ？
-x08           ［
-x09           ］
-x10           「
-x11           」
-x12           ー
-x13           『 # 二重鉤括弧 (にじゅうかぎかっこ)
-x14           』
-x15           〜 # 波ダッシュ (なみだっしゅ)
+\0.            ！
+\1.            （
+\2.            ）
+\3.            、
+\4.            。
+\5.            ・ # interpunct, 中黒 (なかぐろ) 30FB ・ KATAKANA MIDDLE DOT
+\6.            ：
+\7.            ？
+\8.            ［
+\9.            ］
+\10.           「
+\11.           」
+\12.           ー # 30FC ー KATAKANA-HIRAGANA PROLONGED SOUND MARK
+\13.           『 # 二重鉤括弧 (にじゅうかぎかっこ)
+\14.           』
+\15.           〜 # 波ダッシュ (なみだっしゅ)
+\nami.         〜 # 波ダッシュ (なみだっしゅ)
+\kara.         〜 # 波ダッシュ (なみだっしゅ)
+\16.          【 # Sumitsukikakko (隅付(墨付)き括弧)　
+\17.          】
 
 #===========================================================================================================
 # Vowels
@@ -51,21 +60,54 @@ u           う
 # Sokuon 促音 (そくおん)
 q           っ
 n           ん
-v           ゔ
 
 #...........................................................................................................
-# Samll Kana
-=a          ぁ
-=i          ぃ
-=u          ぅ
-=e          ぇ
-=o          ぉ
-=di         ぢ
-=zu         づ
-=tsu        っ
-=ya         ゃ
-=yu         ゅ
-=yo         ょ
+# Small Kana
+_a          ぁ
+_i          ぃ
+_u          ぅ
+_e          ぇ
+_o          ぉ
+# _di         ぢ
+# _zu         づ
+_tsu        っ
+_ya         ゃ
+_yu         ゅ
+_yo         ょ
+_ka         ゕ
+_ke         ゖ
+_ga         ゕ&#x3099;
+_ge         ゖ&#x3099;
+# _ga         ゕ&#x309b;
+# _ge         ゖ&#x309b;
+
+_wi         𛄨 # 1B150 𛄨 HIRAGANA LETTER SMALL WI
+_we         𛄩 # 1B151 𛄩 HIRAGANA LETTER SMALL WE
+_wo         𛄪 # 1B152 𛄪 HIRAGANA LETTER SMALL WO
+# _wi         𛄬 # 1B164 𛄬 KATAKANA LETTER SMALL WI
+# _we         𛄭 # 1B165 𛄭 KATAKANA LETTER SMALL WE
+# _wo         𛄮 # 1B166 𛄮 KATAKANA LETTER SMALL WO
+_N          𛄯 # 1B167 𛄯 KATAKANA LETTER SMALL N
+
+#...........................................................................................................
+# Multimoraic Kana
+\yori.    ゟ
+\shime.   〆
+\KOTO.    ヿ         # 30FF ヿ KATAKANA DIGRAPH KOTO
+\TOMO.    𪜈         # U+2A708 トモ # https://ja.wikipedia.org/wiki/合略仮名
+\DOMO.    𪜈&#x3099; # ドモ # https://ja.wikipedia.org/wiki/合略仮名
+\SHITE.   𬼀         # シテ # https://ja.wikipedia.org/wiki/合略仮名
+\nari.    𬼂         # なり 「也」の草書体 # https://ja.wikipedia.org/wiki/合略仮名
+\MASU.    〼         #「〼」は「ます」と呼ぶが、これは計量に使用する枡を記号化した物であり、合略仮名とは異なる。
+
+# Specials
+\dt.      &#x3099;
+\hdt.     &#x309a;
+\sdt.     ゛
+\shdt.    ゜
+\rm.      ゝ # cf. 30FD ヽ KATAKANA ITERATION MARK
+\vrm.     ゞ # cf. 30FE ヾ KATAKANA VOICED ITERATION MARK
+
 
 #===========================================================================================================
 ka          か
@@ -128,10 +170,12 @@ to          と
 tta         った
 tti         っち
 tchi        っち
+cchi        っち
 ttu         っつ
 ttsu        っつ
 tte         って
 tto         っと
+t-u         とぅ
 #...........................................................................................................
 da          だ
 di          ぢ
@@ -147,6 +191,7 @@ ddu         っづ
 ddzu        っづ
 dde         っで
 ddo         っど
+d-u         どぅ
 
 #===========================================================================================================
 ma          ま
@@ -261,8 +306,11 @@ cha         ちゃ
 chu         ちゅ
 cho         ちょ
 tcha        っちゃ
+ccha        っちゃ
 tchu        っちゅ
+cchu        っちゅ
 tcho        っちょ
+ccho        っちょ
 #...........................................................................................................
 gya         ぎゃ
 gyu         ぎゅ
@@ -279,12 +327,25 @@ hhyu        っひゅ
 hhyo        っひょ
 #...........................................................................................................
 ja          じゃ
+jya         じゃ
 je          じぇ
 ju          じゅ
 jo          じょ
+jyu         じゅ
+jyo         じょ
 jja         っじゃ
 jju         っじゅ
 jjo         っじょ
+jjya        っじゃ
+jjyu        っじゅ
+jjyo        っじょ
+zya         じゃ
+zye         じぇ
+zyu         じゅ
+zyo         じょ
+zzya        っじゃ
+zzyu        っじゅ
+zzyo        っじょ
 #...........................................................................................................
 kya         きゃ
 kyu         きゅ
@@ -343,16 +404,27 @@ ssya        っしゃ
 ssyu        っしゅ
 ssyo        っしょ
 #...........................................................................................................
-va          ゔぁ
-vi          ゔぃ
+VA          ヷ # 30F7 ヷ KATAKANA LETTER VA
+VI          ヸ # 30F8 ヸ KATAKANA LETTER VI
+VE          ヹ # 30F9 ヹ KATAKANA LETTER VE
+VO          ヺ # 30FA ヺ KATAKANA LETTER VO
+v           ゔ
+# vv          っゔ
+va          わ&#x3099;
+vi          ゐ&#x3099;
 vu          ゔぅ
-ve          ゔぇ
-vo          ゔぉ
-vva         っゔぁ
-vvi         っゔぃ
-vvu         っゔぅ
-vve         っゔぇ
-vvo         っゔぉ
+ve          ゑ&#x3099;
+vo          を&#x3099;
+v_a         ゔぁ
+v_i         ゔぃ
+v_u         ゔぅ
+v_e         ゔぇ
+v_o         ゔぉ
+# vv-a         っゔぁ
+# vv-i         っゔぃ
+# vv-u         っゔぅ
+# vv-e         っゔぇ
+# vv-o         っゔぉ
 #...........................................................................................................
 # n.a         んあ
 # n.e         んえ
@@ -363,6 +435,305 @@ vvo         っゔぉ
 # n.yo        んよ
 # n.yu        んゆ
 
-
+SECTION Hentaigana 変体仮名 (へんたいがな)
+a         𛀂(安)
+a         𛀅(惡)
+a         𛀃(愛)
+a         𛀄(阿)
+i         𛀆(以)
+i         𛀇(伊)
+i         𛀈(意)
+i         𛀉(移)
+u         𛀊(宇)
+u         𛀋(宇)
+u         𛀌(憂)
+u         𛀍(有)
+u         𛀎(雲)
+e         𛀁(江)
+e         𛀏(盈)
+e         𛀐(縁)
+e         𛀑(衣)
+e         𛀒(衣)
+e         𛀓(要)
+o         𛀔(於)
+o         𛀕(於)
+o         𛀖(隱)
+ka        𛀗(佳)
+ka        𛀘(加)
+ka        𛀙(可)
+ka        𛀚(可)
+ka        𛀛(嘉)
+ka        𛀢(家)
+ka        𛀜(我)
+ka        𛀝(歟)
+ka        𛀞(賀)
+ka        𛀟(閑)
+ka        𛀠(香)
+ka        𛀡(駕)
+ki        𛀣(喜)
+ki        𛀤(幾)
+ki        𛀥(幾)
+ki        𛀦(支)
+ki        𛀻(期)
+ki        𛀧(木)
+ki        𛀨(祈)
+ki        𛀩(貴)
+ki        𛀪(起)
+ku        𛀫(久)
+ku        𛀬(久)
+ku        𛀭(九)
+ku        𛀮(供)
+ku        𛀯(倶)
+ku        𛀰(具)
+ku        𛀱(求)
+ke        𛀳(介)
+ke        𛀲(介)
+ke        𛀢(家)
+ke        𛀴(希)
+ke        𛀵(氣)
+ke        𛀶(計)
+ke        𛀷(遣)
+ko        𛀸(古)
+ko        𛂘(子)
+ko        𛀹(故)
+ko        𛀻(期)
+ko        𛀺(許)
+sa        𛀼(乍)
+sa        𛀽(佐)
+sa        𛀾(佐)
+sa        𛀿(左)
+sa        𛁀(差)
+sa        𛁁(散)
+sa        𛁂(斜)
+sa        𛁃(沙)
+si        𛁄(之)
+si        𛁅(之)
+si        𛁆(事)
+si        𛁇(四)
+si        𛁈(志)
+si        𛁉(新)
+su        𛁊(受)
+su        𛁋(壽)
+su        𛁌(數)
+su        𛁍(數)
+su        𛁎(春)
+su        𛁏(春)
+su        𛁐(須)
+su        𛁑(須)
+se        𛁒(世)
+se        𛁓(世)
+se        𛁔(世)
+se        𛁕(勢)
+se        𛁖(聲)
+so        𛁗(所)
+so        𛁘(所)
+so        𛁙(曾)
+so        𛁚(曾)
+so        𛁛(楚)
+so        𛁜(蘇)
+so        𛁝(處)
+ta        𛁞(堂)
+ta        𛁟(多)
+ta        𛁠(多)
+ta        𛁡(當)
+ti        𛁢(千)
+ti        𛁣(地)
+ti        𛁤(智)
+ti        𛁥(知)
+ti        𛁦(知)
+ti        𛁧(致)
+ti        𛁨(遲)
+tu        𛁩(川)
+tu        𛁪(川)
+tu        𛁫(津)
+tu        𛁬(都)
+tu        𛁭(徒)
+te        𛁮(亭)
+te        𛁯(低)
+te        𛁰(傳)
+te        𛁱(天)
+te        𛁲(天)
+te        𛁳(天)
+te        𛁴(帝)
+te        𛁵(弖)
+te        𛁶(轉)
+te        𛂎(而)
+to        𛁷(土)
+to        𛁸(度)
+to        𛁹(東)
+to        𛁺(登)
+to        𛁻(登)
+to        𛁼(砥)
+to        𛁽(等)
+to        𛁭(徒)
+na        𛁾(南)
+na        𛁿(名)
+na        𛂀(奈)
+na        𛂁(奈)
+na        𛂂(奈)
+na        𛂃(菜)
+na        𛂄(那)
+na        𛂅(那)
+na        𛂆(難)
+na        𛂇(丹)
+ni        𛂈(二)
+ni        𛂉(仁)
+ni        𛂊(兒)
+ni        𛂋(爾)
+ni        𛂌(爾)
+ni        𛂍(耳)
+ni        𛂎(而)
+nu        𛂏(努)
+nu        𛂐(奴)
+nu        𛂑(怒)
+ne        𛂒(年)
+ne        𛂓(年)
+ne        𛂔(年)
+ne        𛂕(根)
+ne        𛂖(熱)
+ne        𛂗(禰)
+ne        𛂘(子)
+no        𛂙(乃)
+no        𛂚(濃)
+no        𛂛(能)
+no        𛂜(能)
+no        𛂝(農)
+ha        𛂞(八)
+ha        𛂟(半)
+ha        𛂠(婆)
+ha        𛂡(波)
+ha        𛂢(盤)
+ha        𛂣(盤)
+ha        𛂤(破)
+ha        𛂥(者)
+ha        𛂦(者)
+ha        𛂧(葉)
+ha        𛂨(頗)
+hi        𛂩(悲)
+hi        𛂪(日)
+hi        𛂫(比)
+hi        𛂬(避)
+hi        𛂭(非)
+hi        𛂮(飛)
+hi        𛂯(飛)
+hu        𛂰(不)
+hu        𛂱(婦)
+hu        𛂲(布)
+he        𛂳(倍)
+he        𛂴(弊)
+he        𛂵(弊)
+he        𛂶(遍)
+he        𛂷(邊)
+he        𛂸(邊)
+he        𛂹(部)
+ho        𛂺(保)
+ho        𛂻(保)
+ho        𛂼(報)
+ho        𛂽(奉)
+ho        𛂾(寶)
+ho        𛂿(本)
+ho        𛃀(本)
+ho        𛃁(豊)
+ma        𛃂(万)
+ma        𛃃(末)
+ma        𛃄(末)
+ma        𛃅(滿)
+ma        𛃆(滿)
+ma        𛃇(萬)
+ma        𛃈(麻)
+ma        𛃖(馬)
+mi        𛃉(三)
+mi        𛃊(微)
+mi        𛃋(美)
+mi        𛃌(美)
+mi        𛃍(美)
+mi        𛃎(見)
+mi        𛃏(身)
+mu        𛃐(武)
+mu        𛃑(無)
+mu        𛃒(牟)
+mu        𛃓(舞)
+mu        𛄝(无)
+mu        𛄞(无)
+me        𛃔(免)
+me        𛃕(面)
+me        𛃖(馬)
+mo        𛃗(母)
+mo        𛃘(毛)
+mo        𛃙(毛)
+mo        𛃚(毛)
+mo        𛃛(茂)
+mo        𛃜(裳)
+mo        𛄝(无)
+mo        𛄞(无)
+ya        𛃝(也)
+ya        𛃞(也)
+ya        𛃟(屋)
+ya        𛃠(耶)
+ya        𛃡(耶)
+ya        𛃢(夜)
+yu        𛃣(游)
+yu        𛃤(由)
+yu        𛃥(由)
+yu        𛃦(遊)
+yo        𛃧(代)
+yo        𛃨(余)
+yo        𛃩(與)
+yo        𛃪(與)
+yo        𛃫(與)
+yo        𛃬(餘)
+yo        𛃢(夜)
+ra        𛃭(羅)
+ra        𛃮(良)
+ra        𛃯(良)
+ra        𛃰(良)
+ra        𛁽(等)
+ri        𛃱(利)
+ri        𛃲(利)
+ri        𛃳(李)
+ri        𛃴(梨)
+ri        𛃵(理)
+ri        𛃶(里)
+ri        𛃷(離)
+ru        𛃸(流)
+ru        𛃹(留)
+ru        𛃺(留)
+ru        𛃻(留)
+ru        𛃼(累)
+ru        𛃽(類)
+ri        𛃾(禮)
+ri        𛃿(禮)
+ri        𛄀(連)
+ri        𛄁(麗)
+ro        𛄂(呂)
+ro        𛄃(呂)
+ro        𛄄(婁)
+ro        𛄅(樓)
+ro        𛄆(路)
+ro        𛄇(露)
+wa        𛄈(倭)
+wa        𛄉(和)
+wa        𛄊(和)
+wa        𛄋(王)
+wa        𛄌(王)
+wi        𛄍(井)
+wi        𛄎(井)
+wi        𛄏(居)
+wi        𛄐(爲)
+wi        𛄑(遺)
+we        𛄒(惠)
+we        𛄓(衞)
+we        𛄔(衞)
+we        𛄕(衞)
+wo        𛄖(乎)
+wo        𛄗(乎)
+wo        𛄘(尾)
+wo        𛄙(緒)
+wo        𛄚(越)
+wo        𛄛(遠)
+wo        𛄜(遠)
+wo        𛀅(惡)
+n         𛄝(无)
+n         𛄞(无)
 
 
