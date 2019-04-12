@@ -9,20 +9,22 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "electron": "^4.1.3",
+    "electron": "^4.1.4",
     "guy-test": "^1.4.0"
   },
   "dependencies": {
-    "clipboardy": "^1.2.3",
+    "clipboardy": "^2.0.0",
     "cnd": "^4.5.0",
     "coffeenode-teacup": "^0.2.0",
     "csv-parser": "^2.2.0",
-    "electron-unhandled": "^2.1.0",
+    "electron-unhandled": "^2.2.0",
     "icql": "^1.2.0",
     "interflug": "^0.3.0",
     "jaconv": "^1.0.4",
     "pipedreams": "^7.6.1",
+    "request": "^2.88.0",
+    "request-promise-native": "^1.0.7",
     "strip-bom-stream": "^3.0.0",
-    "triode": "^2.2.2"
+    "triode": "^2.2.3"
   }
 }
