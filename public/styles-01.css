@@ -1,11 +1,30 @@
 
-@font-face { font-family: 'flow';  src: url( './fonts/sunflower-exta-201903.ttf'            ); unicode-range: U+00000-10fff; }
-@font-face { font-family: 'flow';  src: url( './fonts/iosevka-slab-regular.ttf'             ); unicode-range: U+00000-04dff; }
-@font-face { font-family: 'flow';  src: url( './fonts/jizura3b.ttf'                         ); unicode-range: U+0e000-0efff; }
-@font-face { font-family: 'flow';  src: url( './fonts/sunflower-u-cjk-xb.ttf'               ); unicode-range: U+20000-2ffff; }
-@font-face { font-family: 'flow';  src: url( './fonts/HanaMinA.ttf'                         ); unicode-range: U+2a700-2b73f; }
-@font-face { font-family: 'flow';  src: url( './fonts/mktwx.ttf'                            ); unicode-range: U+0f002-0f002; }
-@font-face { font-family: 'flow';  src: url( './fonts/mktwx.ttf'                            ); unicode-range: U+0f003-0f003; }
+
+
+@font-face { font-family: 'flow';  src: url( './fonts/sunflower-exta-201903.ttf'  ); unicode-range: U+00000-10fff; }
+@font-face { font-family: 'flow';  src: url( './fonts/iosevka-slab-regular.ttf'   ); unicode-range: U+00000-04dff; }
+@font-face { font-family: 'flow';  src: url( './fonts/jizura3b.ttf'               ); unicode-range: U+0e000-0efff; }
+@font-face { font-family: 'flow';  src: url( './fonts/sunflower-u-cjk-xb.ttf'     ); unicode-range: U+20000-2ffff; }
+@font-face { font-family: 'flow';  src: url( './fonts/HanaMinA.ttf'               ); unicode-range: U+2a700-2b73f; }
+@font-face { font-family: 'flow';  src: url( './fonts/mktwx.ttf'                  ); unicode-range: U+0f002-0f002; }
+@font-face { font-family: 'flow';  src: url( './fonts/mktwx.ttf'                  ); unicode-range: U+0f003-0f003; }
+
+@font-face {
+  font-family:    'flow';
+  src:            url( './fonts/NotoSerifCJK-Regular.ttc'   );
+  unicode-range:
+    U+03040-0309f, /* Hiragana */
+    U+1b000-1b0ff, /* Kana Supplement */
+    U+1b100-1b12f, /* Kana Extended-A */
+    U+030a0-030ff, /* Katakana */
+    U+031f0-031ff, /* Katakana Phonetic Extensions */
+    U+03200-032ff, /* Enclosed CJK Letters and Months */
+    U+0ff00-0ffef, /* Halfwidth and Fullwidth Forms */
+    U+1b000-1b0ff, /* Kana Supplement */
+    U+1b130-1b16f; /* Small Kana Extension */
+  }
+
+
 /*@font-face { font-family: 'flow';  src: url( './fonts/Font Awesome 5 Free-Regular-400.otf'  ); unicode-range: U+0f11c-0f11c; }
 @font-face { font-family: 'flow';  src: url( './fonts/Font Awesome 5 Free-Regular-400.otf'  ); unicode-range: U+0f005-0f005; }
 */
