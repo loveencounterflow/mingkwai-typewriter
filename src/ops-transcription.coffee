@@ -255,8 +255,9 @@ xrpr                      = ( x ) -> inspect x, { colors: yes, breakLength: Infi
   v = d.value
   @freeze()
   ### TAINT use own API ###
-  S.codemirror.editor.replaceRange '', v.origin.from, v.origin.to
-  S.codemirror.editor.replaceRange v.ntext, v.target
+  S.codemirror.editor.replaceRange '', v.origin.from, v.origin.to ### delete original text ###
+  S.codemirror.editor.replaceRange v.ntext, v.target              ### insert new text ###
+  # S.codemirror.editor.replaceRange v.ntext, v.target              ### insert new tsm ###
   @thaw()
   return null
 
