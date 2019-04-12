@@ -198,12 +198,13 @@ focusframe {
 /* ### TAINT in the future we may want to display more than just the glyph */
 #candidates-flexgrid div.glyph {
   /* ### TAINT could use more traditional `200%` */
-  font-size:              calc( 2   * var(--mktw-font-size) );
+  font-size:              calc( 2.0 * var(--mktw-font-size) );
   margin-left:            calc( 0.4 * var(--mktw-font-size) );
   margin-top:             calc( 0.4 * var(--mktw-font-size) );
   border-radius:          calc( 0.2 * var(--mktw-font-size) );
   height:                 calc( 2.5 * var(--mktw-font-size) );
   background-color:       var(--mktw-glyph-bgcolor);
+  min-width:              calc( 2.0 * var(--mktw-font-size) );
 }
 
 #candidates-flexgrid div.glyph.cdtsel {
