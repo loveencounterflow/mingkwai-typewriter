@@ -131,15 +131,15 @@ xrpr                      = ( x ) -> inspect x, { colors: yes, breakLength: Infi
   #.........................................................................................................
   for { fromto, tsnr, sigil, } in finds
     @log "µ46674", "found TSR mark at #{rpr fromto}: #{rpr text} (TS ##{tsnr})"
-    @_format_as_tsm fromto, tsnr, sigil
+    @format_as_tsm_at_position fromto, tsnr, sigil
   #.........................................................................................................
   return null
   # for line_idx in [ S.codemirror.editor.firstLine() .. S.codemirror.editor.lastLine() ]
   #   text =
 
 #-----------------------------------------------------------------------------------------------------------
-### TAINT rename, unify with `_insert_tsm` ###
-@_format_as_tsm = ( fromto, tsnr, sigil ) ->
+### TAINT unify with `insert_tsm_at_position` ###
+@format_as_tsm_at_position = ( fromto, tsnr, sigil ) ->
   ### TAINT use own API ###
   settings      =
     className:        "tsr tsr#{tsnr}"
@@ -150,8 +150,8 @@ xrpr                      = ( x ) -> inspect x, { colors: yes, breakLength: Infi
   return null
 
 #-----------------------------------------------------------------------------------------------------------
-### TAINT rename, unify with `_format_as_tsm` ###
-@_insert_tsm = ( fromto, tsnr, sigil ) ->
+### TAINT unify with `format_as_tsm_at_position` ###
+@insert_tsm_at_position = ( fromto, tsnr, sigil ) ->
   ### TSRM: TranScription Region Marker. TSR extends from marker up to cursor. ###
   ### TAINT precompute, store in S.transcriptors: ###
   tsm_prefix    = S.transcriptor_region_markers?.prefix ? '\u{f11c}'
@@ -187,7 +187,7 @@ xrpr                      = ( x ) -> inspect x, { colors: yes, breakLength: Infi
     @log 'µ48733-4', rpr fromto
     ### TAINT allow to configure appearance of TSR mark ###
     # tsm = "[#{S.transcriptors[ tsnr ].display_name}:"
-    @_insert_tsm fromto, tsnr, ts.sigil
+    @insert_tsm_at_position fromto, tsnr, ts.sigil
   @emit_transcribe_event()
   return null
 
@@ -203,28 +203,34 @@ xrpr                      = ( x ) -> inspect x, { colors: yes, breakLength: Infi
 # INPUT TRANSLATION
 #-----------------------------------------------------------------------------------------------------------
 @emit_transcribe_event = ->
-  position  = @cm_get_cursor()
-  full_text = ( @cm_text_from_line_idx position.line )[ ... position.ch ]
+  ### TAINT consider to always use either TSNR or TS sigil in text marker, displayed text, and only use
+  that piece of data to identify transcriptors in events ###
+  position      = @cm_get_cursor()
+  full_text     = ( @cm_text_from_line_idx position.line )[ ... position.ch ]
   return null if full_text.length is 0 ### TAINT consider whether transcriptions with empty text might be useful ###
   ### TAINT precompute, store in S: ###
   ### TAINT code duplication, see `ops-cm/format_tsr_marks()` ###
-  tsm_prefix   = S.transcriptor_region_markers?.prefix ? '\u{f11c}'
-  tsm_suffix   = S.transcriptor_region_markers?.suffix ? '\u{f005}'
+  tsm_prefix    = S.transcriptor_region_markers?.prefix ? '\u{f11c}'
+  tsm_suffix    = S.transcriptor_region_markers?.suffix ? '\u{f005}'
   pattern       = /// ^ .* (?<all> #{tsm_prefix} (?<sigil>[^#{tsm_suffix}]+) #{tsm_suffix} (?<otext>.*?) ) $ ///
   return unless ( match = full_text.match pattern )?
   { sigil
     otext
-    all   } = match.groups
-  tsnr      = S.tsnr_by_sigils[ sigil ]
-  tsnr     ?= 0
+    all   }     = match.groups
+  tsnr          = S.tsnr_by_sigils[ sigil ]
+  tsnr         ?= 0
+  #.........................................................................................................
   return null if tsnr is 0
-  value     =
+  #.........................................................................................................
+  value         =
     otext:    otext
     tsnr:     tsnr
+    sigil:    sigil
     target:   { line: position.line, ch: position.ch - all.length,    }
     origin:
       from:     { line: position.line, ch: position.ch - otext.length,  }
       to:       position
+  #.........................................................................................................
   XE.emit PD.new_event '^transcribe', value
   return null
 
@@ -258,6 +264,9 @@ xrpr                      = ( x ) -> inspect x, { colors: yes, breakLength: Infi
   S.codemirror.editor.replaceRange '', v.origin.from, v.origin.to ### delete original text ###
   S.codemirror.editor.replaceRange v.ntext, v.target              ### insert new text ###
   # S.codemirror.editor.replaceRange v.ntext, v.target              ### insert new tsm ###
+  debug 'µ33332', d
+  ### TAINT shouldn't be necessary to destructure `v.origin` here ###
+  @insert_tsm_at_position v.origin, v.tsnr, v.sigil
   @thaw()
   return null
 
