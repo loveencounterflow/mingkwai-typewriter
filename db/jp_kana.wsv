@@ -48,6 +48,23 @@ SECTION Punctuation 約物 (やくもの)
 \16.          【 # Sumitsukikakko (隅付(墨付)き括弧)　
 \17.          】
 
+
+SECTION Numerals
+### TAINT should go to file of its own ###
+
+x(o1)            ①
+x(o2)            ②
+x(o3)            ③
+x(o4)            ④
+x(o5)            ⑤
+x(o6)            ⑥
+x(o7)            ⑦
+x(o8)            ⑧
+x(o9)            ⑨
+x(o10)           ⑩
+
+SECTION Kana
+
 #===========================================================================================================
 # Vowels
 a           あ
