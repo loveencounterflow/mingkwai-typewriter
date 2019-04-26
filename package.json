@@ -17,7 +17,6 @@
     "cnd": "^4.5.0",
     "coffeenode-teacup": "^0.2.0",
     "csv-parser": "^2.2.0",
-    "electron-unhandled": "^2.2.0",
     "icql": "^1.2.0",
     "interflug": "^0.3.0",
     "intertype": "^2.0.0",
