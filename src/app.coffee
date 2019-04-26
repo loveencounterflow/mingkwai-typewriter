@@ -34,6 +34,7 @@ main_window               = null
 ### module-global configuration and editor state object ###
 ### OBS this instance of `S` is *not* shared with renderer process and can only be used to read presets ###
 S                         = require './settings'
+require                   '../lib/exception-handler'
 #-----------------------------------------------------------------------------------------------------------
 ### TAINT investigate how to set these dynamically from the app ###
 app.commandLine.appendSwitch 'high-dpi-support',          S.app?.high_dpi_support           ? 1

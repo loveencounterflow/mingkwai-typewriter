@@ -33,10 +33,38 @@ echo                      = CND.echo.bind CND
   process.exit 1
 @exit_handler = @exit_handler.bind @
 
+# debug 'µ55531', __filename
+# debug 'µ55531', "app:", typeof app
+# check for process.type:
+# if process.type is 'renderer'
+# # if typeof app is 'undefined'
+#   process.on 'uncaughtException',  @exit_handler
+#   process.on 'unhandledRejection', @exit_handler
+# else
+#   urge "µ55531 using electron-unhandled"
+# ( require 'electron-unhandled' ) { showDialog: true, logger: @exit_handler, }
 
-if typeof app is 'undefined'
-  process.on 'uncaughtException', @exit_handler
-  process.on 'unhandledRejection', @exit_handler
+# if process.type is 'renderer'
+#   window.addEventListener 'error', ( event ) =>
+#     event.preventDefault()
+#     warn 'µ44333', "error:", ( k for k of event )
+
+#   window.addEventListener 'unhandledrejection', ( event ) =>
+#     event.preventDefault()
+#     # warn 'µ44333', "unhandled rejection:", ( k for k of event )
+#     warn 'µ44333', "unhandled rejection:", event.reason?.message ? "(no message)"
+
+
+############################################################################################################
+if process.type is 'renderer'
+  window.addEventListener 'error', ( event ) =>
+    event.preventDefault()
+    @exit_handler event.error
+
+  window.addEventListener 'unhandledrejection', ( event ) =>
+    event.preventDefault()
+    @exit_handler event.reason
 else
-  ( require 'electron-unhandled' ) { showDialog: true, logger: @exit_handler, }
+  process.on 'uncaughtException',  @exit_handler
+  process.on 'unhandledRejection', @exit_handler
 
