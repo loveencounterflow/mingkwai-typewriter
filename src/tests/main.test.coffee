@@ -70,6 +70,28 @@ OPSCM                     = require '../ops-cm'
   done()
   return null
 
+#-----------------------------------------------------------------------------------------------------------
+@[ "validate types" ] = ( T, done ) ->
+  probes_and_matchers = [
+    [ [ 'text',     42, ],                              false,  "not a valid text", ]
+    [ [ 'integer',  42, ],                              true,   null, ]
+    [ [ 'position', 42, ],                              false,  "not a valid position", ]
+    [ [ 'position', { line: 123, ch: 456, }, ],         true,   null, ]
+    [ [ 'position', { line: 123, ch: undefined, }, ],   false,  "not a valid position", ]
+    [ [ 'position', { line: 123, ch: null, }, ],        false,  "not a valid position", ]
+    ]
+  #.........................................................................................................
+  types               = require '../types'
+  { isa, validate, }  = types
+  for [ probe, matcher, error, ] in probes_and_matchers
+    await T.perform probe, matcher, error, -> new Promise ( resolve ) ->
+      [ type, value, ] = probe
+      result = validate type, value
+      resolve result
+  #.........................................................................................................
+  done()
+  return null
+
 
 
 ############################################################################################################
