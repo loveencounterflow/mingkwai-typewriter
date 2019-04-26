@@ -35,6 +35,34 @@ intertype                 = new Intertype module.exports
     '?.from is a position':     ( x ) -> @isa.position      x.from
     '?.to is a position':       ( x ) -> @isa.position      x.to
 
+#-----------------------------------------------------------------------------------------------------------
+### TAINT should check for upper boundary ###
+@declare 'tsnr',
+  tests:
+    '? is a count':             ( x ) -> @isa.count         x
+    # 'transcriptor exists':      ( x ) -> S.transcriptors[ x ]?
+
+#-----------------------------------------------------------------------------------------------------------
+### TAINT this describes the *value* property of the event, but this will probably change to the event
+itself in the upcoming PipeDreams version. ###
+@declare 'replace_text_event',
+  tests:
+    '? has keys 1':                 ( x ) -> @has_keys          x, 'otext', 'ntext'
+    '? has keys 2':                 ( x ) -> @has_keys          x, 'tsnr', 'sigil', 'origin', 'target', 'tsm'
+    '?.otext is a nonempty text':   ( x ) -> @isa.nonempty_text x.otext
+    '?.ntext is a nonempty text':   ( x ) -> @isa.nonempty_text x.ntext
+    '?.sigil is a nonempty text':   ( x ) -> @isa.nonempty_text x.sigil
+    '?.tsnr is a tsnr':             ( x ) -> @isa.tsnr          x.tsnr
+    '?.target is a position':       ( x ) -> @isa.position      x.target
+    '?.tsm is a range':             ( x ) -> @isa.range         x.tsm
+    '?.origin is a range':          ( x ) -> @isa.range         x.origin
+   # { otext: 'ka',
+   #   tsnr: 2,
+   #   sigil: 'ひ',
+   #   target: { line: 0, ch: 6 },
+   #   tsm: { from: { line: 0, ch: 6 }, to: { line: 0, ch: 11 } },
+   #   origin: { from: { line: 0, ch: 9 }, to: { line: 0, ch: 11 } },
+   #   ntext: 'か' } }
 
 ############################################################################################################
 unless module.parent?
