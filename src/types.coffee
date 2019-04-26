@@ -17,18 +17,10 @@ urge                      = CND.get_logger 'urge',      badge
 info                      = CND.get_logger 'info',      badge
 jr                        = JSON.stringify
 Intertype                 = ( require 'intertype' ).Intertype
-intertype                 = new Intertype
-{ isa
-  validate
-  type_of
-  types_of
-  size_of
-  declare
-  has_keys
-  all_keys_of           } = intertype.export_methods()
+intertype                 = new Intertype module.exports
 
 #-----------------------------------------------------------------------------------------------------------
-declare 'position',
+@declare 'position',
   tests:
     '? isa pod':                ( x ) -> @isa.object        x
     '? has_keys line, ch':      ( x ) -> @has_keys          x, 'line', 'ch'
@@ -36,7 +28,7 @@ declare 'position',
     '?.ch is a count':          ( x ) -> @isa.count         x.ch
 
 #-----------------------------------------------------------------------------------------------------------
-declare 'range',
+@declare 'range',
   tests:
     '? isa pod':                ( x ) -> @isa.object        x
     '? has_keys from, to':      ( x ) -> @has_keys          x, 'from', 'to'
