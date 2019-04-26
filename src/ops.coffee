@@ -43,7 +43,7 @@ PATH                      = require 'path'
 FS                        = require 'fs'
 #...........................................................................................................
 require                   '../lib/exception-handler'
-global.S                  = require '../lib/settings' ### module-global configuration and editor state object ###
+global.S                  = require '../lib/settings' ### global configuration and editor state object ###
 global.OPS                = {}
 global.XE                 = require '../lib//xemitter'
 

@@ -19,9 +19,7 @@ FS                        = require 'fs'
 URL                       = require 'url'
 inspect                   = ( require 'util' ).inspect
 log                       = ( P... ) -> process.stdout.write ( rpr P ) + '\n'
-# { app, globalShortcut, }  = require 'electron'
 window                    = null
-# log Object.keys require 'electron'
 { app
   BrowserWindow }         = require 'electron'
 TEMPLATES                 = require './templates'
