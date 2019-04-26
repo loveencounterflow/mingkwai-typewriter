@@ -29,7 +29,10 @@ defer                     = setImmediate
 XE                        = require '../lib/xemitter'
 { inspect, }              = require 'util'
 xrpr                      = ( x ) -> inspect x, { colors: yes, breakLength: Infinity, maxArrayLength: Infinity, depth: Infinity, }
-
+types                     = require './types'
+{ isa
+  validate
+  type_of }               = types
 
 
 
@@ -37,6 +40,7 @@ xrpr                      = ( x ) -> inspect x, { colors: yes, breakLength: Infi
 # INPUT TRANSLATION
 #-----------------------------------------------------------------------------------------------------------
 @load_transcriptors = ->
+  ### Called once by OPS `init()` as part of initialization. ###
   ### TAINT stopgap code ###
   ### TAINT should search home directory, node_modules as well ###
   ### TAINT use glob ###
@@ -109,6 +113,8 @@ xrpr                      = ( x ) -> inspect x, { colors: yes, breakLength: Infi
 # SET TSRs, TRANSCRIPTORS
 #-----------------------------------------------------------------------------------------------------------
 @format_existing_tsms = ( d ) ->
+  ### Listens to `^open-document`, iterates over document and calls `format_as_tsm_at_position()` for
+  each transcription mark found. ###
   ### TAINT precompute, store in S: ###
   ### TAINT code duplication ###
   #.........................................................................................................
@@ -130,7 +136,7 @@ xrpr                      = ( x ) -> inspect x, { colors: yes, breakLength: Infi
     finds.push { fromto, tsnr, sigil, }
   #.........................................................................................................
   for { fromto, tsnr, sigil, } in finds
-    @log "µ46674", "found TSR mark at #{rpr fromto}: #{rpr text} (TS ##{tsnr})"
+    @log "µ46674", "found TSM at #{rpr fromto}: #{rpr text} (TS ##{tsnr})"
     @format_as_tsm_at_position fromto, tsnr, sigil
   #.........................................................................................................
   return null
@@ -140,7 +146,10 @@ xrpr                      = ( x ) -> inspect x, { colors: yes, breakLength: Infi
 #-----------------------------------------------------------------------------------------------------------
 ### TAINT unify with `insert_tsm_at_position` ###
 @format_as_tsm_at_position = ( fromto, tsnr, sigil ) ->
+  ### Called by `format_existing_tsms()` to insert an atomic CM textmarker at the position indicated. ###
   ### TAINT use own API ###
+  debug 'µ66733-1', validate.range  fromto
+  debug 'µ66733-2', validate.tsnr   tsnr
   settings      =
     className:        "tsr tsr#{tsnr}"
     atomic:           true
@@ -150,10 +159,13 @@ xrpr                      = ( x ) -> inspect x, { colors: yes, breakLength: Infi
   return null
 
 #-----------------------------------------------------------------------------------------------------------
-### TAINT unify with `format_as_tsm_at_position` ###
 @insert_tsm_at_position = ( fromto, tsnr, sigil ) ->
-  ### TSRM: TranScription Region Marker. TSR extends from marker up to cursor. ###
+  ### Called by `insert_tsm()`. ###
+  ### TSM: TranScription Marker. TSR (TranScription Region) extends from marker up to cursor. ###
+  ### TAINT unify with `format_as_tsm_at_position` ###
   ### TAINT precompute, store in S.transcriptors: ###
+  debug 'µ66733-3', validate.range  fromto
+  debug 'µ66733-4', validate.tsnr   tsnr
   tsm_prefix    = S.transcriptor_region_markers?.prefix ? '\u{f11c}'
   tsm_suffix    = S.transcriptor_region_markers?.suffix ? '\u{f005}'
   tsm           = "#{tsm_prefix}#{sigil}#{tsm_suffix}"
@@ -171,6 +183,8 @@ xrpr                      = ( x ) -> inspect x, { colors: yes, breakLength: Infi
 
 #-----------------------------------------------------------------------------------------------------------
 @insert_tsm = ( tsnr ) ->
+  ### Called upon keyboard shortcut, menu item selection. ###
+  debug 'µ66733-5', validate.tsnr   tsnr
   ### Bound to `ctrl+0` ... `ctrl+4` ###
   ts      = S.transcriptors[ tsnr ]
   ts     ?= S.transcriptors[ 0 ]
@@ -185,7 +199,7 @@ xrpr                      = ( x ) -> inspect x, { colors: yes, breakLength: Infi
       @log 'µ48733-2', "non-point ranges not implemented"
       return null
     @log 'µ48733-4', rpr fromto
-    ### TAINT allow to configure appearance of TSR mark ###
+    ### TAINT allow to configure appearance of TSM ###
     # tsm = "[#{S.transcriptors[ tsnr ].display_name}:"
     @insert_tsm_at_position fromto, tsnr, ts.sigil
   @emit_transcribe_event()
@@ -203,18 +217,35 @@ xrpr                      = ( x ) -> inspect x, { colors: yes, breakLength: Infi
 # INPUT TRANSLATION
 #-----------------------------------------------------------------------------------------------------------
 @emit_transcribe_event = ->
+  ### Called on cursor move in CM and by `insert_tsm()`, `emit_transcribe_event()` parses the current line,
+  looks for the relevant TSM (TranScription Mark), and formulates a transcription event based on the text
+  found between the TSM and the cursor position. That event is then processed by
+  `dispatch_transcribe_event()` (and possibly other listeners). ###
   ### TAINT consider to always use either TSNR or TS sigil in text marker, displayed text, and only use
   that piece of data to identify transcriptors in events ###
   position      = @cm_get_cursor()
+  # @log 'µ36373', 'position', position
   full_text     = ( @cm_text_from_line_idx position.line )[ ... position.ch ]
   return null if full_text.length is 0 ### TAINT consider whether transcriptions with empty text might be useful ###
   ### TAINT precompute, store in S: ###
   ### TAINT code duplication, see `ops-cm/format_tsr_marks()` ###
   tsm_prefix    = S.transcriptor_region_markers?.prefix ? '\u{f11c}'
   tsm_suffix    = S.transcriptor_region_markers?.suffix ? '\u{f005}'
-  pattern       = /// ^ .* (?<all> #{tsm_prefix} (?<sigil>[^#{tsm_suffix}]+) #{tsm_suffix} (?<otext>.*?) ) $ ///
+  pattern       = ///
+    ^
+    .*
+    (?<all>
+      (?<mark>
+        #{tsm_prefix}
+        (?<sigil> [^#{tsm_suffix}]+ )
+        #{tsm_suffix}
+        (?<otext> .*? )
+        )
+      )
+      $ ///
   return unless ( match = full_text.match pattern )?
-  { sigil
+  { mark
+    sigil
     otext
     all   }     = match.groups
   tsnr          = S.tsnr_by_sigils[ sigil ]
@@ -222,20 +253,34 @@ xrpr                      = ( x ) -> inspect x, { colors: yes, breakLength: Infi
   #.........................................................................................................
   return null if tsnr is 0
   #.........................................................................................................
-  value         =
-    otext:    otext
-    tsnr:     tsnr
-    sigil:    sigil
-    target:   { line: position.line, ch: position.ch - all.length,    }
-    origin:
-      from:     { line: position.line, ch: position.ch - otext.length,  }
-      to:       position
+  ### where to put ntext: ###
+  target =
+    line:           position.line
+    ch:             position.ch - all.length
   #.........................................................................................................
-  XE.emit PD.new_event '^transcribe', value
+  origin =
+    from:
+      line:         position.line
+      ch:           position.ch - otext.length
+    to:
+      line:         position.line
+      ch:           position.ch
+  #.........................................................................................................
+  tsm =
+    from:
+      line:         target.line
+      ch:           target.ch
+    to:
+      line:         target.line
+      ch:           target.ch + mark.length
+  #.........................................................................................................
+  XE.emit PD.new_event '^transcribe', { otext, tsnr, sigil, target, tsm, origin, }
   return null
 
 #-----------------------------------------------------------------------------------------------------------
 @dispatch_transcribe_event = ( d ) ->
+  ### Called on `^transcribe` events. If indicated transcription module exists, calls its `on_transcribe()`
+  method (which in turn may cause events like `^replace-text`, `^candidates` to be emitted). ###
   transcriptor = S.transcriptors[ d.value.tsnr ]
   #.......................................................................................................
   unless transcriptor?.module?.on_transcribe?
@@ -251,22 +296,29 @@ xrpr                      = ( x ) -> inspect x, { colors: yes, breakLength: Infi
   return null
 
 #-----------------------------------------------------------------------------------------------------------
+### When `is_frozen()` is `true`, `^transcribe` events as result of cursor activities will not be sent; this
+is to prevent text replacements from causing `^trancribe` events themselves. This simple method *should* be
+OK as JS is single-threaded and interface updates are not possible until `on_replace_text()` (or any
+function) has terminated. ###
 @freeze     = -> S.is_frozen = true
 @is_frozen  = -> S.is_frozen
 @thaw       = -> S.is_frozen = false
 
 #-----------------------------------------------------------------------------------------------------------
 @on_replace_text = ( d ) ->
-  # @log 'µ53486', 'on_replace_text', rpr d
-  v = d.value
+  ### Called on `^replace-text` events (issued by transcriptors). ###
+  # @log 'µ53486', 'on_replace_text', ( rpr d ), ( isa.replace_text_event d.value )
+  validate.number 'µ32883'
+  validate.replace_text_event v = d.value
   @freeze()
   ### TAINT use own API ###
   S.codemirror.editor.replaceRange '', v.origin.from, v.origin.to ### delete original text ###
+  S.codemirror.editor.replaceRange '', v.tsm.from, v.tsm.to ### delete TSM ###
   S.codemirror.editor.replaceRange v.ntext, v.target              ### insert new text ###
   # S.codemirror.editor.replaceRange v.ntext, v.target              ### insert new tsm ###
-  debug 'µ33332', d
+  # debug 'µ33332', d
   ### TAINT shouldn't be necessary to destructure `v.origin` here ###
-  @insert_tsm_at_position v.origin, v.tsnr, v.sigil
+  # @insert_tsm_at_position v.origin, v.tsnr, v.sigil
   @thaw()
   return null
 
