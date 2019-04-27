@@ -91,6 +91,7 @@ require                   '../lib/exception-handler'
   #.........................................................................................................
   await @load_transcriptors()
   await @add_menu()
+  await @add_context_menu()
   #.........................................................................................................
   await @set_codemirror_keybindings()
   await @set_codemirror_event_bindings()

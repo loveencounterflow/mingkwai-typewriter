@@ -14,6 +14,7 @@ badge                     = '明快打字机/OPS-MENU'
 # urge                      = CND.get_logger 'urge',      badge
 # info                      = CND.get_logger 'info',      badge
 PD                        = require 'pipedreams'
+add_context_menu          = require 'electron-context-menu'
 
 #-----------------------------------------------------------------------------------------------------------
 @show_or_hide_menu_bar = ->
@@ -85,3 +86,16 @@ PD                        = require 'pipedreams'
   { Menu, } = ( require 'electron' ).remote
   menu      = Menu.buildFromTemplate template
   Menu.setApplicationMenu menu
+  return null
+
+#-----------------------------------------------------------------------------------------------------------
+@add_context_menu = ->
+  ### TAINT see https://github.com/sindresorhus/electron-context-menu for format ###
+  add_context_menu {
+    prepend: ( defaultActions, params, browserWindow ) => [{
+      label: 'Rainbow',
+      # Only show it when right-clicking images
+      visible: params.mediaType is 'image'
+    }]
+    }
+  return null
