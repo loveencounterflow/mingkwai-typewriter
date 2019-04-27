@@ -74,7 +74,8 @@ require                   '../lib/exception-handler'
 #===========================================================================================================
 # WINDOW
 #-----------------------------------------------------------------------------------------------------------
-@get_window = -> ( require 'electron' ).remote.getCurrentWindow()
+@get_window     = -> ( require 'electron' ).remote.getCurrentWindow()
+@open_devtools  = -> @get_window().webContents.openDevTools()
 
 
 #===========================================================================================================
