@@ -19,15 +19,15 @@ FS                        = require 'fs'
 URL                       = require 'url'
 inspect                   = ( require 'util' ).inspect
 log                       = ( P... ) -> process.stdout.write ( rpr P ) + '\n'
-window                    = null
 { app
   BrowserWindow }         = require 'electron'
 TEMPLATES                 = require './templates'
 { jr, }                   = CND
-#...........................................................................................................
 page_html_path            = PATH.resolve PATH.join __dirname, '../public/main.html'
+#...........................................................................................................
 ### keep a module-global reference to main window to prevent GC from collecting it as per
 https://youtu.be/iVdXOrtdHvA?t=713 ###
+#...........................................................................................................
 main_window               = null
 ### module-global configuration and editor state object ###
 ### OBS this instance of `S` is *not* shared with renderer process and can only be used to read presets ###
@@ -38,6 +38,12 @@ require                   '../lib/exception-handler'
 app.commandLine.appendSwitch 'high-dpi-support',          S.app?.high_dpi_support           ? 1
 app.commandLine.appendSwitch 'force-device-scale-factor', S.app?.force_device_scale_factor  ? 1.25
 app.commandLine.appendSwitch 'force-color-profile',       S.app?.force_color_profile        ? 'sRGB'
+#-----------------------------------------------------------------------------------------------------------
+### Enable live reloading in developement, see https://github.com/sindresorhus/electron-reloader: ###
+do ->
+  error = null
+  try ( ( require 'electron-reloader' ) module ) catch error then null
+  urge "µ32221 using electron-reloader" unless error
 
 
 #-----------------------------------------------------------------------------------------------------------
