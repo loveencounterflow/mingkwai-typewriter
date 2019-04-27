@@ -66,6 +66,13 @@ without having to fork the project). This linking step can be repeated by runnin
 ./link-better-sqlite3
 ```
 
+### Inspiration
+
+* https://yudit.org/
+* http://www.babelstone.co.uk/Software/BabelPad.html
+* http://www.babelstone.co.uk/Software/BabelMap.html
+* http://www.unipad.org/main/
+
 
 
 
