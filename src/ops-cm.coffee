@@ -46,6 +46,12 @@ PD                        = require 'pipedreams'
 @cm_get_selections                = -> S.codemirror.editor.doc.listSelections()
 @cm_get_selection_texts           = -> S.codemirror.editor.doc.getSelections()
 @cm_get_selections_as_fromtos     = -> ( @_cm_fromto_from_range s for s in @cm_get_selections() )
+
+#-----------------------------------------------------------------------------------------------------------
+@cm_get_position = ->
+  for s in @cm_get_selections()
+    return { line: s.head.line, ch: s.head.ch, }
+
 # #-----------------------------------------------------------------------------------------------------------
 # @cm_select_only_in_single_line = ->
 
@@ -86,6 +92,13 @@ PD                        = require 'pipedreams'
 @position_and_clasz_from_mark = ( mark ) ->
   fromto = mark.find()
   return { from: ( @_cm_as_pos fromto.from ), to: ( @_cm_as_pos fromto.to ), clasz: ( mark.className ? '' ), }
+
+#-----------------------------------------------------------------------------------------------------------
+@cm_remove_textmarker = ( textmarker ) ->
+  range = textmarker.find()
+  S.codemirror.editor.replaceRange '', range.from, range.to
+  textmarker.clear()
+  return null
 
 
 
