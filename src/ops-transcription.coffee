@@ -144,12 +144,13 @@ types                     = require './types'
   #   text =
 
 #-----------------------------------------------------------------------------------------------------------
-### TAINT unify with `insert_tsm_at_position` ###
+### TAINT unify with `toggle_tsm_at_position` ###
 @format_as_tsm_at_position = ( fromto, tsnr, sigil ) ->
-  ### Called by `format_existing_tsms()` to insert an atomic CM textmarker at the position indicated. ###
+  ### Called by `format_existing_tsms()`, `on_replace_text()` to insert an atomic CM textmarker at the
+  position indicated. ###
   ### TAINT use own API ###
-  debug 'µ66733-1', validate.range  fromto
-  debug 'µ66733-2', validate.tsnr   tsnr
+  validate.range  fromto
+  validate.tsnr   tsnr
   settings      =
     className:        "tsr tsr#{tsnr}"
     atomic:           true
@@ -159,52 +160,64 @@ types                     = require './types'
   return null
 
 #-----------------------------------------------------------------------------------------------------------
-@insert_tsm_at_position = ( fromto, tsnr, sigil ) ->
+@toggle_tsm_at_position = ( position, tsnr, sigil ) ->
   ### Called by `insert_tsm()`. ###
   ### TSM: TranScription Marker. TSR (TranScription Region) extends from marker up to cursor. ###
   ### TAINT unify with `format_as_tsm_at_position` ###
   ### TAINT precompute, store in S.transcriptors: ###
-  debug 'µ66733-3', validate.range  fromto
-  debug 'µ66733-4', validate.tsnr   tsnr
-  tsm_prefix    = S.transcriptor_region_markers?.prefix ? '\u{f11c}'
-  tsm_suffix    = S.transcriptor_region_markers?.suffix ? '\u{f005}'
-  tsm           = "#{tsm_prefix}#{sigil}#{tsm_suffix}"
-  clasz         = "tsr tsr#{tsnr}"
-  fromto_right  = { line: fromto.from.line, ch: ( fromto.from.ch + tsm.length ), }
-  settings      =
-    className:        clasz
-    atomic:           true
-    inclusiveLeft:    false
-    inclusiveRight:   false
-  ### TAINT use own API ###
-  S.codemirror.editor.replaceRange tsm, fromto.from
-  S.codemirror.editor.markText fromto.from, fromto_right, settings
+  validate.position position
+  validate.tsnr     tsnr
+  old_textmarker  = ( S.codemirror.editor.findMarksAt position )[ 0 ] ? null
+  old_tsnr        = old_textmarker?.attributes?.tsnr                  ? null
+  #.........................................................................................................
+  if ( not old_textmarker? ) or ( old_tsnr isnt tsnr )
+    tsm_prefix    = S.transcriptor_region_markers?.prefix ? '\u{f11c}'
+    tsm_suffix    = S.transcriptor_region_markers?.suffix ? '\u{f005}'
+    tsm           = "#{tsm_prefix}#{sigil}#{tsm_suffix}"
+    clasz         = "tsr tsr#{tsnr}"
+    rposition     = { line: position.line, ch: ( position.ch + tsm.length ), }
+    settings      =
+      attributes:       { tsnr, }
+      replacedWith:     ( jQuery "<span class=#{jr clasz}>#{sigil}</span>" )[ 0 ]
+      # className:        clasz
+      atomic:           true
+      inclusiveLeft:    false
+      inclusiveRight:   false
+    ### TAINT use own API ###
+    S.codemirror.editor.replaceRange tsm, position
+    S.codemirror.editor.markText position, rposition, settings
+  #.........................................................................................................
+  @cm_remove_textmarker old_textmarker if old_textmarker?
   return null
 
 #-----------------------------------------------------------------------------------------------------------
 @insert_tsm = ( tsnr ) ->
   ### Called upon keyboard shortcut, menu item selection. ###
-  debug 'µ66733-5', validate.tsnr   tsnr
+  validate.tsnr   tsnr
   ### Bound to `ctrl+0` ... `ctrl+4` ###
-  ts      = S.transcriptors[ tsnr ]
-  ts     ?= S.transcriptors[ 0 ]
-  action  = if tsnr is 0 then 'clear' else 'set'
+  ts        = S.transcriptors[ tsnr ]
+  ts       ?= S.transcriptors[ 0 ]
+  action    = if tsnr is 0 then 'clear' else 'set'
   if action is 'clear'
     @log 'µ48733-1', "clear TSR not implemented"
     return null
-  delta   = if action is 'clear' then -1 else +1
-  clasz   = "tsr tsr#{tsnr}"
-  for fromto in @cm_get_selections_as_fromtos()
-    unless @cm_range_is_point fromto
-      @log 'µ48733-2', "non-point ranges not implemented"
-      return null
-    @log 'µ48733-4', rpr fromto
-    ### TAINT allow to configure appearance of TSM ###
-    # tsm = "[#{S.transcriptors[ tsnr ].display_name}:"
-    @insert_tsm_at_position fromto, tsnr, ts.sigil
+  position  = @cm_get_position()
+  @toggle_tsm_at_position position, tsnr, ts.sigil
   @emit_transcribe_event()
   return null
 
+# #-----------------------------------------------------------------------------------------------------------
+# @insert_bookmark = ( position = null ) ->
+#   position ?= @cm_get_position()
+#   validate.position position
+#   @log 'µ44644', 'position', position
+#   sigil = 'SIGIL'
+#   settings =
+#     widget:             ( jQuery "<span class=tsm-bookmark>#{sigil}</span>" )[ 0 ]
+#     insertLeft:         false
+#     shared:             false
+#     handleMouseEvents:  false
+#   return S.codemirror.editor.setBookmark position, settings
 
 #===========================================================================================================
 # MOVES
@@ -308,17 +321,16 @@ function) has terminated. ###
 @on_replace_text = ( d ) ->
   ### Called on `^replace-text` events (issued by transcriptors). ###
   # @log 'µ53486', 'on_replace_text', ( rpr d ), ( isa.replace_text_event d.value )
-  validate.number 'µ32883'
   validate.replace_text_event v = d.value
   @freeze()
   ### TAINT use own API ###
   S.codemirror.editor.replaceRange '', v.origin.from, v.origin.to ### delete original text ###
-  S.codemirror.editor.replaceRange '', v.tsm.from, v.tsm.to ### delete TSM ###
+  # @toggle_tsm_at_position v.origin, v.tsnr, v.sigil               ### insert new TSM (where called for) ###
   S.codemirror.editor.replaceRange v.ntext, v.target              ### insert new text ###
+  # S.codemirror.editor.replaceRange '', v.tsm.from, v.tsm.to       ### delete TSM ###
   # S.codemirror.editor.replaceRange v.ntext, v.target              ### insert new tsm ###
   # debug 'µ33332', d
   ### TAINT shouldn't be necessary to destructure `v.origin` here ###
-  # @insert_tsm_at_position v.origin, v.tsnr, v.sigil
   @thaw()
   return null
 
