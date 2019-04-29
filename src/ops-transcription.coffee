@@ -144,18 +144,20 @@ types                     = require './types'
   #   text =
 
 #-----------------------------------------------------------------------------------------------------------
-### TAINT unify with `toggle_tsm_at_position` ###
 @format_as_tsm_at_position = ( fromto, tsnr, sigil ) ->
   ### Called by `format_existing_tsms()`, `on_replace_text()` to insert an atomic CM textmarker at the
   position indicated. ###
-  ### TAINT use own API ###
+  ### TAINT unify with `toggle_tsm_at_position` ###
   validate.range  fromto
   validate.tsnr   tsnr
+  clasz         = "tsr tsr#{tsnr}"
   settings      =
-    className:        "tsr tsr#{tsnr}"
+    attributes:       { tsnr, }
+    replacedWith:     ( jQuery "<span class=#{jr clasz}>#{sigil}</span>" )[ 0 ]
     atomic:           true
     inclusiveLeft:    false
     inclusiveRight:   false
+  ### TAINT use own API ###
   S.codemirror.editor.markText fromto.from, fromto.to, settings
   return null
 
@@ -170,7 +172,7 @@ types                     = require './types'
   old_textmarker  = ( S.codemirror.editor.findMarksAt position )[ 0 ] ? null
   old_tsnr        = old_textmarker?.attributes?.tsnr                  ? null
   #.........................................................................................................
-  if ( not old_textmarker? ) or ( old_tsnr isnt tsnr )
+  if ( tsnr isnt 0 ) and ( ( not old_textmarker? ) or ( old_tsnr isnt tsnr ) )
     tsm_prefix    = S.transcriptor_region_markers?.prefix ? '\u{f11c}'
     tsm_suffix    = S.transcriptor_region_markers?.suffix ? '\u{f005}'
     tsm           = "#{tsm_prefix}#{sigil}#{tsm_suffix}"
@@ -179,7 +181,6 @@ types                     = require './types'
     settings      =
       attributes:       { tsnr, }
       replacedWith:     ( jQuery "<span class=#{jr clasz}>#{sigil}</span>" )[ 0 ]
-      # className:        clasz
       atomic:           true
       inclusiveLeft:    false
       inclusiveRight:   false
@@ -197,13 +198,9 @@ types                     = require './types'
   ### Bound to `ctrl+0` ... `ctrl+4` ###
   ts        = S.transcriptors[ tsnr ]
   ts       ?= S.transcriptors[ 0 ]
-  action    = if tsnr is 0 then 'clear' else 'set'
-  if action is 'clear'
-    @log 'µ48733-1', "clear TSR not implemented"
-    return null
   position  = @cm_get_position()
   @toggle_tsm_at_position position, tsnr, ts.sigil
-  @emit_transcribe_event()
+  # @emit_transcribe_event()
   return null
 
 # #-----------------------------------------------------------------------------------------------------------
