@@ -72,6 +72,7 @@ module.exports = S =
       # inputStyle:                   'contenteditable'
       inputStyle:                   'textarea'
       keyMap:                       'sublime'
+      mode:                         'text'
       # mode:                         'coffeescript'
       # mode:                         'javascript',
       # mode:                         'markdown',

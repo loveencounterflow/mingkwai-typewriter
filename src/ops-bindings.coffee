@@ -66,6 +66,11 @@ it would be advantageous to derive them somehow from the source or the running i
     'Ctrl-2':       ( cm ) => @insert_tsm 2
     'Ctrl-3':       ( cm ) => @insert_tsm 3
     'Ctrl-4':       ( cm ) => @insert_tsm 4
+    'Ctrl-5':       ( cm ) => @insert_tsm 5
+    'Ctrl-6':       ( cm ) => @insert_tsm 6
+    'Ctrl-7':       ( cm ) => @insert_tsm 7
+    'Ctrl-8':       ( cm ) => @insert_tsm 8
+    'Ctrl-9':       ( cm ) => @insert_tsm 9
   #.........................................................................................................
   S.codemirror.editor.addKeyMap mktw_keymap
   return null

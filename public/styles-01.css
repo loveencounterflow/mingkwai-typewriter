@@ -48,7 +48,22 @@ html, body {
   /*--mktw-grid-sidebar-wh: 5mm;*/
   /*--mktw-grid-rightbar-wh:  10%;*/
   --mktw-glyph-bgcolor:   rgba( 255, 255, 255, 0.75 );
-
+  --mktw-solarized-base03:    #002b36;
+  --mktw-solarized-base02:    #073642;
+  --mktw-solarized-base01:    #586e75;
+  --mktw-solarized-base00:    #657b83;
+  --mktw-solarized-base0:     #839496;
+  --mktw-solarized-base1:     #93a1a1;
+  --mktw-solarized-base2:     #eee8d5;
+  --mktw-solarized-base3:     #fdf6e3;
+  --mktw-solarized-yellow:    #b58900;
+  --mktw-solarized-orange:    #cb4b16;
+  --mktw-solarized-red:       #dc322f;
+  --mktw-solarized-magenta:   #d33682;
+  --mktw-solarized-violet:    #6c71c4;
+  --mktw-solarized-blue:      #268bd2;
+  --mktw-solarized-cyan:      #2aa198;
+  --mktw-solarized-green:     #859900;
   font-size:              var(--mktw-font-size);
   line-height-step:       var(--mktw-grid);
 }
@@ -225,16 +240,20 @@ focusframe {
   background-image:       linear-gradient( 160deg, rgba( 255, 255, 255, 0.25 ), rgba( 0, 0, 0, 0.25 ) );
   cursor:                 pointer; }
 
-/*.tsr0 { background-color: transparent;  }*/
-.tsr1 { background-color: yellow  !important; color: black !important; }
-.tsr2 { background-color: red     !important; color: black !important; }
-.tsr3 { background-color: blue    !important; color: orange !important; }
-.tsr4 { background-color: green   !important; color: white !important; }
-.tsr5 { background-color: orange  !important; color: black !important; }
-.tsr6 { background-color: lime    !important; color: black !important; }
+.tsr0 { background-color: transparent;  }
+.tsr1 { background-color: yellow                        !important; color: black    !important; }
+.tsr2 { background-color: red                           !important; color: black    !important; }
+.tsr3 { background-color: orange                        !important; color: blue     !important; }
+.tsr4 { background-color: black                         !important; color: blue     !important; }
+.tsr5 { background-color: black                         !important; color: orange   !important; }
+.tsr6 { background-color: white                         !important; color: black    !important; }
+.tsr7 { background-color: blue                          !important; color: orange   !important; }
+.tsr8 { background-color: var(--mktw-solarized-green)   !important; color: black    !important; }
+.tsr9 { background-color: teal                          !important; color: black    !important; }
 
 .tsr.hilite {
   color:                  black;
   background-color:       yellow; }
+
 
 
