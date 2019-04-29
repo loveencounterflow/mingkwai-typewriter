@@ -70,6 +70,8 @@ f = ( S ) ->
   # @add_functions db
   db.import_table_unames()
   db.import_table_uname_tokens()
+  db.import_table_unicode_test()
+  db.create_view_unicode_test_with_end_markers()
   db.fts5_create_and_populate_token_tables()
   db.spellfix_create_editcosts()
   db.spellfix_create_and_populate_token_tables()
