@@ -387,7 +387,32 @@ query fetch_stats():
   select null, null where false;
 
 
+-- =========================================================================================================
+-- LONGEST MATCHING PREFIX
+-- ---------------------------------------------------------------------------------------------------------
+query longest_matching_prefix_in_uname_tokens( q, limit ):
+  with v1 as ( select
+      r1.uname_token                as uname_token,
+      length( $q )                  as length_of_q,
+      length( r1.uname_token )      as length_of_r
+    from uname_tokens as r1
+    where false
+      -- or ( $q like ( uname_token || '%' ) )
+      or ( uname_token like ( $q || '%' ) )
+      )
+    select
+        v1.uname_token              as uname_token,
+        v1.length_of_q              as length_of_q,
+        v1.length_of_r              as length_of_r,
+        abs( v1.length_of_q - v1.length_of_r ) as delta_length
+      from v1
+    order by delta_length, uname_token
+    limit $limit;
 
+-- ---------------------------------------------------------------------------------------------------------
+query next_characters( prefix, table, field ):
+  select next_char( $prefix, $table, $field )
+  ;
 
 
 

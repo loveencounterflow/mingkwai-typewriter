@@ -61,8 +61,10 @@ f = ( S ) ->
   db.$.load join_path settings.sqlitemk_path, 'extensions/spellfix.so'
   db.$.load join_path settings.sqlitemk_path, 'extensions/regexp.so'
   db.$.load join_path settings.sqlitemk_path, 'extensions/series.so'
+  db.$.load join_path settings.sqlitemk_path, 'extensions/nextchar.so'
   # db.$.load join_path settings.sqlitemk_path, 'extensions/stmt.so'
   db.$.pragma 'foreign_keys = on'
+  db.$.pragma 'synchronous = off' ### see https://sqlite.org/pragma.html#pragma_synchronous ###
   # info row for row in db.$.all_rows db.$.catalog()
   clear_count = db.$.clear()
   info "deleted #{clear_count} objects"
@@ -389,6 +391,73 @@ f = ( S ) ->
     ;"""
   return null
 
+#-----------------------------------------------------------------------------------------------------------
+@demo_catalog = ( db ) ->
+  for row from db.$.catalog()
+    entry = []
+    entry.push CND.grey   row.type
+    entry.push CND.white  row.name
+    entry.push CND.yellow "(#{row.tbl_name})" if row.name isnt row.tbl_name
+    info entry.join ' '
+  return null
+
+#-----------------------------------------------------------------------------------------------------------
+@demo_longest_matching_prefix = ( db ) ->
+  count = db.$.first_value db.$.query """select count(*) from uname_tokens;"""
+  info "selecting from #{count} entries in uname_tokens"
+  probes = [
+    'gr'
+    'alpha'
+    'beta'
+    'c'
+    'ca'
+    'cap'
+    'capi'
+    'omega'
+    'circ'
+    'circle'
+    ]
+  for probe in probes
+    info ( CND.grey '--------------------------------------------------------' )
+    nr = 0
+    #.......................................................................................................
+    for row from db.longest_matching_prefix_in_uname_tokens { q: probe, limit: 10, }
+      nr += +1
+      # info probe, ( xrpr row )
+      info ( CND.grey nr ), ( CND.grey row.delta_length ), ( CND.blue probe ), ( CND.grey '->' ), ( CND.lime row.uname_token )
+    #.......................................................................................................
+    table = 'uname_tokens'
+    field = 'uname_token'
+    chrs  = Array.from db.$.first_value db.next_characters { prefix: probe, table, field, }
+    info probe, '...', ( chrs.join ' ' )
+  #.........................................................................................................
+  return null
+
+#-----------------------------------------------------------------------------------------------------------
+@demo_nextchr = ( db ) ->
+  #.........................................................................................................
+  # whisper '-'.repeat 108
+  # for row from db.$.query """select * from unicode_test;"""
+  #   info ( xrpr row )
+  #.........................................................................................................
+  whisper '-'.repeat 108
+  probes = [
+    '-'
+    'っ'
+    'か'
+    '\\'
+    'ku'
+    'a'
+    'x' ]
+  # table = 'unicode_test'
+  table = 'unicode_test_with_end_markers'
+  field = 'word'
+  for probe in probes
+    chrs  = Array.from db.$.first_value db.next_characters { prefix: probe, table, field, }
+    info probe, '...', ( chrs.join ' ' )
+  #.........................................................................................................
+  return null
+
 
 
 ############################################################################################################
@@ -407,9 +476,12 @@ unless module.parent?
     #   where word is not null
     #   ;
     #   """
-    # IME.demo_spellfix               db
-    # IME.demo_fts5_broken_phrases    db
-    IME.demo_json                   db
+    # IME.demo_spellfix                 db
+    # IME.demo_fts5_broken_phrases      db
+    # IME.demo_json                     db
+    # IME.demo_catalog                  db
+    IME.demo_longest_matching_prefix  db
+    # IME.demo_nextchr                  db
     return null
 
 
