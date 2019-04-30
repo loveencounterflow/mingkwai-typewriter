@@ -78,12 +78,13 @@ as_sql = ( x ) ->
 
 #-----------------------------------------------------------------------------------------------------------
 @$as_sql = =>
-  first = Symbol 'first'
-  last  = Symbol 'last'
+  first           = Symbol 'first'
+  last            = Symbol 'last'
+  is_first_record = true
   return $ { first, last, }, ( record, send ) =>
     #.......................................................................................................
     if record is first
-      send "insert into dictionary ( readings, candidates, glosses ) values"
+      send "insert into edict2u ( reading, candidate, glosses ) values"
     #.......................................................................................................
     else if record is last
       send ";"
@@ -95,7 +96,11 @@ as_sql = ( x ) ->
       return null unless readings?
       for reading in readings
         for candidate in candidates
-          send "( #{as_sql reading}, #{as_sql candidate}, #{as_sql glosses} )"
+          if is_first_record
+            is_first_record = false
+            send "( #{as_sql reading}, #{as_sql candidate}, #{as_sql glosses} )"
+          else
+            send ",( #{as_sql reading}, #{as_sql candidate}, #{as_sql glosses} )"
   #.........................................................................................................
   return null
 
@@ -107,7 +112,7 @@ as_sql = ( x ) ->
   # pipeline.push $ ( triode, send ) => send triode.as_js_module_text()
   pipeline.push @$as_sql()
   pipeline.push @$as_line()
-  pipeline.push PD.$show()
+  # pipeline.push PD.$show()
   pipeline.push PD.write_to_file target_path
   return PD.$tee PD.pull pipeline...
 
@@ -121,7 +126,7 @@ as_sql = ( x ) ->
     pipeline = []
     pipeline.push PD.read_from_file settings.source_path
     pipeline.push PD.$split()
-    pipeline.push PD.$sample 20 / 183000 #, seed: 12
+    # pipeline.push PD.$sample 20 / 183000 #, seed: 12
     pipeline.push @$split_fields()
     # pipeline.push $ ( line, send ) -> send line.replace /\s+$/, '\n' # prepare for line-splitting in WSV reader
     # pipeline.push PD.$split_wsv 3

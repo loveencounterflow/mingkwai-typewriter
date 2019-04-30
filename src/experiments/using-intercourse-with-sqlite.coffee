@@ -15,6 +15,7 @@ whisper                   = CND.get_logger 'whisper',   badge
 echo                      = CND.echo.bind CND
 #...........................................................................................................
 PATH                      = require 'path'
+# FS                        = require 'fs'
 PD                        = require 'pipedreams'
 { $
   $async
@@ -29,6 +30,7 @@ xrpr                      = ( x ) -> inspect x, { colors: yes, breakLength: Infi
 xrpr2                     = ( x ) -> inspect x, { colors: yes, breakLength: 80,       maxArrayLength: Infinity, depth: Infinity, }
 #...........................................................................................................
 ICQL                      = require 'icql'
+INTERTYPE                 = require '../types'
 
 
 #-----------------------------------------------------------------------------------------------------------
@@ -458,6 +460,18 @@ f = ( S ) ->
   #.........................................................................................................
   return null
 
+#-----------------------------------------------------------------------------------------------------------
+@demo_edict2u = ( db ) ->
+  # debug INTERTYPE.all_keys_of db.$
+  db.create_table_edict2u()
+  console.time 'populate-edict2u'
+  path = join_path __dirname, '../../.cache/edict2u.sql'
+  help "reading #{PATH.relative process.cwd(), path}"
+  db.$.read path
+  console.timeEnd 'populate-edict2u'
+  #.........................................................................................................
+  return null
+
 
 
 ############################################################################################################
@@ -480,11 +494,9 @@ unless module.parent?
     # IME.demo_fts5_broken_phrases      db
     # IME.demo_json                     db
     # IME.demo_catalog                  db
-    IME.demo_longest_matching_prefix  db
+    # IME.demo_longest_matching_prefix  db
+    IME.demo_edict2u                  db
     # IME.demo_nextchr                  db
     return null
-
-
-
 
 

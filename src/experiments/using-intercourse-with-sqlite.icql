@@ -29,6 +29,14 @@ procedure create_view_unicode_test_with_end_markers:
       word || '$' as word
     from unicode_test;
 
+-- ---------------------------------------------------------------------------------------------------------
+procedure create_table_edict2u:
+  drop table if exists edict2u;
+  create table edict2u (
+      reading       text not null,
+      candidate     text not null,
+      glosses       text );
+
 
 -- =========================================================================================================
 -- FTS5
@@ -397,7 +405,7 @@ query longest_matching_prefix_in_uname_tokens( q, limit ):
       length( r1.uname_token )      as length_of_r
     from uname_tokens as r1
     where false
-      -- or ( $q like ( uname_token || '%' ) )
+      or ( $q like ( uname_token || '%' ) )
       or ( uname_token like ( $q || '%' ) )
       )
     select
