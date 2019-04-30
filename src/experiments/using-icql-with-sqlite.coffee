@@ -5,7 +5,7 @@
 ############################################################################################################
 CND                       = require 'cnd'
 rpr                       = CND.rpr
-badge                     = 'IME/EXPERIMENTS/ICQL+SQLITE'
+badge                     = '明快打字机/EXPERIMENTS/ICQL+SQLITE'
 debug                     = CND.get_logger 'debug',     badge
 warn                      = CND.get_logger 'warn',      badge
 info                      = CND.get_logger 'info',      badge
@@ -458,7 +458,29 @@ INTERTYPE                 = require '../types'
   path = join_path __dirname, '../../.cache/edict2u.sql'
   help "reading #{PATH.relative process.cwd(), path}"
   db.$.read path
+  help "creating indexes"
+  db.create_indexes_for_table_edict2u()
   console.timeEnd 'populate-edict2u'
+  probes = [
+    # 'ち'
+    # 'ちゅ'
+    # 'ちゅう'
+    # 'ちゅうご'
+    'ちゅうごく'
+    # 'ちゅうごくの'
+    # 'ちゅうごくのせ'
+    # 'ちゅうごくのせい'
+    'ちゅうごくのせいふ'
+    ]
+  limit = 5
+  for probe in probes
+    whisper '-'.repeat 108
+    nr = 0
+    for row from db.longest_matching_prefix_in_edict2u { q: probe, limit, }
+      nr += +1
+      info ( CND.grey nr ), ( CND.grey row.delta_length ), ( CND.blue probe ), ( CND.grey '->' ), ( CND.lime row.candidate )
+  for row from db.$.query "select * from edict2u where reading like 'ちゅうごく%' order by reading limit 5;"
+    info row.candidate
   #.........................................................................................................
   return null
 

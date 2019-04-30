@@ -411,8 +411,7 @@ query longest_matching_prefix_in_uname_tokens( q, limit ):
     from uname_tokens as r1
     where false
       or ( $q like ( uname_token || '%' ) )
-      or ( uname_token like ( $q || '%' ) )
-      )
+      or ( uname_token like ( $q || '%' ) ) )
     select
         v1.uname_token              as uname_token,
         v1.length_of_q              as length_of_q,
