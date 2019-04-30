@@ -22,11 +22,12 @@ PD                        = require 'pipedreams'
   select }                = PD
 { assign
   jr }                    = CND
-TRIODE                    = require 'triode'
+JACONV                    = require 'jaconv'
 @_drop_extension          = ( path ) -> path[ ... path.length - ( PATH.extname path ).length ]
 types                     = require '../types'
 { isa
   validate
+  declare
   size_of
   type_of }               = types
 #...........................................................................................................
@@ -77,47 +78,108 @@ as_sql = ( x ) ->
     send { candidates, readings, glosses, }
 
 #-----------------------------------------------------------------------------------------------------------
+declare 'edict2u_plural_row',
+  tests:
+    '? is an object':           ( x ) -> @isa.object   x
+    '? has keys':               ( x ) -> @has_keys x, 'readings', 'candidates', 'glosses'
+    '?.readings is a *list':    ( x ) -> ( not x.readings? ) or @isa.list x.readings
+    '?.candidates is a list':   ( x ) -> @isa.list x.candidates
+    '?.glosses is a text':      ( x ) -> @isa.text x.glosses
+
+#-----------------------------------------------------------------------------------------------------------
+declare 'edict2u_singular_row',
+  tests:
+    '? is an object':           ( x ) -> @isa.object   x
+    '? has keys':               ( x ) -> @has_keys x, 'reading', 'candidate', 'glosses'
+    '?.reading is a text':      ( x ) -> @isa.text x.reading
+    '?.candidate is a text':    ( x ) -> @isa.text x.candidate
+    '?.glosses is a text':      ( x ) -> @isa.text x.glosses
+
+#-----------------------------------------------------------------------------------------------------------
+@$fan_out = =>
+  return $ ( row, send ) =>
+    validate.edict2u_plural_row row
+    return null unless row.readings?
+    for reading in row.readings
+      for candidate in row.candidates
+        send { reading, candidate, glosses: row.glosses, }
+    return null
+
+#-----------------------------------------------------------------------------------------------------------
+@$normalize = =>
+  return PD.$watch ( row ) =>
+    validate.edict2u_singular_row row
+    row.reading   = JACONV.toHanAscii row.reading
+    row.candidate = JACONV.toHanAscii row.candidate
+    return null
+
+#-----------------------------------------------------------------------------------------------------------
+@$remove_annotations = =>
+  pattern = /[-(\[,;.:#~+*\])]/
+  return PD.$watch ( row ) =>
+    validate.edict2u_singular_row row
+    row.reading   = row.reading.replace     /\(gikun|ateji|P|io|gikun|ok|\)/g,     ''
+    row.candidate = row.candidate.replace   /\(gikun|ateji|P|io|gikun|ok|\)/g,     ''
+    # help 'µ43993', 'reading:    ', row.reading   if ( row.reading.match    pattern )?
+    # urge 'µ43993', 'candidate:  ', row.candidate if ( row.candidate.match  pattern )?
+    return null
+
+#-----------------------------------------------------------------------------------------------------------
+@$remove_duplicates = =>
+  seen  = new Set()
+  count = 0
+  last  = Symbol 'last'
+  return $ ( row, send ) =>
+    if row is last
+      help "µ33392 skipped #{count} duplicates"
+      return null
+    validate.edict2u_singular_row row
+    key = "#{row.reading}\x00#{row.candidate}"
+    if seen.has key
+      count += +1
+      # whisper "duplicate: #{rpr key}"
+      return null
+    seen.add key
+    send row
+
+#-----------------------------------------------------------------------------------------------------------
 @$as_sql = =>
   first           = Symbol 'first'
   last            = Symbol 'last'
   is_first_record = true
-  return $ { first, last, }, ( record, send ) =>
+  return $ { first, last, }, ( row, send ) =>
     #.......................................................................................................
-    if record is first
+    if row is first
       send "insert into edict2u ( reading, candidate, glosses ) values"
     #.......................................................................................................
-    else if record is last
+    else if row is last
       send ";"
     #.......................................................................................................
     else
-      { candidates
-        readings
-        glosses   } = record
-      return null unless readings?
-      for reading in readings
-        for candidate in candidates
-          if is_first_record
-            is_first_record = false
-            send "( #{as_sql reading}, #{as_sql candidate}, #{as_sql glosses} )"
-          else
-            send ",( #{as_sql reading}, #{as_sql candidate}, #{as_sql glosses} )"
+      validate.edict2u_singular_row row
+      if is_first_record
+        is_first_record = false
+        send "( #{as_sql row.reading}, #{as_sql row.candidate}, #{as_sql row.glosses} )"
+      else
+        send ",( #{as_sql row.reading}, #{as_sql row.candidate}, #{as_sql row.glosses} )"
   #.........................................................................................................
   return null
 
 #-----------------------------------------------------------------------------------------------------------
 @$write_sql = ( target_path ) =>
   pipeline = []
-  # pipeline.push @$distill_traditional()
-  # pipeline.push @$feed_triode()
-  # pipeline.push $ ( triode, send ) => send triode.as_js_module_text()
   pipeline.push @$as_sql()
   pipeline.push @$as_line()
-  # pipeline.push PD.$show()
   pipeline.push PD.write_to_file target_path
   return PD.$tee PD.pull pipeline...
 
 #-----------------------------------------------------------------------------------------------------------
 @write_dictionary = ( settings ) -> new Promise ( resolve, reject ) =>
+  ### TAINT normalize fullwidth characters ###
+  ### TAINT remove annotations from readings (e.g. 'おひいさま(ok)') ###
+  ### TAINT recognize, repair conflated entries like
+    一昨年(P);おと年 [いっさくねん(一昨年)(P);おととし(P)] /(n-adv,n-t) year before last/(P)/EntL1576060X/
+  ###
   target_filename   = ( @_drop_extension PATH.basename settings.source_path ) + '.sql'
   target_path       = PATH.resolve PATH.join __dirname, '../../.cache', target_filename
   help "translating #{rpr PATH.relative process.cwd(), settings.source_path}"
@@ -128,11 +190,12 @@ as_sql = ( x ) ->
     pipeline.push PD.$split()
     # pipeline.push PD.$sample 20 / 183000 #, seed: 12
     pipeline.push @$split_fields()
-    # pipeline.push $ ( line, send ) -> send line.replace /\s+$/, '\n' # prepare for line-splitting in WSV reader
-    # pipeline.push PD.$split_wsv 3
-    # pipeline.push @$split_pinyin_and_gloss()
-    # pipeline.push @$cleanup_pinyin()
+    pipeline.push @$fan_out()
+    pipeline.push @$normalize()
+    pipeline.push @$remove_annotations()
+    pipeline.push @$remove_duplicates()
     pipeline.push @$write_sql target_path
+    # pipeline.push @$populate_db()
     pipeline.push PD.$drain =>
       help "wrote output to #{rpr PATH.relative process.cwd(), target_path}"
       resolve()
