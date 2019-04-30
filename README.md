@@ -101,7 +101,7 @@ without having to fork the project). This linking step can be repeated by runnin
   Kana, a probe `k` matches all of `ka`, `ke`, `ki`, `kka`, `kke`, `kki`, `kko`, `kku`, `kkya`, `kkyo`,
   `kkyu`, `ko`, `ku`, `kya`, `kyo`, `kyu`; when whittled down to the choices there are among the very next
   letter, this set may be reduced to `ka-`, `ke-`, `ki-`, `kk-`, `ko-`, `ku-`, `ky-`; this entails that
-  progressing with anything but `a`, `e`, `i`, `k`, `o`, `u`, `y` will—barring fuzzy matching, certainly
+  progressing with anything but `a`, `e`, `i`, `k`, `o`, `u`, `y` will—barring fuzzy matching—certainly
   *not* lead to a result. Likewise, having typed `circ` into a search against Unicode character names (see
   example above) means the next letter must be either `l` or `u`.
 
