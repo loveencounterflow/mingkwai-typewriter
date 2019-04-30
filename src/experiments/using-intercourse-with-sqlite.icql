@@ -37,6 +37,11 @@ procedure create_table_edict2u:
       candidate     text not null,
       glosses       text );
 
+-- ---------------------------------------------------------------------------------------------------------
+procedure create_indexes_for_table_edict2u:
+  create        index idx_edict2u_reading            on edict2u ( reading );
+  create        index idx_edict2u_candidate          on edict2u ( candidate );
+  create unique index idx_edict2u_reading_candidate  on edict2u ( reading, candidate );
 
 -- =========================================================================================================
 -- FTS5
