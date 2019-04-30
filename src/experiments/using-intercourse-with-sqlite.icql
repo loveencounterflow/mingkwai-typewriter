@@ -38,7 +38,7 @@ procedure fts5_create_and_populate_token_tables():
   create virtual table fts5_unames_cs using fts5(
     input,
     output,
-    tokenize = "asciics" );
+    tokenize = "ascii" );
   -- .......................................................................................................
   create virtual table fts5_unames_cs_vocab using fts5vocab( 'fts5_unames_cs', 'row' );
   -- .......................................................................................................

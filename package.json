@@ -14,12 +14,13 @@
     "guy-test": "^1.4.0"
   },
   "dependencies": {
+    "better-sqlite3": "^5.4.0",
     "clipboardy": "^2.0.0",
     "cnd": "^4.5.0",
     "coffeenode-teacup": "^0.2.0",
     "csv-parser": "^2.2.0",
-    "electron-context-menu": "^0.12.0",
-    "icql": "^1.2.0",
+    "electron-context-menu": "^0.12.1",
+    "icql": "^1.3.0",
     "interflug": "^0.3.0",
     "intertype": "^2.1.0",
     "jaconv": "^1.0.4",
