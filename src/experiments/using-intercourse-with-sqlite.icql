@@ -418,6 +418,28 @@ query longest_matching_prefix_in_uname_tokens( q, limit ):
     limit $limit;
 
 -- ---------------------------------------------------------------------------------------------------------
+query longest_matching_prefix_in_edict2u( q, limit ):
+  with v1 as ( select
+      r1.reading                    as reading,
+      r1.candidate                  as candidate,
+      length( $q )                  as length_of_q,
+      length( r1.reading )          as length_of_r
+    from edict2u as r1
+    where false
+      -- or ( $q like ( reading || '%' ) )
+      or ( reading like ( $q || '%' ) )
+      )
+    select
+        v1.reading                  as reading,
+        v1.candidate                as candidate,
+        v1.length_of_q              as length_of_q,
+        v1.length_of_r              as length_of_r,
+        abs( v1.length_of_q - v1.length_of_r ) as delta_length
+      from v1
+    order by delta_length, reading
+    limit $limit;
+
+-- ---------------------------------------------------------------------------------------------------------
 query next_characters( prefix, table, field ):
   select next_char( $prefix, $table, $field )
   ;
