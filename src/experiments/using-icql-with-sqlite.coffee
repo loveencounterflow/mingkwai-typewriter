@@ -32,16 +32,6 @@ xrpr2                     = ( x ) -> inspect x, { colors: yes, breakLength: 80, 
 ICQL                      = require 'icql'
 INTERTYPE                 = require '../types'
 
-
-#-----------------------------------------------------------------------------------------------------------
-f = ( S ) ->
-  source    = PD.new_push_source()
-  pipeline  = []
-  pipeline.push source
-  pipeline.push PD.$show()
-  pipeline.push PD.$drain()
-  PD.pull pipeline...
-
 #-----------------------------------------------------------------------------------------------------------
 @get_settings = ->
   ### TAINT path within node_modules might differ ###
