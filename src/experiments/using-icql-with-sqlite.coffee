@@ -31,37 +31,10 @@ xrpr2                     = ( x ) -> inspect x, { colors: yes, breakLength: 80, 
 #...........................................................................................................
 ICQL                      = require 'icql'
 INTERTYPE                 = require '../types'
+DB                        = require '../db'
 
 #-----------------------------------------------------------------------------------------------------------
-@get_settings = ->
-  ### TAINT path within node_modules might differ ###
-  ### TAINT extensions should conceivably be configured in `*.icql` file or similar ###
-  # R.db_path   = join_path __dirname, '../../db/data.db'
-  R                 = {}
-  R.connector       = require 'better-sqlite3'
-  R.sqlitemk_path   = join_path __dirname, '../../../../sqlite-for-mingkwai-ime'
-  R.db_path         = join_path __dirname, '../../src/experiments/using-intercourse-with-sqlite.db'
-  R.icql_path       = join_path __dirname, '../../src/experiments/using-intercourse-with-sqlite.icql'
-  return R
-
-#-----------------------------------------------------------------------------------------------------------
-@new_db = ->
-  settings  = @get_settings()
-  db        = ICQL.bind settings
-  # db        = await ICQL.bind settings
-  db.$.load join_path settings.sqlitemk_path, 'extensions/csv.so'
-  db.$.load join_path settings.sqlitemk_path, 'extensions/spellfix.so'
-  db.$.load join_path settings.sqlitemk_path, 'extensions/regexp.so'
-  db.$.load join_path settings.sqlitemk_path, 'extensions/series.so'
-  db.$.load join_path settings.sqlitemk_path, 'extensions/nextchar.so'
-  # db.$.load join_path settings.sqlitemk_path, 'extensions/stmt.so'
-  db.$.pragma 'foreign_keys = on'
-  db.$.pragma 'synchronous = off' ### see https://sqlite.org/pragma.html#pragma_synchronous ###
-  # info row for row in db.$.all_rows db.$.catalog()
-  clear_count = db.$.clear()
-  info "deleted #{clear_count} objects"
-  @create_db_functions db
-  # @add_functions db
+@_prepare_db = ( db ) ->
   db.import_table_unames()
   db.import_table_uname_tokens()
   db.import_table_unicode_test()
@@ -70,80 +43,7 @@ INTERTYPE                 = require '../types'
   db.spellfix_create_editcosts()
   db.spellfix_create_and_populate_token_tables()
   db.spellfix_populate_custom_codes()
-  return db
-
-#-----------------------------------------------------------------------------------------------------------
-@create_db_functions = ( db ) ->
-  # db.$.function 'add_spellfix_confusable', ( a, b ) ->
-  # db.$.function 'spellfix1_phonehash', ( x ) ->
-  #   debug '23363', x
-  #   return x.toUpperCase()
   #.........................................................................................................
-  db.$.function 'echo', { deterministic: false, varargs: true }, ( P... ) ->
-    urge ( CND.grey 'DB' ), P...
-    return null
-  #.........................................................................................................
-  db.$.function 'e', { deterministic: false, varargs: false }, ( x ) ->
-    urge ( CND.grey 'DB' ), rpr x
-    return x
-  #.........................................................................................................
-  db.$.function 'plus', { deterministic: true, varargs: false }, ( a, b ) ->
-    debug '33444', a, b
-    return a + b
-  #.........................................................................................................
-  db.$.function 'contains_word', { deterministic: true, varargs: false }, ( text, probe ) ->
-    return if ( ( ' ' + text + ' ' ).indexOf ' ' + probe + ' ' ) > -1 then 1 else 0
-  #.........................................................................................................
-  db.$.function 'get_words', { deterministic: true, varargs: false }, ( text ) ->
-    JSON.stringify ( word for word in text.split /\s+/ when word isnt '' )
-  #.........................................................................................................
-  db.$.function 'get_nth_word', { deterministic: true, varargs: false }, ( text, nr ) ->
-    ### NB SQLite has no string aggregation, no string splitting, and in general does not implement
-    table-returning user-defined functions (except in C, see the `prefixes` extension). Also, you can't
-    modify tables from within a UDF because the connection is of course busy executing the UDF.
-
-    As a consequence, it is well-nigh impossible to split strings to rows in a decent manner. You could
-    probably write a 12-liner with a recursive CTE each time you want to split a string. Unnecessary to
-    mention that SQLite does not support putting *that* thing into a UDF (because those can't return
-    anything except a single atomic value). It's a whack-a-mole game of missing pieces really.
-
-    The only ways out that I can see are either (1) preparing your data in the application code in such a
-    way that you never have to perform string splitting in the DB, or else (2) write functions like this
-    that accept a regular argument and a counter, query with a reasonable maximum counter value, and discard
-    all invalid rows:
-
-    ```sql
-    select
-        get_nth_word( 'helo world whassup', gs.value ) as word
-      from generate_series( 1, 10 ) as gs
-      where word is not null;
-    ```
-
-    Performance of this particular function could be improved by adding a small, short-lived cache, but I
-    guess that will be counterproductive as long as the texts to split are unlikely to contain more than a
-    very few words.
-
-    **Update** Turns out the `json1` extension can help out:
-
-    ```coffee
-    db.$.function 'get_words', { deterministic: true, varargs: false }, ( text ) ->
-      JSON.stringify ( word for word in text.split /\s+/ when word isnt '' )
-    ```
-
-    ```sql
-    select
-        id    as nr,
-        value as word
-      from
-        json_each(
-          json(
-            get_words( 'helo world these are many words' ) ) );
-    ```
-
-
-    ###
-    parts = text.split /\s+/
-    return parts[ nr - 1 ] ? null
   return null
 
 #-----------------------------------------------------------------------------------------------------------
@@ -479,8 +379,8 @@ INTERTYPE                 = require '../types'
     for row from db.longest_matching_prefix_in_edict2u { q: probe, limit, }
       nr += +1
       info ( CND.grey nr ), ( CND.grey row.delta_length ), ( CND.blue probe ), ( CND.grey '->' ), ( CND.lime row.candidate )
-  for row from db.$.query "select * from edict2u where reading like 'ちゅうごく%' order by reading limit 5;"
-    info row.candidate
+  # for row from db.$.query "select * from edict2u where reading like 'ちゅうごく%' order by reading limit 5;"
+  #   info row.candidate
   #.........................................................................................................
   return null
 
@@ -503,13 +403,13 @@ unless module.parent?
     #   where word is not null
     #   ;
     #   """
-    # IME.demo_spellfix                 db
-    # IME.demo_fts5_broken_phrases      db
-    # IME.demo_json                     db
-    # IME.demo_catalog                  db
-    # IME.demo_longest_matching_prefix  db
-    IME.demo_edict2u                  db
-    # IME.demo_nextchr                  db
+    # DEMO.demo_spellfix                 db
+    # DEMO.demo_fts5_broken_phrases      db
+    # DEMO.demo_json                     db
+    # DEMO.demo_catalog                  db
+    # DEMO.demo_longest_matching_prefix  db
+    DEMO.demo_edict2u                  db
+    # DEMO.demo_nextchr                  db
     return null
 
 
