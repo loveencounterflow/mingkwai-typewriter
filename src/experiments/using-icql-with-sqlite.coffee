@@ -488,12 +488,13 @@ INTERTYPE                 = require '../types'
 
 ############################################################################################################
 unless module.parent?
-  IME = @
+  DEMO = @
   do ->
-    db = IME.new_db()
-    # db = await IME.new_db()
-    # IME.demo_uname_tokens db
-    # IME.demo_fts5_token_phrases     db
+    db = DB.new_db { clear: true, }
+    DEMO._prepare_db db
+    # db = await DEMO.new_db()
+    # DEMO.demo_uname_tokens db
+    # DEMO.demo_fts5_token_phrases     db
     # urge '33342', db.$.first_value db.$.query """select plus( 34, 56 );"""
     # urge '33342', db.$.first_value db.$.query """select e( plus( 'here', 'there' ) );"""
     # info row for row from db.$.query """
