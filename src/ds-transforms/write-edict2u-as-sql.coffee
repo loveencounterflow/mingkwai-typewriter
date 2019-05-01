@@ -98,7 +98,6 @@ declare 'edict2u_singular_row',
 #-----------------------------------------------------------------------------------------------------------
 @$fan_out = =>
   return $ ( row, send ) =>
-    validate.edict2u_plural_row row
     return null unless row.readings?
     for reading in row.readings
       for candidate in row.candidates
@@ -106,9 +105,12 @@ declare 'edict2u_singular_row',
     return null
 
 #-----------------------------------------------------------------------------------------------------------
+@$validate_plural_row   = PD.$watch ( row ) => validate.edict2u_plural_row   row
+@$validate_singular_row = PD.$watch ( row ) => validate.edict2u_singular_row row
+
+#-----------------------------------------------------------------------------------------------------------
 @$normalize = =>
   return PD.$watch ( row ) =>
-    validate.edict2u_singular_row row
     row.reading   = JACONV.toHanAscii row.reading
     row.candidate = JACONV.toHanAscii row.candidate
     return null
@@ -117,7 +119,6 @@ declare 'edict2u_singular_row',
 @$remove_annotations = =>
   pattern = /[-(\[,;.:#~+*\])]/
   return PD.$watch ( row ) =>
-    validate.edict2u_singular_row row
     row.reading   = row.reading.replace     /\(gikun|ateji|P|io|gikun|ok|\)/g,     ''
     row.candidate = row.candidate.replace   /\(gikun|ateji|P|io|gikun|ok|\)/g,     ''
     # help 'µ43993', 'reading:    ', row.reading   if ( row.reading.match    pattern )?
@@ -133,7 +134,6 @@ declare 'edict2u_singular_row',
     if row is last
       help "µ33392 skipped #{count} duplicates"
       return null
-    validate.edict2u_singular_row row
     key = "#{row.reading}\x00#{row.candidate}"
     if seen.has key
       count += +1
@@ -156,7 +156,6 @@ declare 'edict2u_singular_row',
       send ";"
     #.......................................................................................................
     else
-      validate.edict2u_singular_row row
       if is_first_record
         is_first_record = false
         send "( #{as_sql row.reading}, #{as_sql row.candidate}, #{as_sql row.glosses} )"
@@ -190,7 +189,9 @@ declare 'edict2u_singular_row',
     pipeline.push PD.$split()
     # pipeline.push PD.$sample 20 / 183000 #, seed: 12
     pipeline.push @$split_fields()
+    pipeline.push @$validate_plural_row()
     pipeline.push @$fan_out()
+    pipeline.push @$validate_singular_row()
     pipeline.push @$normalize()
     pipeline.push @$remove_annotations()
     pipeline.push @$remove_duplicates()
