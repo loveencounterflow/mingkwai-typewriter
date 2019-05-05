@@ -30,11 +30,14 @@ PD                        = require 'pipedreams'
 
 #-----------------------------------------------------------------------------------------------------------
 ### TAINT compare filedates, refresh cache ###
+t0  = Date.now()
 @load_kbd = -> require '../../.cache/jp_kana.kbd.js'
 @load_cdt = -> require '../../.cache/jp_kana.cdt.js'
   # return require '../../.cache/gr_gr.keyboard.wsv.js'
 transcribe      = @load_kbd()
 hiragana_triode = @load_cdt()
+t1  = Date.now()
+debug 'µ33345', "took #{t1 - t0}ms to load #{@display_name}"
 
 #-----------------------------------------------------------------------------------------------------------
 @transcribe = ( text ) ->

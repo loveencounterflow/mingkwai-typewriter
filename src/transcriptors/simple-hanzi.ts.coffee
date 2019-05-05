@@ -35,7 +35,7 @@ XXX_SETTINGS =
   t0  = Date.now()
   R   = require '../../.cache/cedict_ts.cdt.js'
   t1  = Date.now()
-  debug 'µ33344', "took #{t1 - t0}ms to load dictionary"
+  debug 'µ33344', "took #{t1 - t0}ms to load #{@display_name}"
   return R
 kanji_triode = @load_candidates()
 
