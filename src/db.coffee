@@ -85,25 +85,30 @@ INTERTYPE                 = require './types'
   # db.$.function 'spellfix1_phonehash', ( x ) ->
   #   debug '23363', x
   #   return x.toUpperCase()
-  #.........................................................................................................
+
+  #---------------------------------------------------------------------------------------------------------
   db.$.function 'echo', { deterministic: false, varargs: true }, ( P... ) ->
+    ### Output text to command line. ###
+    ### TAINT consider to use logging method to output to app console. ###
     urge ( CND.grey 'DB' ), P...
     return null
-  #.........................................................................................................
+
+  #---------------------------------------------------------------------------------------------------------
   db.$.function 'e', { deterministic: false, varargs: false }, ( x ) ->
+    ### Output text to command line, but returns single input value so can be used within an expression. ###
     urge ( CND.grey 'DB' ), rpr x
     return x
-  #.........................................................................................................
-  db.$.function 'plus', { deterministic: true, varargs: false }, ( a, b ) ->
-    debug '33444', a, b
-    return a + b
-  #.........................................................................................................
+
+  #---------------------------------------------------------------------------------------------------------
   db.$.function 'contains_word', { deterministic: true, varargs: false }, ( text, probe ) ->
     return if ( ( ' ' + text + ' ' ).indexOf ' ' + probe + ' ' ) > -1 then 1 else 0
-  #.........................................................................................................
+
+  #---------------------------------------------------------------------------------------------------------
   db.$.function 'get_words', { deterministic: true, varargs: false }, ( text ) ->
+    ### Given a text, return a JSON array with words (whitespace-separated non-empty substrings). ###
     JSON.stringify ( word for word in text.split /\s+/ when word isnt '' )
-  #.........................................................................................................
+
+  #---------------------------------------------------------------------------------------------------------
   db.$.function 'get_nth_word', { deterministic: true, varargs: false }, ( text, nr ) ->
     ### NB SQLite has no string aggregation, no string splitting, and in general does not implement
     table-returning user-defined functions (except in C, see the `prefixes` extension). Also, you can't
@@ -114,9 +119,11 @@ INTERTYPE                 = require './types'
     anything except a single atomic value).
 
     **Update** Turns out the `json1` extension can help out; see the `get_words()` UDF. ###
+    ### TAINT to be deprecated in favor of `get_words()` ###
     parts = text.split /\s+/
     return parts[ nr - 1 ] ? null
-  #.........................................................................................................
+
+  #---------------------------------------------------------------------------------------------------------
   return null
 
 
