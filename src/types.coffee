@@ -64,6 +64,94 @@ itself in the upcoming PipeDreams version. ###
    #   origin: { from: { line: 0, ch: 9 }, to: { line: 0, ch: 11 } },
    #   ntext: 'か' } }
 
+#-----------------------------------------------------------------------------------------------------------
+@declare 'edict2u_plural_row',
+  tests:
+    "? is an object":                   ( x ) -> @isa.object x
+    "? has key 'readings'":             ( x ) -> @has_key x, 'readings'
+    "? has key 'candidates'":           ( x ) -> @has_key x, 'candidates'
+    "? has key 'gloss'":                ( x ) -> @has_key x, 'gloss'
+    "? has key 'line'":                 ( x ) -> @has_key x, 'line'
+    "?.readings is a *list":            ( x ) -> ( not x.readings? ) or @isa.list x.readings
+    "?.candidates is a list":           ( x ) -> @isa.list x.candidates
+    "?.gloss is a nonempty text":       ( x ) -> @isa.nonempty_text x.gloss
+    "?.line is a nonempty text":        ( x ) -> @isa.nonempty_text x.line
+
+#-----------------------------------------------------------------------------------------------------------
+@declare 'edict2u_singular_row',
+  tests:
+    "? is an object":                   ( x ) -> @isa.object x
+    "? has key 'reading'":              ( x ) -> @has_key x, 'reading'
+    "? has key 'candidate'":            ( x ) -> @has_key x, 'candidate'
+    "? has key 'gloss'":                ( x ) -> @has_key x, 'gloss'
+    "? has key 'line'":                 ( x ) -> @has_key x, 'line'
+    "?.reading is a nonempty text":     ( x ) -> @isa.nonempty_text x.reading
+    "?.candidate is a nonempty text":   ( x ) -> @isa.nonempty_text x.candidate
+    "?.gloss is a nonempty text":       ( x ) -> @isa.nonempty_text x.gloss
+    "?.line is a nonempty text":        ( x ) -> @isa.nonempty_text x.line
+
+#-----------------------------------------------------------------------------------------------------------
+regex_cid_ranges =
+  hiragana:     '[\u3041-\u3096]'
+  katakana:     '[\u30a1-\u30fa]'
+  kana:         '[\u3041-\u3096\u30a1-\u30fa]'
+  ideographic:  '[\u3006-\u3007\u3021-\u3029\u3038-\u303a\u3400-\u4db5\u4e00-\u9fef\uf900-\ufa6d\ufa70-\ufad9\u{17000}-\u{187f7}\u{18800}-\u{18af2}\u{1b170}-\u{1b2fb}\u{20000}-\u{2a6d6}\u{2a700}-\u{2b734}\u{2b740}-\u{2b81d}\u{2b820}-\u{2cea1}\u{2ceb0}-\u{2ebe0}\u{2f800}-\u{2fa1d}]'
+
+#-----------------------------------------------------------------------------------------------------------
+@declare 'text_with_hiragana',
+  tests:
+    '? is a text':              ( x ) -> @isa.text   x
+    '? has hiragana':           ( x ) -> ( x.match ///#{regex_cid_ranges.hiragana}///u )?
+
+#-----------------------------------------------------------------------------------------------------------
+@declare 'text_with_katakana',
+  tests:
+    '? is a text':              ( x ) -> @isa.text   x
+    '? has katakana':           ( x ) -> ( x.match ///#{regex_cid_ranges.katakana}///u )?
+
+#-----------------------------------------------------------------------------------------------------------
+@declare 'text_with_kana',
+  tests:
+    '? is a text':              ( x ) -> @isa.text   x
+    '? has kana':               ( x ) -> ( x.match ///#{regex_cid_ranges.kana}///u )?
+
+#-----------------------------------------------------------------------------------------------------------
+@declare 'text_with_ideographic',
+  tests:
+    '? is a text':              ( x ) -> @isa.text   x
+    '? has ideographic':        ( x ) -> ( x.match ///#{regex_cid_ranges.ideographic}///u )?
+
+#-----------------------------------------------------------------------------------------------------------
+@declare 'text_hiragana',
+  tests:
+    '? is a text':              ( x ) -> @isa.text   x
+    '? is hiragana':            ( x ) -> ( x.match ///^#{regex_cid_ranges.hiragana}+$///u )?
+
+#-----------------------------------------------------------------------------------------------------------
+@declare 'text_katakana',
+  tests:
+    '? is a text':              ( x ) -> @isa.text   x
+    '? is katakana':            ( x ) -> ( x.match ///^#{regex_cid_ranges.katakana}+$///u )?
+
+#-----------------------------------------------------------------------------------------------------------
+@declare 'text_kana',
+  tests:
+    '? is a text':              ( x ) -> @isa.text   x
+    '? is kana':                ( x ) -> ( x.match ///^#{regex_cid_ranges.kana}+$///u )?
+
+#-----------------------------------------------------------------------------------------------------------
+@declare 'text_ideographic',
+  tests:
+    '? is a text':              ( x ) -> @isa.text   x
+    '? is ideographic':         ( x ) -> ( x.match ///^#{regex_cid_ranges.ideographic}+$///u )?
+
+#-----------------------------------------------------------------------------------------------------------
+@declare 'blank_text',
+  tests:
+    '? is a text':              ( x ) -> @isa.text   x
+    '? is blank':               ( x ) -> ( x.match ///^\s*$///u )?
+
+
 ############################################################################################################
 unless module.parent?
   null
