@@ -67,6 +67,7 @@ types                     = require './types'
   #.........................................................................................................
   for filename in FS.readdirSync directory_path
     continue unless filename.endsWith '.ts.js'
+    t0  = Date.now()
     #.......................................................................................................
     tsnr                 += +1
     ts                    = {}
@@ -81,11 +82,13 @@ types                     = require './types'
     relative_path         = PATH.relative process.cwd(), ts.path
     @log "µ44755 loading transcription #{relative_path}"
     ts.module             = require ts.path
-    #.......................................................................................................
-    if ts.module.init?
-      unless ( type = CND.type_of ts.module.init ) in on_transcribe_types
-        throw new Error "µ27622 expected a function for #{relative_path}.init, got a #{type}"
-      await ts.module.init()
+    ### NOTE not used ATTB and probably not needed; transcriptors should execute any initialization code
+    on module `require`d and/or immediately prior to first use. ###
+    # #.......................................................................................................
+    # if ts.module.init?
+    #   unless ( type = CND.type_of ts.module.init ) in on_transcribe_types
+    #     throw new Error "µ27622 expected a function for #{relative_path}.init, got a #{type}"
+    #   await ts.module.init()
     #.......................................................................................................
     if ts.module.display_name?
       unless ( type = CND.type_of ts.module.display_name ) is 'text'
@@ -104,7 +107,9 @@ types                     = require './types'
     #.......................................................................................................
     S.tsnr_by_sigils[ ts.sigil ] = ts.tsnr
     S.transcriptors.push ts
-    @log "µ44755 #{filename} loaded as #{rpr ts.display_name} (TRS# #{ts.tsnr})"
+    t1  = Date.now()
+    dt  = t1 - t0
+    @log "µ44755 #{filename} loaded as #{rpr ts.display_name} (TSNR #{ts.tsnr}; took #{dt} ms)"
   #.........................................................................................................
   # info 'µ33736', S.transcriptors
   return null

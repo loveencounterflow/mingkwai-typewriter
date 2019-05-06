@@ -7,7 +7,7 @@
 ############################################################################################################
 CND                       = require 'cnd'
 rpr                       = CND.rpr
-badge                     = '明快打字机/TRANSCRIPTORS/SIMPLE-HANZI'
+badge                     = '明快打字机/TRANSCRIPTORS/edict2かな漢字変換'
 log                       = CND.get_logger 'plain',     badge
 debug                     = CND.get_logger 'debug',     badge
 info                      = CND.get_logger 'info',      badge
@@ -30,16 +30,6 @@ XXX_SETTINGS =
 @sigil        = 'か漢'
 
 #-----------------------------------------------------------------------------------------------------------
-@load_candidates = ->
-  ### TAINT compare filedates, refresh cache ###
-  t0  = Date.now()
-  R   = require '../../.cache/cedict_ts.cdt.js'
-  t1  = Date.now()
-  debug 'µ33344', "took #{t1 - t0}ms to load #{@display_name}"
-  return R
-kanji_triode = @load_candidates()
-
-#-----------------------------------------------------------------------------------------------------------
 @kanji_from_pinyin = ( text ) ->
   text            = text.toLowerCase() if XXX_SETTINGS.search_with_lower_case
   results         = kanji_triode.find text
@@ -54,10 +44,12 @@ kanji_triode = @load_candidates()
 #-----------------------------------------------------------------------------------------------------------
 @on_transcribe = ( d ) ->
   { otext, }  = d.value
-  return XE.emit PD.new_event '^candidates', { candidates: [], } if otext.length is 0
-  candidates = @kanji_from_pinyin otext
-  XE.emit PD.new_event '^candidates', assign { candidates, }, d.value
+  return null unless otext.length > 0
+  ntext       = "[#{otext}]"
+  OPS.log PD.new_event '^replace-text', assign {}, d.value, { ntext, }
+  XE.emit PD.new_event '^replace-text', assign {}, d.value, { ntext, }
   return null
+
 
 
 

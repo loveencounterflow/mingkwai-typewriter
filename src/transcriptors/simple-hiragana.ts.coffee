@@ -27,29 +27,25 @@ PD                        = require 'pipedreams'
 @display_name     = '簡単なひらがな'
 @sigil            = 'ひ'
 @focus_candidates = false
+@_transcribe      = null
+@_hiragana_triode = null
 
 #-----------------------------------------------------------------------------------------------------------
-### TAINT compare filedates, refresh cache ###
-t0  = Date.now()
-@load_kbd = -> require '../../.cache/jp_kana.kbd.js'
-@load_cdt = -> require '../../.cache/jp_kana.cdt.js'
-  # return require '../../.cache/gr_gr.keyboard.wsv.js'
-transcribe      = @load_kbd()
-hiragana_triode = @load_cdt()
-t1  = Date.now()
-debug 'µ33345', "took #{t1 - t0}ms to load #{@display_name}"
+@init = ->
+  ### TAINT compare filedates, refresh cache ###
+  @_transcribe      = require '../../.cache/jp_kana.kbd.js'
+  @_hiragana_triode = require '../../.cache/jp_kana.cdt.js'
 
 #-----------------------------------------------------------------------------------------------------------
 @transcribe = ( text ) ->
   R = ''
-  R = ( transcribe R + chr ) for chr in Array.from text
+  R = ( @_transcribe R + chr ) for chr in Array.from text
   return R
 
 #-----------------------------------------------------------------------------------------------------------
-@init = -> OPS.log "#{badge}/init()"
-
-#-----------------------------------------------------------------------------------------------------------
 @on_transcribe = ( d ) ->
+  @init() unless ( @_transcribe? and @_hiragana_triode? )
+  #.........................................................................................................
   { otext, }        = d.value
   focus_candidates  = @focus_candidates
   #.........................................................................................................
@@ -57,7 +53,7 @@ debug 'µ33345', "took #{t1 - t0}ms to load #{@display_name}"
   if otext.length is 0
     XE.emit PD.new_event '^candidates', { candidates: [], focus_candidates, }
   else
-    candidates        = ( lemma for [ transcription, lemma, ] in hiragana_triode.find otext )
+    candidates        = ( lemma for [ transcription, lemma, ] in @_hiragana_triode.find otext )
     XE.emit PD.new_event '^candidates', assign { candidates, focus_candidates, }, d.value
   #.........................................................................................................
   ### Keyboard: ###
