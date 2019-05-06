@@ -43,6 +43,17 @@ last_of   = ( x ) -> x[ ( size_of x ) - 1 ]
 @$as_line = => $ ( line, send ) => send line + '\n'
 
 #-----------------------------------------------------------------------------------------------------------
+as_hepburn = ( text ) ->
+  ### TAINT JACONV doesn't correctly transcribe some Kana; this is to remediate that. Choose a better
+  library for the purpose. ###
+  R = JACONV.toHebon text
+  R = R.replace /ゅ/g, 'YU'
+  R = R.replace /ゃ/g, 'YA'
+  R = R.replace /ょ/g, 'YO'
+  R = R.replace /ゎ/g, 'WA'
+  return R
+
+#-----------------------------------------------------------------------------------------------------------
 as_sql = ( x ) ->
   validate.text x
   R = x
@@ -120,12 +131,36 @@ as_sql = ( x ) ->
 @$validate_singular_row = => PD.$watch ( row ) => validate.edict2u_singular_row row
 
 #-----------------------------------------------------------------------------------------------------------
-@$normalize = =>
+@$normalize_ascii_and_kana = =>
   return PD.$watch ( row ) =>
     return null unless isa.edict2u_singular_row row
     row.reading   = JACONV.toHanAscii row.reading
     row.reading   = JACONV.toHiragana row.reading
     row.candidate = JACONV.toHanAscii row.candidate
+    return null
+
+#-----------------------------------------------------------------------------------------------------------
+@$normalize_choonpu = =>
+  ### Supplement spellings that have a chōonpu (長音符; chōonkigō 長音記号, onbiki 音引き, bōbiki 棒引き)
+  with spellings that use the corresponding Hiragana vowel, so ぷーたろー is supplemented by ぷうたろう and
+  so on. ###
+  choon_kana_from_hepburn =
+    A: 'あ'
+    I: 'い'
+    U: 'う'
+    E: 'い'
+    O: 'う'
+  mapping = {}
+  #.........................................................................................................
+  return $ ( row, send ) =>
+    send row
+    return null unless isa.edict2u_singular_row row
+    { reading, } = row
+    reading = reading.replace /(.)ー/gu, ( $0, $1 ) =>
+      unless ( R = mapping[ $1 ] )?
+        R = mapping[ $1 ] = $1 + ( choon_kana_from_hepburn[ last_of ( as_hepburn $1 ) ] ? '' )
+      return R
+    send { row..., reading, } if reading isnt row.reading
     return null
 
 #-----------------------------------------------------------------------------------------------------------
@@ -199,7 +234,6 @@ as_sql = ( x ) ->
   last            = Symbol 'last'
   is_first_record = true
   return $ { first, last, }, ( row, send ) =>
-    return unless isa.edict2u_singular_row row
     #.......................................................................................................
     if row is first
       send "insert into edict2u ( reading, candidate, gloss ) values"
@@ -207,12 +241,10 @@ as_sql = ( x ) ->
     else if row is last
       send ";"
     #.......................................................................................................
-    else
-      if is_first_record
-        is_first_record = false
-        send "( #{as_sql row.reading}, #{as_sql row.candidate}, #{as_sql row.gloss} )"
-      else
-        send ",( #{as_sql row.reading}, #{as_sql row.candidate}, #{as_sql row.gloss} )"
+    else if isa.edict2u_singular_row row
+      comma = if is_first_record then '' else ','
+      is_first_record = false
+      send "#{comma}( #{as_sql row.reading}, #{as_sql row.candidate}, #{as_sql row.gloss} )"
   #.........................................................................................................
   return null
 
@@ -226,33 +258,6 @@ as_sql = ( x ) ->
 
 #-----------------------------------------------------------------------------------------------------------
 @write_dictionary = ( settings ) -> new Promise ( resolve, reject ) =>
-  ### TAINT normalize fullwidth characters ###
-  ### TAINT remove annotations from readings (e.g. 'おひいさま(ok)') ###
-  ### TAINT recognize, repair conflated entries like
-    一昨年(P);おと年 [いっさくねん(一昨年)(P);おととし(P)] /(n-adv,n-t) year before last/(P)/EntL1576060X/
-    上枝;秀つ枝 [うわえだ(上枝);うわえ(上枝);ほつえ] /(n) (See 下枝) upper branches of a tree/EntL2579960/
-
-    try to recognize entries where
-
-    * one or more (stretches) kana from a term that has kana and kanji do not appear in a corresponding
-      kana-only term. (This test is, strictly speaking, not sufficient.)
-    * there are different kana-only (hg & kt) terms.
-
-  ###
-  ### TAINT some entries are loosing data:
-
-  子猫(P);仔猫;子ネコ;小猫;子ねこ;仔ネコ [こねこ(子猫,仔猫,小猫,子ねこ)(P);こネコ(子ネコ,仔ネコ);コネコ] /(n) (1) kitten/(2) small cat/(P)/EntL1593380X/
-
-  'reading',
-  '子猫,仔猫,小猫,子ねこ',
-  {
-    reading: 'こねこ(子猫,仔猫,小猫,子ねこ)',
-    candidate: '子ねこ',
-    glosses: '(n) (1) kitten; (2) small cat; (P)'
-  }
-
-  `コネコ` is in source, but not in target.
-  ###
   target_filename   = ( @_drop_extension PATH.basename settings.source_path ) + '.sql'
   target_path       = PATH.resolve PATH.join __dirname, '../../.cache', target_filename
   help "translating #{rpr PATH.relative process.cwd(), settings.source_path}"
@@ -265,15 +270,18 @@ as_sql = ( x ) ->
     pipeline.push @$split_fields()
     pipeline.push @$validate_plural_row()
     pipeline.push @$fan_out()
-    # pipeline.push PD.$sample 100 / 200000
     pipeline.push @$validate_singular_row()
-    pipeline.push @$normalize()
+    pipeline.push @$normalize_ascii_and_kana()
+    pipeline.push PD.$sample 100 / 200000
     pipeline.push @$remove_annotations()
     pipeline.push @$distribute_refined_readings()
-    pipeline.push @$add_kana_candidates()
+    pipeline.push @$normalize_choonpu()
+    # pipeline.push @$add_kana_candidates()
     pipeline.push @$collect_remarkables()
     pipeline.push @$remove_duplicates()
-    pipeline.push PSPG.$tee_as_table -> resolve()
+    ### TAINT resolve may be called twice ###
+    # pipeline.push PSPG.$tee_as_table -> resolve()
+    ### TAINT resolve may be called before tee has finished writing (?) ###
     pipeline.push @$tee_write_sql target_path
     pipeline.push PD.$drain =>
       help "wrote output to #{rpr PATH.relative process.cwd(), target_path}"
@@ -289,8 +297,8 @@ unless module.parent?
   do ->
     #.......................................................................................................
     settings =
-      # source_path:  PATH.resolve PATH.join __dirname, '../../db/edict2u'
-      source_path:  PATH.resolve PATH.join __dirname, '../../db/edict2u-test'
+      source_path:  PATH.resolve PATH.join __dirname, '../../db/edict2u'
+      # source_path:  PATH.resolve PATH.join __dirname, '../../db/edict2u-test'
       # postprocess: ( triode ) ->
       #   triode.disambiguate_subkey 'n', 'n.'
       #   triode.disambiguate_subkey 'v', 'v.'
