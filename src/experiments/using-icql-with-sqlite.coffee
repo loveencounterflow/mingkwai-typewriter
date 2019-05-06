@@ -362,23 +362,24 @@ DB                        = require '../db'
   db.create_indexes_for_table_edict2u()
   console.timeEnd 'populate-edict2u'
   probes = [
-    # 'ち'
-    # 'ちゅ'
-    # 'ちゅう'
-    # 'ちゅうご'
+    'ち'
+    'ちゅ'
+    'ちゅう'
+    'ちゅうご'
     'ちゅうごく'
-    # 'ちゅうごくの'
-    # 'ちゅうごくのせ'
-    # 'ちゅうごくのせい'
+    'ちゅうごくの'
+    'ちゅうごくのせ'
+    'ちゅうごくのせい'
     'ちゅうごくのせいふ'
     ]
-  limit = 5
+  limit = 10
   for probe in probes
     whisper '-'.repeat 108
+    info probe
     nr = 0
     for row from db.longest_matching_prefix_in_edict2u { q: probe, limit, }
       nr += +1
-      info ( CND.grey nr ), ( CND.grey row.delta_length ), ( CND.blue probe ), ( CND.grey '->' ), ( CND.lime row.candidate )
+      info ( CND.grey nr ), ( CND.grey row.delta_length ), ( CND.grey '->' ), ( CND.lime row.candidate ), ( CND.white row.reading )
   # for row from db.$.query "select * from edict2u where reading like 'ちゅうごく%' order by reading limit 5;"
   #   info row.candidate
   #.........................................................................................................

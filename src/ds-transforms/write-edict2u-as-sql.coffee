@@ -272,7 +272,7 @@ as_sql = ( x ) ->
     pipeline.push @$fan_out()
     pipeline.push @$validate_singular_row()
     pipeline.push @$normalize_ascii_and_kana()
-    pipeline.push PD.$sample 100 / 200000
+    # pipeline.push PD.$sample 100 / 200000
     pipeline.push @$remove_annotations()
     pipeline.push @$distribute_refined_readings()
     pipeline.push @$normalize_choonpu()

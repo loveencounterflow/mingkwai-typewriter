@@ -35,7 +35,7 @@ procedure create_table_edict2u:
   create table edict2u (
       reading       text not null,
       candidate     text not null,
-      glosses       text );
+      gloss         text );
 
 -- ---------------------------------------------------------------------------------------------------------
 procedure create_indexes_for_table_edict2u:
