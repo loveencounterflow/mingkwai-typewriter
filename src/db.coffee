@@ -31,7 +31,7 @@ xrpr2                     = ( x ) -> inspect x, { colors: yes, breakLength: 80, 
 #...........................................................................................................
 ICQL                      = require 'icql'
 INTERTYPE                 = require './types'
-
+abspath                   = ( P... ) -> PATH.resolve PATH.join __dirname, P...
 
 #-----------------------------------------------------------------------------------------------------------
 @get_icql_settings = ->
@@ -40,8 +40,8 @@ INTERTYPE                 = require './types'
   # R.db_path   = join_path __dirname, '../../db/data.db'
   R                 = {}
   R.connector       = require 'better-sqlite3'
-  R.db_path         = join_path __dirname, '../src/experiments/using-intercourse-with-sqlite.db'
-  R.icql_path       = join_path __dirname, '../src/experiments/using-intercourse-with-sqlite.icql'
+  R.db_path         = abspath '../db/mktw.db'
+  R.icql_path       = abspath '../db/mktw.icql'
   return R
 
 #-----------------------------------------------------------------------------------------------------------
@@ -68,7 +68,7 @@ INTERTYPE                 = require './types'
 
 #-----------------------------------------------------------------------------------------------------------
 @load_extensions = ( db ) ->
-  extensions_path = join_path __dirname, '../sqlite-for-mingkwai-ime/extensions'
+  extensions_path = abspath '../sqlite-for-mingkwai-ime/extensions'
   debug 'µ39982', "extensions_path", extensions_path
   db.$.load join_path extensions_path, 'spellfix.so'
   db.$.load join_path extensions_path, 'csv.so'
