@@ -1,0 +1,452 @@
+
+-- ### TAINT group setup procedures under own heading / group ###
+
+-- ---------------------------------------------------------------------------------------------------------
+procedure import_table_unames:
+  create virtual table unames using csv(
+    header    = true,
+    -- ### TAINT don't use absolute paths ###
+    filename  = '/home/flow/io/mingkwai-rack/mingkwai-typewriter/db/unames.csv' );
+
+-- ---------------------------------------------------------------------------------------------------------
+procedure import_table_uname_tokens:
+  create virtual table uname_tokens using csv(
+    header    = true,
+    -- ### TAINT don't use absolute paths ###
+    filename  = '/home/flow/io/mingkwai-rack/mingkwai-typewriter/db/uname-tokens.csv' );
+
+-- ---------------------------------------------------------------------------------------------------------
+procedure import_table_unicode_test:
+  create virtual table unicode_test using csv(
+    header    = true,
+    -- ### TAINT don't use absolute paths ###
+    filename  = '/home/flow/io/mingkwai-rack/mingkwai-typewriter/db/unicode-test.csv' );
+
+-- ---------------------------------------------------------------------------------------------------------
+procedure create_view_unicode_test_with_end_markers:
+  create view unicode_test_with_end_markers as
+    select
+      word || '$' as word
+    from unicode_test;
+
+-- ---------------------------------------------------------------------------------------------------------
+procedure create_table_edict2u:
+  drop table if exists edict2u;
+  create table edict2u (
+      reading       text not null,
+      candidate     text not null,
+      gloss         text );
+
+-- ---------------------------------------------------------------------------------------------------------
+procedure create_indexes_for_table_edict2u:
+  create        index idx_edict2u_reading            on edict2u ( reading );
+  create        index idx_edict2u_candidate          on edict2u ( candidate );
+  create unique index idx_edict2u_reading_candidate  on edict2u ( reading, candidate );
+
+-- =========================================================================================================
+-- FTS5
+-- ---------------------------------------------------------------------------------------------------------
+procedure fts5_create_and_populate_token_tables():
+  -- .......................................................................................................
+  create virtual table fts5_unames_cs using fts5(
+    input,
+    output,
+    tokenize = "ascii" );
+  -- .......................................................................................................
+  create virtual table fts5_unames_cs_vocab using fts5vocab( 'fts5_unames_cs', 'row' );
+  -- .......................................................................................................
+  insert into fts5_unames_cs ( input, output ) select uname, glyph from unames;
+  -- insert into fts5_texnames_ci ( fts5_texnames_ci ) values ( 'rebuild' );
+  -- insert into fts5_texnames_cs ( fts5_texnames_cs ) values ( 'rebuild' );
+
+
+-- ---------------------------------------------------------------------------------------------------------
+query fts5_fetch_uname_token_matches( q, limit ):
+  select * from fts5_unames_cs where input match $q limit $limit;
+
+-- ---------------------------------------------------------------------------------------------------------
+query fts5_fetch_texname_token_matches( q, limit ):
+  -- .......................................................................................................
+  with matches_ci as ( select
+      t.*,
+      'fts5_texnames_ci'           as source,
+      bm25( fts5_texnames_ci )     as rank
+    from fts5_texnames_ci as t
+    where t.input match $q ),
+  -- .......................................................................................................
+  matches_cs as ( select
+      t.*,
+      'fts5_texnames_cs'           as source,
+      bm25( fts5_texnames_cs )     as rank
+    from fts5_texnames_cs as t
+    where t.input match $q ),
+  -- .......................................................................................................
+  matches_union as (
+    select * from matches_ci union all
+    select * from matches_cs ),
+  -- .......................................................................................................
+  v1 as ( select
+      input                                   as input,
+      output                                  as output,
+      source                                  as source,
+      count(*)      over w                    as count,
+      rank                                    as rank,
+      row_number()  over w                    as rnr
+    from matches_union
+    window w as ( partition by output order by rank asc
+      rows between unbounded preceding and unbounded following ) )
+  -- .......................................................................................................
+  select
+      input,
+      output,
+      source,
+      count,
+      rank
+    from v1
+    where rnr = 1
+    order by
+      count desc,
+      rank  asc
+    limit $limit
+    ;
+
+
+-- =========================================================================================================
+-- SPELLFIX
+-- ---------------------------------------------------------------------------------------------------------
+procedure spellfix_create_editcosts():
+  -- .......................................................................................................
+  create table spellfix_editcosts(
+      iLang       integer,
+      cFrom       text,
+      cTo         text,
+      iCost       integer );
+  -- .......................................................................................................
+  insert into spellfix_editcosts values(  0, '',    '?',  10 );
+  insert into spellfix_editcosts values(  0, '?',   '',   100 );
+  insert into spellfix_editcosts values(  0, '?',   '?',  100 );
+-- -- ---------------------------------------------------------------------------------------------------------
+-- procedure create_editcost_triggers():
+  -- -- add a trigger so that inserts to `spellfix_confusables` causes a double-insert in
+  -- -- `spellfix_editcosts`.
+  -- .......................................................................................................
+  -- CONFUSABLES
+  -- .......................................................................................................
+  create view spellfix_confusables as select
+      cFrom   as a,
+      cTo     as b,
+      iCost   as cost
+    from spellfix_editcosts;
+  create trigger insert_to_spellfix_confusables
+    instead of insert on spellfix_confusables
+    begin
+      insert into spellfix_editcosts ( iLang, cFrom, cTo, iCost ) values ( 0, new.a, new.b, new.cost );
+      insert into spellfix_editcosts ( iLang, cFrom, cTo, iCost ) values ( 0, new.b, new.a, new.cost );
+      end;
+  -- .......................................................................................................
+  -- CUSTOM CODES
+  --
+  -- Custom codes may be defined in a `unames-custom-codes.csv` file; each code/word pair will be entered
+  -- into the `spellfix_custom_codes` auxiliary view. The below trigger will create a `soundslike` entry in
+  -- the token table with a high rank and an editcost entry with a low cost to ensure that replacements for
+  -- codes appear near the top (ideally as the first item) of a spellfix search. It is not advisable to use
+  -- codes that *are* tokens or replacements that *are not* tokens. The view `spellfix_custom_codes` view
+  -- may be consulted to find such items.
+  -- .......................................................................................................
+  create table _spellfix_custom_codes_registry (
+    code          text    not null,
+    replacement   text    not null,
+    count         integer not null default 1,
+    is_token      boolean not null,
+    primary key ( code, replacement ) );
+  -- .......................................................................................................
+  create table spellfix_custom_codes_registry_nontokens (
+    code          text    not null,
+    word          text    not null,
+    primary key ( code, word ) );
+  -- .......................................................................................................
+  create view spellfix_custom_codes as select distinct
+      cc.code                                                       as code,
+      cc.replacement                                                as replacement,
+      case when cc.count = 1    then null else cc.count       end   as count,
+      case when tk.word is null then null else cc.code        end   as tokencode
+                                              -- TAINT must compare against uname_tokens
+      -- case when contains_word( cc.replacement ) then 1 else null end   as has_notatoken
+    from
+      _spellfix_custom_codes_registry as cc
+      left join spellfix_uname_tokens as tk on ( cc.code = tk.word );
+  -- .......................................................................................................
+  create view spellfix_custom_codes_defects as select * from spellfix_custom_codes
+    where ( count is not null ) or ( tokencode is not null ) /* or ( notatoken is not null ) */ ;
+  -- .......................................................................................................
+  create trigger insert_to_spellfix_custom_codes
+    instead of insert on spellfix_custom_codes begin
+      insert into _spellfix_custom_codes_registry (
+          code,
+          replacement,
+          is_token )
+        values (
+          new.code,
+          new.replacement,
+          exists ( select 1 from spellfix_uname_tokens as tk where new.replacement = tk.word ) )
+        on conflict ( code, replacement ) do update set count = count + 1;
+      end;
+  -- .......................................................................................................
+  create trigger insert_to_spellfix_custom_codes_registry
+    after insert on _spellfix_custom_codes_registry begin
+      select echo( 'inserting custom code', new.code, '-->', new.replacement );
+      -- ...................................................................................................
+      insert into
+        spellfix_editcosts    ( iLang,  cFrom,    cTo,              iCost )
+        values                ( 0,      new.code, new.replacement,  1     );
+      -- ...................................................................................................
+      insert into
+        spellfix_uname_tokens ( word,             soundslike, rank )
+        values                ( new.replacement,  new.code,   1000 );
+      -- ...................................................................................................
+      insert into spellfix_custom_codes_registry_nontokens ( code, word )
+        with v1 as ( select
+            get_nth_word( new.replacement, gs.value ) as word
+          from
+            generate_series( 1, 10 ) as gs
+          where word is not null )
+        select
+            new.code  as code,
+            v1.word   as word
+          from v1
+          where not exists ( select 1 from uname_tokens as tk where v1.word = tk.uname_token )
+        on conflict ( code, word ) do nothing;
+      -- ...................................................................................................
+      end;
+  -- .......................................................................................................
+  insert into spellfix_confusables values
+    ( 'o',        'ou',         80 ),
+    ( 'o',        'uo',         80 ),
+    ( 'c',        'k',          80 ),
+    ( 'q',        'k',          10 ),
+    ( 'q',        'c',          10 ),
+    ( 'ae',       'ea',         80 ),
+    ( 'wh',       'w',          80 ),
+    ( 'eo',       'oe',         80 ),
+    ( 'th',       'ht',         80 ),
+    ( 'th',       't',          80 ),
+    ( 'ie',       'i',          80 ),
+    ( 'ie',       'ei',         80 ),
+    ( 'n',        'ng',         80 ),
+    ( 'g',        'gh',         80 ),
+    ( 'gh',       '',           80 ),
+    ( 'gh',       'f',          80 ),
+    ( 'ph',       'f',          80 ),
+    ( 'wr',       'r',          80 ),
+    ( 'a',        'aa',         10 ),
+    ( 'b',        'bb',         10 ),
+    ( 'c',        'cc',         10 ),
+    ( 'd',        'dd',         10 ),
+    ( 'e',        'ee',         10 ),
+    ( 'f',        'ff',         10 ),
+    ( 'g',        'gg',         10 ),
+    ( 'h',        'hh',         10 ),
+    ( 'i',        'ii',         10 ),
+    ( 'j',        'jj',         10 ),
+    ( 'k',        'kk',         10 ),
+    ( 'l',        'll',         10 ),
+    ( 'm',        'mm',         10 ),
+    ( 'n',        'nn',         10 ),
+    ( 'o',        'oo',         10 ),
+    ( 'p',        'pp',         10 ),
+    ( 'q',        'qq',         10 ),
+    ( 'r',        'rr',         10 ),
+    ( 's',        'ss',         10 ),
+    ( 't',        'tt',         10 ),
+    ( 'u',        'uu',         10 ),
+    ( 'v',        'vv',         10 ),
+    ( 'w',        'ww',         10 ),
+    ( 'x',        'xx',         10 ),
+    ( 'y',        'yy',         10 ),
+    ( 'z',        'zz',         10 );
+  -- .......................................................................................................
+
+-- ---------------------------------------------------------------------------------------------------------
+procedure spellfix_populate_custom_codes():
+  -- see documentation under `spellfix_create_editcosts`
+  create virtual table spellfix_custom_codes_csv using csv(
+    header    = true,
+    filename  = '/home/flow/io/mingkwai-rack/mingkwai-ime/db/unames-custom-codes.csv' );
+  insert into spellfix_custom_codes ( code, replacement )
+    select
+      code,
+      replacement
+    from spellfix_custom_codes_csv;
+
+-- ---------------------------------------------------------------------------------------------------------
+procedure spellfix_create_and_populate_token_tables():
+  -- .......................................................................................................
+  -- create virtual table spellfix_uname_tokens using spellfix1;
+  create virtual table spellfix_uname_tokens using spellfix1( edit_cost_table=spellfix_editcosts );
+  insert into spellfix_uname_tokens ( word, rank )
+    select
+      uname_token,
+      rank
+    from uname_tokens;
+  -- insert into spellfix_uname_tokens ( word, soundslike, rank ) values ( 'hieroglyphic', 'hgl', 1000 );
+  -- insert into spellfix_uname_tokens ( word, soundslike, rank ) values ( 'istanbul', 'capital', 1000 );
+  -- insert into spellfix_uname_tokens ( word, soundslike, rank ) values ( 'capital', 'istanbul', 1000 );
+  -- .......................................................................................................
+  -- create table spellfix_fts5 using spellfix1;
+  -- insert into spellfix_fts5 ( word ) select texname from texnames;
+
+
+-- ---------------------------------------------------------------------------------------------------------
+query match_uname_tokens_spellfix( q, initials, limit ):
+  select distinct word from (
+    -- .....................................................................................................
+    -- make sure exact matches always first:
+    select
+        word,
+        -10 as score
+      from spellfix_uname_tokens
+      where true
+        and ( word = $q )
+    -- -- .....................................................................................................
+    -- union all
+    -- select
+    --     word,
+    --     score
+    --   from spellfix_uname_tokens
+    --   where true
+    --     and ( scope = $initials )
+    --     and ( word match $q )
+    --     and ( top = $limit )
+    -- .....................................................................................................
+    union all
+    select
+        word,
+        score
+      from spellfix_uname_tokens
+      where true
+        and ( scope = $initials )
+        and ( word match $q || '*' )
+        and ( top = $limit )
+    )
+  order by score asc
+  limit $limit;
+
+-- ---------------------------------------------------------------------------------------------------------
+query get_spellfix1_phonehash( q ): select spellfix1_phonehash( $q );
+
+-- ---------------------------------------------------------------------------------------------------------
+query match_uname_tokens_spellfix_with_scores( q, initials, limit ):
+  select distinct * from (
+    select
+        null as word,
+        null as score,
+        null as matchlen,
+        null as distance,
+        null as qphonehash,
+        null as wphonehash,
+        null as source
+      where false union all
+    select
+        word, score, matchlen, distance, phonehash, spellfix1_phonehash( word ), 'p'
+      from spellfix_uname_tokens where ( scope = $initials ) and ( word match $q )        and ( top = $limit )
+    union all
+    select
+        word, score, matchlen, distance, phonehash, spellfix1_phonehash( word ), 's'
+      from spellfix_uname_tokens where ( scope = $initials ) and ( word match $q || '*' ) and ( top = $limit )
+    )
+  order by score asc
+  limit $limit;
+
+-- ---------------------------------------------------------------------------------------------------------
+ignore:
+  select word, score from spellfix_uname_tokens where ( word = $q );
+  select $q, $limit;
+      -- t.rank                                                                as rank,
+      -- t.distance                                                            as distance,
+      -- t.langid                                                              as langid,
+      -- t.matchlen                                                            as matchlen,
+      -- t.phonehash                                                           as phonehash,
+      -- t.top                                                                 as top,
+
+-- -- ---------------------------------------------------------------------------------------------------------
+-- query_list_of_rows find_closest_uname_tokens_1( q, limit ):
+--   select word
+--     from spellfix_uname_tokens as t
+--     where ( word match $q ) and ( top = $limit );
+
+-- -- ---------------------------------------------------------------------------------------------------------
+-- query_list_of_value find_closest_uname_tokens_1( q, limit ):
+--   select word
+--     from spellfix_uname_tokens as t
+--     where ( word match $q ) and ( top = $limit );
+
+-- =========================================================================================================
+--
+-- ---------------------------------------------------------------------------------------------------------
+procedure create_xxxxxxxxxxxx():
+  create view xxxxxxxxxxxxxxx as
+    with v1 as ( select *, bm25( fts5_texnames_cs ) from fts5_texnames_cs ) select * from v1 where input match 'alpha acute OR omega';
+
+
+-- =========================================================================================================
+-- STATS
+-- ---------------------------------------------------------------------------------------------------------
+query fetch_stats():
+  /* the creche pattern: */
+  select null as  relation,     null as rowcount where false            union all
+  select          'texnames',           count(*) from texnames          union all
+  select          'fts5_texnames_ci',   count(*) from fts5_texnames_ci  union all
+  select          'fts5_texnames_cs',   count(*) from fts5_texnames_cs  union all
+  select null, null where false;
+
+
+-- =========================================================================================================
+-- LONGEST MATCHING PREFIX
+-- ---------------------------------------------------------------------------------------------------------
+query longest_matching_prefix_in_uname_tokens( q, limit ):
+  with v1 as ( select
+      r1.uname_token                as uname_token,
+      length( $q )                  as length_of_q,
+      length( r1.uname_token )      as length_of_r
+    from uname_tokens as r1
+    where false
+      or ( $q like ( uname_token || '%' ) )
+      or ( uname_token like ( $q || '%' ) ) )
+    select
+        v1.uname_token              as uname_token,
+        v1.length_of_q              as length_of_q,
+        v1.length_of_r              as length_of_r,
+        abs( v1.length_of_q - v1.length_of_r ) as delta_length
+      from v1
+    order by delta_length, uname_token
+    limit $limit;
+
+-- ---------------------------------------------------------------------------------------------------------
+query longest_matching_prefix_in_edict2u( q, limit ):
+  with v1 as ( select
+      r1.reading                    as reading,
+      r1.candidate                  as candidate,
+      length( $q )                  as length_of_q,
+      length( r1.reading )          as length_of_r
+    from edict2u as r1
+    where false
+      -- or ( $q like ( reading || '%' ) )
+      or ( reading like ( $q || '%' ) )
+      )
+    select
+        v1.reading                  as reading,
+        v1.candidate                as candidate,
+        v1.length_of_q              as length_of_q,
+        v1.length_of_r              as length_of_r,
+        abs( v1.length_of_q - v1.length_of_r ) as delta_length
+      from v1
+    order by delta_length, reading
+    limit $limit;
+
+-- ---------------------------------------------------------------------------------------------------------
+query next_characters( prefix, table, field ):
+  select next_char( $prefix, $table, $field )
+  ;
+
+
+

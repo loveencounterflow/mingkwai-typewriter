@@ -294,6 +294,13 @@ DB                        = require '../db'
   return null
 
 #-----------------------------------------------------------------------------------------------------------
+@demo_db_type_of = ( db, name ) ->
+  return db.$.type_of name
+  # for row from db.$.catalog()
+  #   return row.type if row.name is name
+  # return null
+
+#-----------------------------------------------------------------------------------------------------------
 @demo_longest_matching_prefix = ( db ) ->
   count = db.$.first_value db.$.query """select count(*) from uname_tokens;"""
   info "selecting from #{count} entries in uname_tokens"
@@ -391,8 +398,9 @@ DB                        = require '../db'
 unless module.parent?
   DEMO = @
   do ->
-    db = DB.new_db { clear: true, }
-    DEMO._prepare_db db
+    db = DB.new_db { clear: false, }
+    # db = DB.new_db { clear: true, }
+    # DEMO._prepare_db db
     # db = await DEMO.new_db()
     # DEMO.demo_uname_tokens db
     # DEMO.demo_fts5_token_phrases     db
@@ -407,9 +415,11 @@ unless module.parent?
     # DEMO.demo_spellfix                 db
     # DEMO.demo_fts5_broken_phrases      db
     # DEMO.demo_json                     db
-    # DEMO.demo_catalog                  db
+    DEMO.demo_catalog                  db
+    info 'µ33344', rpr DEMO.demo_db_type_of db, 'edict2u'
+    info 'µ33344', rpr DEMO.demo_db_type_of db, 'xxx'
     # DEMO.demo_longest_matching_prefix  db
-    DEMO.demo_edict2u                  db
+    # DEMO.demo_edict2u                  db
     # DEMO.demo_nextchr                  db
     return null
 
