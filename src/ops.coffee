@@ -47,6 +47,7 @@ global.S                  = require '../lib/settings' ### global configuration a
 global.OPS                = {}
 global.XE                 = require '../lib//xemitter'
 
+
 ############################################################################################################
 # Assemble On-Page Script from its modules:
 path  = PATH.resolve PATH.join __dirname, '../lib/'
