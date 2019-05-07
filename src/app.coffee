@@ -59,9 +59,10 @@ do ->
 @list_versions = ->
   ### Log the most important versions to the console: ###
   keys = [
-    'v8'
-    'node'
     'electron'
+    'modules'
+    'node'
+    'v8'
     'chrome'
     'icu'
     'unicode' ]
