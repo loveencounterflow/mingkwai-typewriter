@@ -38,18 +38,6 @@ XXX_SETTINGS =
 @table_name   = 'edict2u'
 
 #-----------------------------------------------------------------------------------------------------------
-@kanji_from_pinyin = ( text ) ->
-  text            = text.toLowerCase() if XXX_SETTINGS.search_with_lower_case
-  results         = kanji_triode.find text
-  R               = []
-  for [ pinyin, lemmata, ] in results
-    R.push lemma for lemma in lemmata
-    if R.length > XXX_SETTINGS.max_search_results
-      R.length = XXX_SETTINGS.max_search_results
-      break
-  return R
-
-#-----------------------------------------------------------------------------------------------------------
 @initialize = ->
   @initialized = true
   return if ( db.$.type_of @table_name ) is 'table'
@@ -64,12 +52,17 @@ XXX_SETTINGS =
   log "created table #{@table_name} and indexes in #{dt}ms"
 
 #-----------------------------------------------------------------------------------------------------------
+@kanji_from_kana = ( q, limit = 50 ) ->
+  return ( row.candidate for row from db.longest_matching_prefix_in_edict2u { q, limit, } )
+
+#-----------------------------------------------------------------------------------------------------------
 @on_transcribe = ( d ) ->
   @initialize() unless @initialized
   { otext, }  = d.value
   return null unless otext.length > 0
-  ntext       = "[#{otext}]"
-  XE.emit PD.new_event '^replace-text', assign {}, d.value, { ntext, }
+  # XE.emit PD.new_event '^replace-text', assign {}, d.value, { ntext, }
+  candidates = @kanji_from_kana otext
+  XE.emit PD.new_event '^candidates', assign { candidates, }, d.value
   return null
 
 
