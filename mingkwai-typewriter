@@ -5,4 +5,4 @@ cd "$home"
 
 # this is now set from `app.js`:
 # electron --force-device-scale-factor=1.25 lib/app.js
-electron lib/app.js
+node_modules/electron/dist/electron lib/app.js
