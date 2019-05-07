@@ -72,7 +72,7 @@ do ->
 
 #-----------------------------------------------------------------------------------------------------------
 @launch = ->
-  debug 'µ11233', 'launch'
+  help 'µ11233', 'launch'
   main_window = new BrowserWindow S.window.electron
   main_window.loadURL URL.format { pathname: page_html_path, protocol: 'file:', slashes: true, }
   #.........................................................................................................
