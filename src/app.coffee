@@ -80,10 +80,14 @@ do ->
   main_window.on 'unresponsive', =>
     alert "main_window unresponsive!"
   #.........................................................................................................
-  process.on 'uncaughtException',  ( error ) =>
-    alert "uncaught exception"
-    alert rpr error
-    process.exit 1
+  # process.on 'uncaughtException',  ( error ) =>
+  #   alert "uncaught exception"
+  #   alert rpr error
+  #   process.exit 1
+  # process.on 'unhandledRejection',  ( error ) =>
+  #   alert "unhandled rejection"
+  #   alert rpr error
+  #   process.exit 1
   #.........................................................................................................
   main_window.webContents.on 'crashed', =>
     alert "main_window crashed!"
