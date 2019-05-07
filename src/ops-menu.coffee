@@ -67,9 +67,11 @@ add_context_menu          = require 'electron-context-menu'
       { role: 'forcereload'         }
       { role: 'toggledevtools'      }
       { type: 'separator'           }
-      { role: 'resetzoom'           }
-      { role: 'zoomin'              }
-      { role: 'zoomout'             }
+      { role: 'resetZoom'           }
+      { role: 'zoomIn', accelerator: 'Ctrl+=',  }
+      { role: 'zoomOut',  }
+      # { role: 'zoomIn', accelerator: 'Ctrl+=',              }
+      # { role: 'zoomOut', accelerator: 'CmdOrCtrl+-', }
       { type: 'separator'           }
       { role: 'togglefullscreen'    } ] }
   #.........................................................................................................
