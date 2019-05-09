@@ -28,7 +28,14 @@ XXX_SETTINGS =
 #-----------------------------------------------------------------------------------------------------------
 @display_name = '簡單繁體漢字'
 @sigil        = '繁'
-kanji_triode  = require '../../.cache/cedict_ts.cdt.js'
+kanji_triode  = null
+#...........................................................................................................
+@initialized              = false
+
+#-----------------------------------------------------------------------------------------------------------
+@initialize = ->
+  @initialized  = true
+  kanji_triode  = require '../../.cache/cedict_ts.cdt.js'
 
 #-----------------------------------------------------------------------------------------------------------
 @kanji_from_pinyin = ( text ) ->
@@ -44,6 +51,7 @@ kanji_triode  = require '../../.cache/cedict_ts.cdt.js'
 
 #-----------------------------------------------------------------------------------------------------------
 @on_transcribe = ( d ) ->
+  @initialize() unless @initialized
   { otext, }  = d.value
   return XE.emit PD.new_event '^candidates', { candidates: [], } if otext.length is 0
   candidates = @kanji_from_pinyin otext
