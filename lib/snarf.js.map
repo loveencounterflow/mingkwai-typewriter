@@ -1,0 +1,13 @@
+{
+  "version": 3,
+  "file": "snarf.js",
+  "sourceRoot": "..",
+  "sources": [
+    "src/snarf.coffee"
+  ],
+  "names": [],
+  "mappings": ";AAAA;EAAA;EACA,MAAM,CAAC,OAAP,GAAiB,CAAA;AADjB",
+  "sourcesContent": [
+    "### This module is used to communicate values betwenn main process and renderer process ###\nmodule.exports = {}\n"
+  ]
+}
