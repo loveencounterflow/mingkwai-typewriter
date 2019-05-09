@@ -19,10 +19,13 @@ whisper                   = CND.get_logger 'whisper',   badge
 echo                      = CND.echo.bind CND
 #...........................................................................................................
 PATH 											= require 'path'
+new_numeral               = require 'numeral'
 #...........................................................................................................
 @assign                   = Object.assign
 @abspath                  = ( P... ) -> PATH.resolve PATH.join __dirname, '..', P...
 @relpath 									= ( P... ) -> PATH.relative process.cwd(), PATH.join P...
+@format_float             = ( x ) -> ( new_numeral x ).format '0,0.000'
+@format_integer           = ( x ) -> ( new_numeral x ).format '0,0'
 
 
 
