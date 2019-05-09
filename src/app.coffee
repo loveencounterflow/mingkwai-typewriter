@@ -19,6 +19,9 @@ FS                        = require 'fs'
 URL                       = require 'url'
 inspect                   = ( require 'util' ).inspect
 log                       = ( P... ) -> process.stdout.write ( rpr P ) + '\n'
+snarf                     = require './snarf'
+snarf.app_t0              = 1000 * parseFloat process.argv[ 2 ]
+snarf.app_t0              = Date.now() unless CND.isa_number snarf.app_t0
 { app
   BrowserWindow }         = require 'electron'
 TEMPLATES                 = require './templates'
