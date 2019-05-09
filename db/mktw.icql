@@ -430,7 +430,7 @@ query longest_matching_prefix_in_edict2u( q, limit ):
       length( r1.reading )          as length_of_r
     from edict2u as r1
     where false
-      -- or ( $q like ( reading || '%' ) )
+      or ( $q like ( reading || '%' ) )
       or ( reading like ( $q || '%' ) )
       )
     select
