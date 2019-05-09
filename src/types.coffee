@@ -47,8 +47,13 @@ intertype                 = new Intertype module.exports
 itself in the upcoming PipeDreams version. ###
 @declare 'replace_text_event',
   tests:
-    '? has keys 1':                 ( x ) -> @has_keys          x, 'otext', 'ntext'
-    '? has keys 2':                 ( x ) -> @has_keys          x, 'tsnr', 'sigil', 'origin', 'target', 'tsm'
+    "? has key 'otext'":            ( x ) -> @has_key           x, 'otext'
+    "? has key 'ntext'":            ( x ) -> @has_key           x, 'ntext'
+    "? has key 'tsnr'":             ( x ) -> @has_key           x, 'tsnr'
+    "? has key 'sigil'":            ( x ) -> @has_key           x, 'sigil'
+    "? has key 'origin'":           ( x ) -> @has_key           x, 'origin'
+    "? has key 'target'":           ( x ) -> @has_key           x, 'target'
+    "? has key 'tsm'":              ( x ) -> @has_key           x, 'tsm'
     '?.otext is a nonempty text':   ( x ) -> @isa.nonempty_text x.otext
     '?.ntext is a nonempty text':   ( x ) -> @isa.nonempty_text x.ntext
     '?.sigil is a nonempty text':   ( x ) -> @isa.nonempty_text x.sigil
@@ -56,13 +61,7 @@ itself in the upcoming PipeDreams version. ###
     '?.target is a position':       ( x ) -> @isa.position      x.target
     '?.tsm is a range':             ( x ) -> @isa.range         x.tsm
     '?.origin is a range':          ( x ) -> @isa.range         x.origin
-   # { otext: 'ka',
-   #   tsnr: 2,
-   #   sigil: 'ひ',
-   #   target: { line: 0, ch: 6 },
-   #   tsm: { from: { line: 0, ch: 6 }, to: { line: 0, ch: 11 } },
-   #   origin: { from: { line: 0, ch: 9 }, to: { line: 0, ch: 11 } },
-   #   ntext: 'か' } }
+    '?.match is a *text':           ( x ) -> ( not x.match? ) or @isa.text x.match
 
 #-----------------------------------------------------------------------------------------------------------
 @declare 'edict2u_plural_row',
