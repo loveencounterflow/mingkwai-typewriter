@@ -52,17 +52,20 @@ XXX_SETTINGS =
   log "created table #{@table_name} and indexes in #{dt}ms"
 
 #-----------------------------------------------------------------------------------------------------------
-@kanji_from_kana = ( q, limit = 50 ) ->
-  return ( row.candidate for row from db.longest_matching_prefix_in_edict2u { q, limit, } )
+@kanji_from_kana = ( q, limit = 500 ) ->
+  for row from db.longest_matching_prefix_in_edict2u { q, limit, }
+    # log 'µ00878', row
+    { candidate, reading, } = row
+    yield { candidate, reading, }
+  return null
 
 #-----------------------------------------------------------------------------------------------------------
 @on_transcribe = ( d ) ->
   @initialize() unless @initialized
   { otext, }  = d.value
   return null unless otext.length > 0
-  # XE.emit PD.new_event '^replace-text', assign {}, d.value, { ntext, }
-  candidates = @kanji_from_kana otext
-  XE.emit PD.new_event '^candidates', assign { candidates, }, d.value
+  candidates  = [ ( @kanji_from_kana otext )..., ]
+  XE.emit PD.new_event '^candidates', assign {}, d.value, { candidates, }
   return null
 
 

@@ -326,13 +326,20 @@ function) has terminated. ###
   validate.replace_text_event v = d.value
   @freeze()
   ### TAINT use own API ###
-  S.codemirror.editor.replaceRange '', v.origin.from, v.origin.to ### delete original text ###
-  # @toggle_tsm_at_position v.origin, v.tsnr, v.sigil               ### insert new TSM (where called for) ###
+  if v.match?
+    target = { line: v.origin.from.line, ch: ( v.origin.from.ch + v.match.length ), }
+    S.codemirror.editor.replaceRange '', v.origin.from, target
+  else
+    S.codemirror.editor.replaceRange '', v.origin.from, v.origin.to ### delete original text ###
+    # @toggle_tsm_at_position v.origin, v.tsnr, v.sigil               ### insert new TSM (where called for) ###
+  #.........................................................................................................
   S.codemirror.editor.replaceRange v.ntext, v.target              ### insert new text ###
-  # S.codemirror.editor.replaceRange '', v.tsm.from, v.tsm.to       ### delete TSM ###
-  # S.codemirror.editor.replaceRange v.ntext, v.target              ### insert new tsm ###
-  # debug 'µ33332', d
-  ### TAINT shouldn't be necessary to destructure `v.origin` here ###
+    # S.codemirror.editor.replaceRange '', v.tsm.from, v.tsm.to       ### delete TSM ###
+    # S.codemirror.editor.replaceRange v.ntext, v.target              ### insert new tsm ###
+  #.........................................................................................................
+  if v.match?
+    @emit_transcribe_event()
+  #.........................................................................................................
   @thaw()
   return null
 
@@ -347,11 +354,16 @@ function) has terminated. ###
     return null
   #.........................................................................................................
   @focusframe_to_candidates() if ( not S.focus_is_candidates ) and ( v.focus_candidates ? true )
-  rows    = ( ( T.get_flexgrid_html ( idx + 1 ), glyph ) for glyph, idx in v.candidates ).join '\n'
-  ( jQuery '#candidates-flexgrid'     ).append rows
+  #.........................................................................................................
+  rows = []
+  for entry, idx in v.candidates
+    rows.push T.get_flexgrid_html ( idx + 1 ), entry.candidate
+  ( jQuery '#candidates-flexgrid' ).append rows.join '\n'
   #.........................................................................................................
   ### TAINT code duplication ###
   glyphboxes = jQuery '#candidates-flexgrid div.glyph'
+  nv          = assign {}, v
+  delete nv.candidates
   glyphboxes.on 'click', ( e ) =>
     me = jQuery e.target
     ### TAINT code duplication ###
@@ -359,11 +371,11 @@ function) has terminated. ###
     glyphboxes.removeClass  'cdtsel'
     me.addClass             'cdtsel'
     #.......................................................................................................
-    # lnr   = me.attr 'lnr'
+    lnr   = me.attr 'lnr'
     # lcol  = me.attr 'lcol'
     # @log "µ33983 clicked on #{me.text()} #{jr lnr} / #{jr lcol}"
-    d.value.ntext = me.text()
-    XE.emit PD.new_event '^replace-text', d.value
+    match = v.candidates[ lnr ]?.reading ? null
+    XE.emit PD.new_event '^replace-text', assign nv, { ntext: me.text(), match, }
   #.........................................................................................................
   @index_candidates()
   return null
