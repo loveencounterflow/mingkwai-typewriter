@@ -50,12 +50,12 @@ it would be advantageous to derive them somehow from the source or the running i
   ### TAINT consider to map keys pressed in CM to PipeDreams events so we can handle all keyboard shortcuts
   in a unified way (and idependently from originating DOM element) ###
   mktw_keymap =
-    'Left':         ( cm ) => @move_left                        cm
-    'Right':        ( cm ) => @move_right                       cm
-    'Up':           ( cm ) => @move_up                          cm
-    'Down':         ( cm ) => @move_down                        cm
-    'Tab':          ( cm ) => @move_nxtline_first               cm
-    'Shift-Tab':    ( cm ) => @move_prvline_first               cm
+    'Ctrl-Left':         ( cm ) => @move_left                        cm
+    'Ctrl-Right':        ( cm ) => @move_right                       cm
+    'Ctrl-Up':           ( cm ) => @move_up                          cm
+    'Ctrl-Down':         ( cm ) => @move_down                        cm
+    'Ctrl-Tab':          ( cm ) => @move_nxtline_first               cm
+    'Shift-Ctrl-Tab':    ( cm ) => @move_prvline_first               cm
     'Home':         ( cm ) => @move_to_home                     cm
     'End':          ( cm ) => @move_to_end                      cm
     'Space':        ( cm ) => @select_candidate_or_insert_space cm
