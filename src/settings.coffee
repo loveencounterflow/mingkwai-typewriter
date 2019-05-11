@@ -109,7 +109,7 @@ module.exports = S =
       autoCloseBrackets:            true
       autocorrect:                  false
       autofocus:                    true
-      cursorBlinkRate:              200
+      cursorBlinkRate:              500
       cursorHeight:                 1
       cursorScrollMargin:           5
       direction:                    'ltr'
