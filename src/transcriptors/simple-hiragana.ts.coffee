@@ -53,7 +53,7 @@ PD                        = require 'pipedreams'
   if otext.length is 0
     XE.emit PD.new_event '^candidates', { candidates: [], focus_candidates, }
   else
-    candidates        = ( lemma for [ transcription, lemma, ] in @_hiragana_triode.find otext )
+    candidates        = (  { candidate: lemma, } for [ transcription, lemma, ] in @_hiragana_triode.find otext )
     XE.emit PD.new_event '^candidates', assign { candidates, focus_candidates, }, d.value
   #.........................................................................................................
   ### Keyboard: ###

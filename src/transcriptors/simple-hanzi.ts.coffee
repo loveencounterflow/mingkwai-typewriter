@@ -43,7 +43,8 @@ kanji_triode  = null
   results         = kanji_triode.find text
   R               = []
   for [ pinyin, lemmata, ] in results
-    R.push lemma for lemma in lemmata
+    for lemma in lemmata
+      R.push { candidate: lemma, }
     if R.length > XXX_SETTINGS.max_search_results
       R.length = XXX_SETTINGS.max_search_results
       break
