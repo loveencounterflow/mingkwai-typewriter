@@ -61,16 +61,26 @@ it would be advantageous to derive them somehow from the source or the running i
     'Space':        ( cm ) => @select_candidate_or_insert_space cm
     'Ctrl-M':       ( cm ) => @cm_jump_to_tsr_or_bracket()
     'Shift-Ctrl-M': ( cm ) => @cm_mark_tsr_or_bracket()
-    'Ctrl-0':       ( cm ) => @insert_tsm 0
-    'Ctrl-1':       ( cm ) => @insert_tsm 1
-    'Ctrl-2':       ( cm ) => @insert_tsm 2
-    'Ctrl-3':       ( cm ) => @insert_tsm 3
-    'Ctrl-4':       ( cm ) => @insert_tsm 4
-    'Ctrl-5':       ( cm ) => @insert_tsm 5
-    'Ctrl-6':       ( cm ) => @insert_tsm 6
-    'Ctrl-7':       ( cm ) => @insert_tsm 7
-    'Ctrl-8':       ( cm ) => @insert_tsm 8
-    'Ctrl-9':       ( cm ) => @insert_tsm 9
+    'Ctrl-0':       ( cm ) => @insert_tsm 0, { toggle: true, }
+    'Ctrl-1':       ( cm ) => @insert_tsm 1, { toggle: true, }
+    'Ctrl-2':       ( cm ) => @insert_tsm 2, { toggle: true, }
+    'Ctrl-3':       ( cm ) => @insert_tsm 3, { toggle: true, }
+    'Ctrl-4':       ( cm ) => @insert_tsm 4, { toggle: true, }
+    'Ctrl-5':       ( cm ) => @insert_tsm 5, { toggle: true, }
+    'Ctrl-6':       ( cm ) => @insert_tsm 6, { toggle: true, }
+    'Ctrl-7':       ( cm ) => @insert_tsm 7, { toggle: true, }
+    'Ctrl-8':       ( cm ) => @insert_tsm 8, { toggle: true, }
+    'Ctrl-9':       ( cm ) => @insert_tsm 9, { toggle: true, }
+    'Shift-Ctrl-0': ( cm ) => @insert_tsm 0, { toggle: false, }
+    'Shift-Ctrl-1': ( cm ) => @insert_tsm 1, { toggle: false, }
+    'Shift-Ctrl-2': ( cm ) => @insert_tsm 2, { toggle: false, }
+    'Shift-Ctrl-3': ( cm ) => @insert_tsm 3, { toggle: false, }
+    'Shift-Ctrl-4': ( cm ) => @insert_tsm 4, { toggle: false, }
+    'Shift-Ctrl-5': ( cm ) => @insert_tsm 5, { toggle: false, }
+    'Shift-Ctrl-6': ( cm ) => @insert_tsm 6, { toggle: false, }
+    'Shift-Ctrl-7': ( cm ) => @insert_tsm 7, { toggle: false, }
+    'Shift-Ctrl-8': ( cm ) => @insert_tsm 8, { toggle: false, }
+    'Shift-Ctrl-9': ( cm ) => @insert_tsm 9, { toggle: false, }
   #.........................................................................................................
   S.codemirror.editor.addKeyMap mktw_keymap
   return null

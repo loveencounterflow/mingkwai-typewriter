@@ -27,9 +27,15 @@ add_context_menu          = require 'electron-context-menu'
   R = []
   for t, tsnr in S.transcriptors
     do ( t, tsnr ) =>
-      if tsnr < 10 then   label = "&#{tsnr} [#{t.sigil}] #{t.display_name}"
-      else                label =  "#{tsnr} [#{t.sigil}] #{t.display_name}"
-      click = => @insert_tsm tsnr
+      if tsnr < 10 then   label = "toggle &#{tsnr} [#{t.sigil}] #{t.display_name}"
+      else                label = "toggle #{tsnr} [#{t.sigil}] #{t.display_name}"
+      click = => @insert_tsm tsnr, { toggle: true, }
+      R.push { label, click, }
+  for t, tsnr in S.transcriptors
+    do ( t, tsnr ) =>
+      if tsnr < 10 then   label = "add &#{tsnr} [#{t.sigil}] #{t.display_name}"
+      else                label = "add #{tsnr} [#{t.sigil}] #{t.display_name}"
+      click = => @insert_tsm tsnr, { toggle: false, }
       R.push { label, click, }
   return R
 

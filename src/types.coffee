@@ -90,6 +90,11 @@ itself in the upcoming PipeDreams version. ###
     "?.line is a nonempty text":        ( x ) -> @isa.nonempty_text x.line
 
 #-----------------------------------------------------------------------------------------------------------
+@declare 'settings_for_insert_tsm',
+  tests:
+    "?.toggle is *boolean":            ( x ) -> ( not x.toggle? ) or @isa.boolean x.toggle
+
+#-----------------------------------------------------------------------------------------------------------
 regex_cid_ranges =
   hiragana:     '[\u3041-\u3096]'
   katakana:     '[\u30a1-\u30fa]'

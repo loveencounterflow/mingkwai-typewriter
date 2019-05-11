@@ -167,7 +167,7 @@ types                     = require './types'
   return null
 
 #-----------------------------------------------------------------------------------------------------------
-@_toggle_tsm_at_position = ( position, tsnr, sigil ) ->
+@_toggle_tsm_at_position = ( position, tsnr, sigil, settings ) ->
   ### Called by `insert_tsm()`. ###
   ### TSM: TranScription Marker. TSR (TranScription Region) extends from marker up to cursor. ###
   ### TAINT unify with `format_as_tsm_at_position` ###
@@ -178,12 +178,12 @@ types                     = require './types'
   old_tsnr        = old_textmarker?.attributes?.tsnr                  ? null
   #.........................................................................................................
   if ( tsnr isnt 0 ) and ( ( not old_textmarker? ) or ( old_tsnr isnt tsnr ) )
-    tsm_prefix    = S.transcriptor_region_markers?.prefix ? '\u{f11c}'
-    tsm_suffix    = S.transcriptor_region_markers?.suffix ? '\u{f005}'
-    tsm           = "#{tsm_prefix}#{sigil}#{tsm_suffix}"
-    clasz         = "tsr tsr#{tsnr}"
-    rposition     = { line: position.line, ch: ( position.ch + tsm.length ), }
-    settings      =
+    tsm_prefix            = S.transcriptor_region_markers?.prefix ? '\u{f11c}'
+    tsm_suffix            = S.transcriptor_region_markers?.suffix ? '\u{f005}'
+    tsm                   = "#{tsm_prefix}#{sigil}#{tsm_suffix}"
+    clasz                 = "tsr tsr#{tsnr}"
+    rposition             = { line: position.line, ch: ( position.ch + tsm.length ), }
+    settings_for_markText =
       attributes:       { tsnr, }
       replacedWith:     ( jQuery "<span class=#{jr clasz}>#{sigil}</span>" )[ 0 ]
       atomic:           true
@@ -191,20 +191,22 @@ types                     = require './types'
       inclusiveRight:   false
     ### TAINT use own API ###
     S.codemirror.editor.replaceRange tsm, position
-    S.codemirror.editor.markText position, rposition, settings
+    S.codemirror.editor.markText position, rposition, settings_for_markText
   #.........................................................................................................
-  @cm_remove_textmarker old_textmarker if old_textmarker?
+  @cm_remove_textmarker old_textmarker if settings.toggle and old_textmarker?
   return null
 
 #-----------------------------------------------------------------------------------------------------------
-@insert_tsm = ( tsnr ) ->
+@insert_tsm = ( tsnr, settings ) ->
   ### Called upon keyboard shortcut, menu item selection. ###
   validate.tsnr   tsnr
   ### Bound to `ctrl+0` ... `ctrl+4` ###
+  settings  = assign {}, { toggle: true, }, settings
+  validate.settings_for_insert_tsm settings
   ts        = S.transcriptors[ tsnr ]
   ts       ?= S.transcriptors[ 0 ]
   position  = @cm_get_position()
-  @_toggle_tsm_at_position position, tsnr, ts.sigil
+  @_toggle_tsm_at_position position, tsnr, ts.sigil, settings
   # @emit_transcribe_event()
   return null
 
