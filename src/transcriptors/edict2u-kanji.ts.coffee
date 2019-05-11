@@ -18,6 +18,7 @@ whisper                   = CND.get_logger 'whisper',   badge
 echo                      = CND.echo.bind CND
 #...........................................................................................................
 PD                        = require 'pipedreams'
+JACONV                    = require 'jaconv'
 #...........................................................................................................
 { assign
   relpath
@@ -52,11 +53,30 @@ XXX_SETTINGS =
   log "created table #{@table_name} and indexes in #{dt}ms"
 
 #-----------------------------------------------------------------------------------------------------------
-@kanji_from_kana = ( q, limit = 500 ) ->
-  for row from db.longest_matching_prefix_in_edict2u { q, limit, }
-    # log 'µ00878', row
+@walk_transcriptions = ( q, limit = 500 ) ->
+  seen = new Set()
+  #.........................................................................................................
+  unless seen.has ( original = q )
+    seen.add original
+    yield { candidate: original, reading: original, }
+  #.........................................................................................................
+  unless seen.has ( katakana = JACONV.toKatakana q )
+    seen.add katakana
+    yield { candidate: katakana, reading: katakana, }
+  #.........................................................................................................
+  unless seen.has ( hiragana = JACONV.toHiragana q )
+    seen.add hiragana
+    yield { candidate: hiragana, reading: hiragana, }
+  #.........................................................................................................
+  for row from db.longest_matching_prefix_in_edict2u { q: hiragana, limit, }
     { candidate, reading, } = row
+    continue if ( candidate is reading ) and ( seen.has candidate )
     yield { candidate, reading, }
+  #.........................................................................................................
+  return null
+
+#-----------------------------------------------------------------------------------------------------------
+@kanji_from_kana = ( q, limit = 500 ) ->
   return null
 
 #-----------------------------------------------------------------------------------------------------------
