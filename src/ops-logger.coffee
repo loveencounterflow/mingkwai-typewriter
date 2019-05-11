@@ -20,8 +20,6 @@ info                      = CND.get_logger 'info',      badge
 _lognr                    = 0
 { remote, }               = ( require 'electron' )
 rprocess                  = remote.process
-rprocess.stdout.write 'µ55398' + ( ( k for k of ( require 'electron' ).remote ).join ', ' ) + '\n'
-# rprocess.stdout.write CND.orange "µ33389 #{remote.getGlobal().app_t0}\n"
 { assign
   abspath
   format_float }          = require './helpers'
