@@ -371,10 +371,10 @@ function) has terminated. ###
     glyphboxes.removeClass  'cdtsel'
     me.addClass             'cdtsel'
     #.......................................................................................................
-    lnr   = me.attr 'lnr'
+    lnr   = parseInt ( me.attr 'lnr' ), 10
     # lcol  = me.attr 'lcol'
     # @log "µ33983 clicked on #{me.text()} #{jr lnr} / #{jr lcol}"
-    match = v.candidates[ lnr ]?.reading ? null
+    match = v.candidates[ lnr - 1 ]?.reading ? null
     XE.emit PD.new_event '^replace-text', assign nv, { ntext: me.text(), match, }
   #.........................................................................................................
   @index_candidates()
