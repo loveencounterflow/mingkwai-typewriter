@@ -84,7 +84,7 @@ XXX_SETTINGS =
   @initialize() unless @initialized
   { otext, }  = d.value
   return null unless otext.length > 0
-  candidates  = [ ( @kanji_from_kana otext )..., ]
+  candidates  = [ ( @walk_transcriptions otext )..., ]
   XE.emit PD.new_event '^candidates', assign {}, d.value, { candidates, }
   return null
 
