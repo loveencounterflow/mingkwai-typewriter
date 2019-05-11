@@ -152,7 +152,7 @@ types                     = require './types'
 @format_as_tsm_at_position = ( fromto, tsnr, sigil ) ->
   ### Called by `format_existing_tsms()`, `on_replace_text()` to insert an atomic CM textmarker at the
   position indicated. ###
-  ### TAINT unify with `toggle_tsm_at_position` ###
+  ### TAINT unify with `_toggle_tsm_at_position` ###
   validate.range  fromto
   validate.tsnr   tsnr
   clasz         = "tsr tsr#{tsnr}"
@@ -167,7 +167,7 @@ types                     = require './types'
   return null
 
 #-----------------------------------------------------------------------------------------------------------
-@toggle_tsm_at_position = ( position, tsnr, sigil ) ->
+@_toggle_tsm_at_position = ( position, tsnr, sigil ) ->
   ### Called by `insert_tsm()`. ###
   ### TSM: TranScription Marker. TSR (TranScription Region) extends from marker up to cursor. ###
   ### TAINT unify with `format_as_tsm_at_position` ###
@@ -204,7 +204,7 @@ types                     = require './types'
   ts        = S.transcriptors[ tsnr ]
   ts       ?= S.transcriptors[ 0 ]
   position  = @cm_get_position()
-  @toggle_tsm_at_position position, tsnr, ts.sigil
+  @_toggle_tsm_at_position position, tsnr, ts.sigil
   # @emit_transcribe_event()
   return null
 
@@ -331,7 +331,7 @@ function) has terminated. ###
     S.codemirror.editor.replaceRange '', v.origin.from, target
   else
     S.codemirror.editor.replaceRange '', v.origin.from, v.origin.to ### delete original text ###
-    # @toggle_tsm_at_position v.origin, v.tsnr, v.sigil               ### insert new TSM (where called for) ###
+    # @_toggle_tsm_at_position v.origin, v.tsnr, v.sigil               ### insert new TSM (where called for) ###
   #.........................................................................................................
   S.codemirror.editor.replaceRange v.ntext, v.target              ### insert new text ###
     # S.codemirror.editor.replaceRange '', v.tsm.from, v.tsm.to       ### delete TSM ###
