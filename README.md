@@ -1,3 +1,19 @@
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [Caveat](#caveat)
+- [The MingKwai TypeWriter 明快打字机](#the-mingkwai-typewriter-%E6%98%8E%E5%BF%AB%E6%89%93%E5%AD%97%E6%9C%BA)
+  - [Installation](#installation)
+    - [XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX](#xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx)
+    - [XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX](#xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx-1)
+    - [XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX](#xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx-2)
+    - [Matching User Inputs (Deriving Transcriptions from Probes)](#matching-user-inputs-deriving-transcriptions-from-probes)
+    - [Inspiration](#inspiration)
+    - [Related](#related)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 
 # Caveat
 
@@ -112,7 +128,10 @@ without having to fork the project). This linking step can be repeated by runnin
 * http://www.babelstone.co.uk/Software/BabelMap.html
 * http://www.unipad.org/main/
 
+### Related
 
+* https://github.com/alols/xcape
+* https://www.youtube.com/watch?v=g-TlsNUx0RQ
 
 
 
